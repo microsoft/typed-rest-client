@@ -44,7 +44,7 @@ target.test = function() {
     rm('-Rf', modPath);
     mkdir('-p', modPath);
     pushd('samples');
-    run('npm install ../_build');
+    run('npm install ../_build --production');
     popd();
     run('./node_modules/.bin/tsc -p samples');
 }

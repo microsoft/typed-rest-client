@@ -1,3 +1,5 @@
 typings
 node_modules
 _build
+lib/*.js
+samples/*.js

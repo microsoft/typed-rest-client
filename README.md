@@ -1,6 +1,6 @@
 # Typed Rest and Http Client with TypeScript Typings
 
-A lightweight Rest and Http Client optimized for use with TypeScript and async await.
+A lightweight Rest and Http Client optimized for use with TypeScript with generics and async await.
 
 ## Features
 
@@ -10,6 +10,8 @@ A lightweight Rest and Http Client optimized for use with TypeScript and async a
   - Typings included so no need to acquire separately (great for versioning drift)
   - Layered for Rest or Http use
   - Full Samples and Tests included for usage
+
+![intellisense](./docs/intellisense.png)
 
 ## Install the library
 ```
@@ -24,12 +26,21 @@ See [samples](./samples) for complete coding examples
 
 Typings (.d.ts) are distributed with the client, so intellisense and compile support just works from `tsc` and [vscode]()  
 
-## Build 
+## Pre-Requisites
 
-Pre-req: minimum [Node >= 4.4.7 LTS](https://nodejs.org), preferred [Node 6.9.3 LTS](https://nodejs.org)
+Pre-req: prefer [Node 6.9.3 LTS](https://nodejs.org), minimum [Node >= 4.4.7 LTS](https://nodejs.org)
+Typings: `npm install typings -g`  
+
+Once (or when dependencies change):  
 
 ```bash
 npm install
+typings install
+```
+
+## Build 
+
+```bash
 npm run build
 ```
 

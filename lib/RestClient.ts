@@ -6,47 +6,51 @@ import http = require("http");
 import httpm = require('./HttpClient');
 import ifm = require("./Interfaces");
 
-export interface IRestClientResponse {
+export interface IRestResponse<T> {
     statusCode: number,
-    result: any
+    result: T
 }
 
 export class RestClient {
     client: httpm.HttpClient;
     versionParam: string;
 
-    constructor(userAgent: string, handlers?: ifm.IRequestHandler[], socketTimeout?: number, versionParam?: string) {
+    constructor(userAgent: string, 
+                handlers?: ifm.IRequestHandler[], 
+                socketTimeout?: number, 
+                versionParam?: string) {
+
         // TODO: should we really do this?
         this.versionParam = versionParam || 'api-version';
         this.client = new httpm.HttpClient(userAgent, handlers, socketTimeout);
     }
 
-    public async get(requestUrl: string, 
+    public async get<T>(requestUrl: string, 
                apiVersion: string, 
-               additionalHeaders?: ifm.IHeaders): Promise<IRestClientResponse> {
+               additionalHeaders?: ifm.IHeaders): Promise<IRestResponse<T>> {
 
         var headers = additionalHeaders || {};                    
         headers["Accept"] = this.createAcceptHeader('application/json', apiVersion);         
         
         let res: httpm.HttpClientResponse = await this.client.get(requestUrl, headers);
-        return this._processResponse(res);
+        return this._processResponse<T>(res);
     }
 
-    public async del(requestUrl: string, 
+    public async del<T>(requestUrl: string, 
                apiVersion: string, 
-               additionalHeaders?: ifm.IHeaders): Promise<IRestClientResponse> {
+               additionalHeaders?: ifm.IHeaders): Promise<IRestResponse<T>> {
 
         var headers = additionalHeaders || {};                    
         headers["Accept"] = this.createAcceptHeader('application/json', apiVersion);     
         
         let res: httpm.HttpClientResponse = await this.client.del(requestUrl, headers);
-        return this._processResponse(res);
+        return this._processResponse<T>(res);
     }
 
-    public async create(requestUrl: string, 
+    public async create<T>(requestUrl: string, 
                 apiVersion: string, 
                 resources: any, 
-                additionalHeaders?: ifm.IHeaders): Promise<IRestClientResponse> {
+                additionalHeaders?: ifm.IHeaders): Promise<IRestResponse<T>> {
         
         var headers = additionalHeaders || {};                    
         headers["Accept"] = this.createAcceptHeader('application/json', apiVersion);
@@ -54,13 +58,13 @@ export class RestClient {
         
         let data: string = JSON.stringify(resources, null, 2);
         let res: httpm.HttpClientResponse = await this.client.post(requestUrl, data, headers);
-        return this._processResponse(res);
+        return this._processResponse<T>(res);
     }
 
-    public async update(requestUrl: string, 
+    public async update<T>(requestUrl: string, 
                  apiVersion: string, 
                  resources: any, 
-                 additionalHeaders?: ifm.IHeaders): Promise<IRestClientResponse> {
+                 additionalHeaders?: ifm.IHeaders): Promise<IRestResponse<T>> {
 
         var headers = additionalHeaders || {};                    
         headers["Accept"] = this.createAcceptHeader('application/json', apiVersion);
@@ -68,13 +72,13 @@ export class RestClient {
         
         let data: string = JSON.stringify(resources, null, 2);
         let res: httpm.HttpClientResponse = await this.client.patch(requestUrl, data, headers);
-        return this._processResponse(res);
+        return this._processResponse<T>(res);
     }
 
-    public async replace(requestUrl: string, 
+    public async replace<T>(requestUrl: string, 
                  apiVersion: string, 
                  resources: any, 
-                 additionalHeaders?: ifm.IHeaders): Promise<IRestClientResponse> {
+                 additionalHeaders?: ifm.IHeaders): Promise<IRestResponse<T>> {
 
         var headers = additionalHeaders || {};                    
         headers["Accept"] = this.createAcceptHeader('application/json', apiVersion);
@@ -82,24 +86,24 @@ export class RestClient {
         
         let data: string = JSON.stringify(resources, null, 2);
         let res: httpm.HttpClientResponse = await this.client.put(requestUrl, data, headers);
-        return this._processResponse(res);
+        return this._processResponse<T>(res);
     }
 
-    public async uploadStream(verb: string, requestUrl: string, apiVersion: string, stream: NodeJS.ReadableStream, additionalHeaders: ifm.IHeaders): Promise<IRestClientResponse> {
+    public async uploadStream<T>(verb: string, requestUrl: string, apiVersion: string, stream: NodeJS.ReadableStream, additionalHeaders: ifm.IHeaders): Promise<IRestResponse<T>> {
         var headers = additionalHeaders || {};
         headers["Accept"] = this.createAcceptHeader('application/json', apiVersion);
 
         let res: httpm.HttpClientResponse = await this.client.sendStream(verb, requestUrl, stream, headers);
-        return this._processResponse(res);
+        return this._processResponse<T>(res);
     }
 
     public createAcceptHeader(type: string, apiVersion?: string): string {
         return type + (apiVersion ? (';' + this.versionParam + '=' + apiVersion) : '');
     }
 
-    private async _processResponse(res: httpm.HttpClientResponse): Promise<IRestClientResponse> {
-        return new Promise<IRestClientResponse>(async(resolve, reject) => {
-            let rres: IRestClientResponse = <IRestClientResponse>{};
+    private async _processResponse<T>(res: httpm.HttpClientResponse): Promise<IRestResponse<T>> {
+        return new Promise<IRestResponse<T>>(async(resolve, reject) => {
+            let rres: IRestResponse<T> = <IRestResponse<T>>{};
             let statusCode: number = res.message.statusCode;
             rres.statusCode = statusCode;
 
