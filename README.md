@@ -9,6 +9,7 @@ A lightweight Rest and Http Client optimized for use with TypeScript with generi
 
 ```javascript
 import * as rm from 'typed-rest-client/RestClient';
+
 let restc: rm.RestClient = new rm.RestClient('rest-samples', 
                                              'https://mystudentapiserver');
 
