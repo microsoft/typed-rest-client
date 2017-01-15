@@ -35,15 +35,16 @@ export async function outputHttpBinResponse(body: string, status?: number) {
     }
 }
 
-export function outputRestResponse(res: restm.IRestResponse<HttpBinData>) {
-    console.log('statusCode:' + res.statusCode);
+//
+// This is often not needed.  In this case, using httpbin.org which echos the object
+// in the data property of the json.  It's an artifact of sample service used.
+// But it's useful to note that we do offer a processing function which is invoked on the returned json.
+//
+export function httpBinOptions(): restm.IRequestOptions {
+    let options: restm.IRequestOptions = <restm.IRequestOptions>{};
+    options.responseProcessor = (obj: any) => {
+        return obj['data'];
+    }
 
-    if (res && res.result) {
-        console.log('response from ' + res.result.url);
-        if (res.result.data) {
-            console.log('data:', res.result.data);
-        }
-    }    
+    return options;
 }
-
-

@@ -9,15 +9,6 @@ let baseUrl: string = 'https://httpbin.org';
 let restc: rm.RestClient = new rm.RestClient('rest-samples', 
                                              baseUrl);
 
-//
-// This is often not needed.  In this case, using httpbin.org which echos the object
-// in the data property of the json.  It's an artifact of sample service used.
-// But it's useful to note that we do offer a processing function which is invoked on the returned json.
-//
-let options: rm.IRequestOptions = <rm.IRequestOptions>{};
-options.responseProcessor = (obj: any) => {
-    return obj['data'];
-}
 
 export async function run() {
     let restRes: rm.IRestResponse<cm.HttpBinData>;
@@ -42,6 +33,7 @@ export async function run() {
             message: string;
         }
         let hello: HelloObj = <HelloObj>{ message: "Hello World!" };
+        let options: rm.IRequestOptions = cm.httpBinOptions();
 
         cm.heading('create rest obj'); 
         let hres: rm.IRestResponse<HelloObj> = await restc.create<HelloObj, HelloObj>('/post', hello, options);
@@ -49,10 +41,7 @@ export async function run() {
 
         cm.heading('update rest obj');
         hello.message += '!';
-        hres = await restc.update<HelloObj, HelloObj>('/patch', hello, options);
-        console.log(hres.result);
 
-        cm.heading('update rest obj');
         // you can also specify a full url (not relative) per request
         hres = await restc.update<HelloObj, HelloObj>('https://httpbin.org/patch', hello, options);
         console.log(hres.result);
