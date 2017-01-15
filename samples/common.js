@@ -8,6 +8,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 function banner(title) {
+    console.log();
     console.log('=======================================');
     console.log('\t' + title);
     console.log('=======================================');

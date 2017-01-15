@@ -7,6 +7,7 @@ export interface HttpBinData {
 }
 
 export function banner(title: string): void {
+    console.log();
     console.log('=======================================');
     console.log('\t' + title);
     console.log('=======================================');

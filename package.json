@@ -1,6 +1,6 @@
 {
     "name": "typed-rest-client",
-    "version": "0.7.0",
+    "version": "0.8.0-preview",
     "description": "Node Rest and Http Clients with typings for use with TypeScript",
     "main": "./RestClient.js",
     "scripts": {

@@ -6,12 +6,26 @@ A lightweight Rest and Http Client optimized for use with TypeScript with generi
 
   - Rest Client with typescript generics and async/await/Promises
   - Http Client with pipe stream support and async/await/Promises 
-  - Basic, Bearer and NTLM Support out of the box
-  - Typings included so no need to acquire separately (great for versioning drift)
-  - Layered for Rest or Http use
-  - Full Samples and Tests included for usage
+
+```javascript
+import * as rm from 'typed-rest-client/RestClient';
+let restc: rm.RestClient = new rm.RestClient('rest-samples', 
+                                             'https://mystudentapiserver');
+
+let res: rm.IRestResponse<Student> = await restc.get<Student>('/students/5');
+
+console.log(res.statusCode);
+console.log(res.result.name);
+```
+
+  - Typings included so no need to acquire separately (great for intellisense and no versioning drift)
 
 ![intellisense](./docs/intellisense.png)
+
+  - Basic, Bearer and NTLM Support out of the box
+  - Proxy support
+  - Layered for Rest or Http use
+  - Full Samples and Tests included for usage
 
 ## Install the library
 ```

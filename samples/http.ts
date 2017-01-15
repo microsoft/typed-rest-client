@@ -11,9 +11,7 @@ let httpc: httpm.HttpClient = new httpm.HttpClient('vsts-node-api');
 
 export async function run() {    
     try {
-        //--------------------------------------
-        // HttpClient
-        //--------------------------------------
+        cm.banner('Http Samples');
 
         //
         // Http get.  Can await get response.
