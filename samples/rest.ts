@@ -12,7 +12,7 @@ let restc: rm.RestClient = new rm.RestClient('rest-samples',
 //
 // This is often not needed.  In this case, using httpbin.org which echos the object
 // in the data property of the json.  It's an artifact of sample service used.
-// But it's useful to not that we do offer a processing function which is invoked on the returned json.
+// But it's useful to note that we do offer a processing function which is invoked on the returned json.
 //
 let options: rm.IRequestOptions = <rm.IRequestOptions>{};
 options.responseProcessor = (obj: any) => {
@@ -54,8 +54,8 @@ export async function run() {
 
         cm.heading('update rest obj');
         // you can also specify a full url (not relative) per request
-        restRes = await restc.update<HelloObj, cm.HttpBinData>('https://httpbin.org/patch', hello);
-        cm.outputRestResponse(restRes);     
+        hres = await restc.update<HelloObj, HelloObj>('https://httpbin.org/patch', hello, options);
+        console.log(hres.result);
     }
     catch (err) {
         console.error('Failed: ' + err.message);
