@@ -11,18 +11,17 @@ let restc: rm.RestClient = new rm.RestClient('rest-samples',
 
 
 export async function run() {
-    let restRes: rm.IRestResponse<cm.HttpBinData>;
     
     try {
         cm.banner('Rest Samples');
-        
+
         //
         // Get Resource: strong typing of resource(s) via generics.  
         // In this case httpbin.org has a response structure
         // response.result carries the resource(s)
         //
         cm.heading('get rest obj');
-        restRes = await restc.get<cm.HttpBinData>('get');
+        let restRes: rm.IRestResponse<cm.HttpBinData> = await restc.get<cm.HttpBinData>('get');
         console.log(restRes.statusCode, restRes.result['url']);
 
         //
@@ -36,14 +35,14 @@ export async function run() {
         let options: rm.IRequestOptions = cm.httpBinOptions();
 
         cm.heading('create rest obj'); 
-        let hres: rm.IRestResponse<HelloObj> = await restc.create<HelloObj, HelloObj>('/post', hello, options);
+        let hres: rm.IRestResponse<HelloObj> = await restc.create<HelloObj>('/post', hello, options);
         console.log(hres.result);
 
         cm.heading('update rest obj');
         hello.message += '!';
 
         // you can also specify a full url (not relative) per request
-        hres = await restc.update<HelloObj, HelloObj>('https://httpbin.org/patch', hello, options);
+        hres = await restc.update<HelloObj>('https://httpbin.org/patch', hello, options);
         console.log(hres.result);
     }
     catch (err) {

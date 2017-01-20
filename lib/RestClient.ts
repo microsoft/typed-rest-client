@@ -79,71 +79,71 @@ export class RestClient {
 
     /**
      * Creates resource(s) from an endpoint
-     * T type of object sent.  R is response body type.  Ideally these are the same.
+     * T type of object returned.
      * Be aware that not found returns a null.  Other error conditions reject the promise
      * @param {string} requestUrl - fully qualified or relative url
      * @param {IRequestOptions} requestOptions - (optional) requestOptions object
      */
-    public async create<T, R>(requestUrl: string,  
+    public async create<T>(requestUrl: string,  
                            resources: any, 
-                           options?: IRequestOptions): Promise<IRestResponse<R>> {
+                           options?: IRequestOptions): Promise<IRestResponse<T>> {
         
         let url: string = util.getUrl(requestUrl, this._baseUrl);
         let headers: ifm.IHeaders = this._headersFromOptions(options, true);
 
         let data: string = JSON.stringify(resources, null, 2);
         let res: httpm.HttpClientResponse = await this.client.post(url, data, headers);
-        return this._processResponse<R>(res, options);
+        return this._processResponse<T>(res, options);
     }
 
     /**
      * Updates resource(s) from an endpoint
-     * T type of object sent.  R is response body type.  Ideally these are the same.
+     * T type of object returned.  
      * Be aware that not found returns a null.  Other error conditions reject the promise
      * @param {string} requestUrl - fully qualified or relative url
      * @param {IRequestOptions} requestOptions - (optional) requestOptions object
      */
-    public async update<T, R>(requestUrl: string,
+    public async update<T>(requestUrl: string,
                  resources: any, 
-                 options?: IRequestOptions): Promise<IRestResponse<R>> {
+                 options?: IRequestOptions): Promise<IRestResponse<T>> {
 
         let url: string = util.getUrl(requestUrl, this._baseUrl);
         let headers: ifm.IHeaders = this._headersFromOptions(options, true);      
         
         let data: string = JSON.stringify(resources, null, 2);
         let res: httpm.HttpClientResponse = await this.client.patch(url, data, headers);
-        return this._processResponse<R>(res, options);
+        return this._processResponse<T>(res, options);
     }
 
     /**
      * Replaces resource(s) from an endpoint
-     * T type of object sent.  R is response body type.  Ideally these are the same.
+     * T type of object returned.
      * Be aware that not found returns a null.  Other error conditions reject the promise
      * @param {string} requestUrl - fully qualified or relative url
      * @param {IRequestOptions} requestOptions - (optional) requestOptions object
      */
-    public async replace<T, R>(requestUrl: string,
+    public async replace<T>(requestUrl: string,
                  resources: any, 
-                 options?: IRequestOptions): Promise<IRestResponse<R>> {
+                 options?: IRequestOptions): Promise<IRestResponse<T>> {
         
         let url: string = util.getUrl(requestUrl, this._baseUrl);
         let headers: ifm.IHeaders = this._headersFromOptions(options, true);        
         
         let data: string = JSON.stringify(resources, null, 2);
         let res: httpm.HttpClientResponse = await this.client.put(url, data, headers);
-        return this._processResponse<R>(res, options);
+        return this._processResponse<T>(res, options);
     }
 
-    public async uploadStream<T, R>(verb: string, 
+    public async uploadStream<T>(verb: string, 
                                  requestUrl: string, 
                                  stream: NodeJS.ReadableStream, 
-                                 options?: IRequestOptions): Promise<IRestResponse<R>> {
+                                 options?: IRequestOptions): Promise<IRestResponse<T>> {
 
         let url: string = util.getUrl(requestUrl, this._baseUrl);
         let headers: ifm.IHeaders = this._headersFromOptions(options, true);
 
         let res: httpm.HttpClientResponse = await this.client.sendStream(verb, url, stream, headers);
-        return this._processResponse<R>(res, options);
+        return this._processResponse<T>(res, options);
     }
 
     // should move to the consumer

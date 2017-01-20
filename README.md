@@ -2,6 +2,10 @@
 
 A lightweight Rest and Http Client optimized for use with TypeScript with generics and async await.
 
+## Status
+
+With 0.9 just published, we believe the API surface for 1.0 has settled.  More testing in progress then we will release 1.0.
+
 ## Features
 
   - Rest Client with typescript generics and async/await/Promises
