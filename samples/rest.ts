@@ -44,6 +44,10 @@ export async function run() {
         // you can also specify a full url (not relative) per request
         hres = await restc.update<HelloObj>('https://httpbin.org/patch', hello, options);
         console.log(hres.result);
+
+        cm.heading('options rest call');
+        let ores: rm.IRestResponse<void> = await restc.options<void>('', options);
+        console.log(ores.statusCode);
     }
     catch (err) {
         console.error('Failed: ' + err.message);

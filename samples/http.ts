@@ -44,6 +44,7 @@ export async function run() {
         // DELETE request
         cm.heading('delete request');
         res = await httpc.del('https://httpbin.org/delete');
+        status = res.message.statusCode;
         body = await res.readBody();
         cm.outputHttpBinResponse(body, status);
 
@@ -52,18 +53,27 @@ export async function run() {
         // POST request
         cm.heading('post request');
         res = await httpc.post('https://httpbin.org/post', b);
+        status = res.message.statusCode;
         body = await res.readBody();
         cm.outputHttpBinResponse(body, status);       
 
         // PATCH request
         cm.heading('patch request');
         res = await httpc.patch('https://httpbin.org/patch', b);
+        status = res.message.statusCode;
+        body = await res.readBody();
+        cm.outputHttpBinResponse(body, status);
+
+        cm.heading('options request');
+        res = await httpc.options('https://httpbin.org');
+        status = res.message.statusCode;
         body = await res.readBody();
         cm.outputHttpBinResponse(body, status);
 
         // GET not found
         cm.heading('get not found');
         res = await httpc.get('https://httpbin.org/status/404');
+        status = res.message.statusCode;
         body = await res.readBody();
         cm.outputHttpBinResponse(body, status);
     }

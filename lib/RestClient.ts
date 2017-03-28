@@ -53,6 +53,21 @@ export class RestClient {
      * @param {string} requestUrl - fully qualified or relative url
      * @param {IRequestOptions} requestOptions - (optional) requestOptions object
      */    
+    public async options<T>(requestUrl: string, 
+                        options?: IRequestOptions): Promise<IRestResponse<T>> {
+        
+        let url: string = util.getUrl(requestUrl, this._baseUrl);
+        let res: httpm.HttpClientResponse = await this.client.options(url, 
+                                                                  this._headersFromOptions(options));
+        return this._processResponse<T>(res, options);
+    }
+
+    /**
+     * Gets a resource from an endpoint
+     * Be aware that not found returns a null.  Other error conditions reject the promise
+     * @param {string} requestUrl - fully qualified or relative url
+     * @param {IRequestOptions} requestOptions - (optional) requestOptions object
+     */    
     public async get<T>(requestUrl: string, 
                         options?: IRequestOptions): Promise<IRestResponse<T>> {
         

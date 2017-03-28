@@ -80,6 +80,10 @@ export class HttpClient {
         this.socketTimeout = socketTimeout ? socketTimeout : 3 * 60000;
     }
 
+    public options(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<HttpClientResponse> {
+        return this.request('OPTIONS', requestUrl, null, additionalHeaders || {});
+    }
+
     public get(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<HttpClientResponse> {
         return this.request('GET', requestUrl, null, additionalHeaders || {});
     }
@@ -98,7 +102,7 @@ export class HttpClient {
 
     public put(requestUrl: string, data: string, additionalHeaders?: ifm.IHeaders): Promise<HttpClientResponse> {
         return this.request('PUT', requestUrl, data, additionalHeaders || {});
-    }    
+    }        
 
     public sendStream(verb: string, requestUrl: string, stream: NodeJS.ReadableStream, additionalHeaders?: ifm.IHeaders): Promise<HttpClientResponse> {
         return this.request(verb, requestUrl, stream, additionalHeaders);
