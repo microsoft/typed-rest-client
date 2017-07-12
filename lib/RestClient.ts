@@ -32,14 +32,13 @@ export class RestClient {
      * @param {string} userAgent - userAgent for requests
      * @param {string} baseUrl - (Optional) If not specified, use full urls per request.  If supplied and a function passes a relative url, it will be appended to this
      * @param {ifm.IRequestHandler[]} handlers - handlers are typically auth handlers (basic, bearer, ntlm supplied)
-     * @param {number} socketTimeout - default socket timeout.  Can also supply per method
+     * @param {ifm.IRequestOptions} requestOptions - options for each http requests (http proxy setting, socket timeout)
      */
     constructor(userAgent: string,
-                baseUrl?: string, 
+                baseUrl?: string,
                 handlers?: ifm.IRequestHandler[],
-                socketTimeout?: number) {
-
-        this.client = new httpm.HttpClient(userAgent, handlers, socketTimeout);
+                requestOptions?: ifm.IRequestOptions) {
+        this.client = new httpm.HttpClient(userAgent, handlers, requestOptions);
         if (baseUrl) {
             this._baseUrl = baseUrl;
         }
@@ -52,13 +51,13 @@ export class RestClient {
      * Be aware that not found returns a null.  Other error conditions reject the promise
      * @param {string} requestUrl - fully qualified or relative url
      * @param {IRequestOptions} requestOptions - (optional) requestOptions object
-     */    
-    public async options<T>(requestUrl: string, 
-                        options?: IRequestOptions): Promise<IRestResponse<T>> {
-        
+     */
+    public async options<T>(requestUrl: string,
+        options?: IRequestOptions): Promise<IRestResponse<T>> {
+
         let url: string = util.getUrl(requestUrl, this._baseUrl);
-        let res: httpm.HttpClientResponse = await this.client.options(url, 
-                                                                  this._headersFromOptions(options));
+        let res: httpm.HttpClientResponse = await this.client.options(url,
+            this._headersFromOptions(options));
         return this._processResponse<T>(res, options);
     }
 
@@ -67,13 +66,13 @@ export class RestClient {
      * Be aware that not found returns a null.  Other error conditions reject the promise
      * @param {string} requestUrl - fully qualified or relative url
      * @param {IRequestOptions} requestOptions - (optional) requestOptions object
-     */    
-    public async get<T>(requestUrl: string, 
-                        options?: IRequestOptions): Promise<IRestResponse<T>> {
-        
+     */
+    public async get<T>(requestUrl: string,
+        options?: IRequestOptions): Promise<IRestResponse<T>> {
+
         let url: string = util.getUrl(requestUrl, this._baseUrl);
-        let res: httpm.HttpClientResponse = await this.client.get(url, 
-                                                                  this._headersFromOptions(options));
+        let res: httpm.HttpClientResponse = await this.client.get(url,
+            this._headersFromOptions(options));
         return this._processResponse<T>(res, options);
     }
 
@@ -82,13 +81,13 @@ export class RestClient {
      * Be aware that not found returns a null.  Other error conditions reject the promise
      * @param {string} requestUrl - fully qualified or relative url
      * @param {IRequestOptions} requestOptions - (optional) requestOptions object
-     */    
-    public async del<T>(requestUrl: string, 
-                        options?: IRequestOptions): Promise<IRestResponse<T>> {
-        
+     */
+    public async del<T>(requestUrl: string,
+        options?: IRequestOptions): Promise<IRestResponse<T>> {
+
         let url: string = util.getUrl(requestUrl, this._baseUrl);
-        let res: httpm.HttpClientResponse = await this.client.del(url, 
-                                                                  this._headersFromOptions(options));
+        let res: httpm.HttpClientResponse = await this.client.del(url,
+            this._headersFromOptions(options));
         return this._processResponse<T>(res, options);
     }
 
@@ -99,10 +98,10 @@ export class RestClient {
      * @param {string} requestUrl - fully qualified or relative url
      * @param {IRequestOptions} requestOptions - (optional) requestOptions object
      */
-    public async create<T>(requestUrl: string,  
-                           resources: any, 
-                           options?: IRequestOptions): Promise<IRestResponse<T>> {
-        
+    public async create<T>(requestUrl: string,
+        resources: any,
+        options?: IRequestOptions): Promise<IRestResponse<T>> {
+
         let url: string = util.getUrl(requestUrl, this._baseUrl);
         let headers: ifm.IHeaders = this._headersFromOptions(options, true);
 
@@ -119,12 +118,12 @@ export class RestClient {
      * @param {IRequestOptions} requestOptions - (optional) requestOptions object
      */
     public async update<T>(requestUrl: string,
-                 resources: any, 
-                 options?: IRequestOptions): Promise<IRestResponse<T>> {
+        resources: any,
+        options?: IRequestOptions): Promise<IRestResponse<T>> {
 
         let url: string = util.getUrl(requestUrl, this._baseUrl);
-        let headers: ifm.IHeaders = this._headersFromOptions(options, true);      
-        
+        let headers: ifm.IHeaders = this._headersFromOptions(options, true);
+
         let data: string = JSON.stringify(resources, null, 2);
         let res: httpm.HttpClientResponse = await this.client.patch(url, data, headers);
         return this._processResponse<T>(res, options);
@@ -138,21 +137,21 @@ export class RestClient {
      * @param {IRequestOptions} requestOptions - (optional) requestOptions object
      */
     public async replace<T>(requestUrl: string,
-                 resources: any, 
-                 options?: IRequestOptions): Promise<IRestResponse<T>> {
-        
+        resources: any,
+        options?: IRequestOptions): Promise<IRestResponse<T>> {
+
         let url: string = util.getUrl(requestUrl, this._baseUrl);
-        let headers: ifm.IHeaders = this._headersFromOptions(options, true);        
-        
+        let headers: ifm.IHeaders = this._headersFromOptions(options, true);
+
         let data: string = JSON.stringify(resources, null, 2);
         let res: httpm.HttpClientResponse = await this.client.put(url, data, headers);
         return this._processResponse<T>(res, options);
     }
 
-    public async uploadStream<T>(verb: string, 
-                                 requestUrl: string, 
-                                 stream: NodeJS.ReadableStream, 
-                                 options?: IRequestOptions): Promise<IRestResponse<T>> {
+    public async uploadStream<T>(verb: string,
+        requestUrl: string,
+        stream: NodeJS.ReadableStream,
+        options?: IRequestOptions): Promise<IRestResponse<T>> {
 
         let url: string = util.getUrl(requestUrl, this._baseUrl);
         let headers: ifm.IHeaders = this._headersFromOptions(options, true);
@@ -168,24 +167,24 @@ export class RestClient {
 
     private _headersFromOptions(options: IRequestOptions, contentType?: boolean): ifm.IHeaders {
         options = options || {};
-        let headers: ifm.IHeaders = options.additionalHeaders || {};                    
+        let headers: ifm.IHeaders = options.additionalHeaders || {};
         headers["Accept"] = options.acceptHeader || "application/json";
 
         if (contentType) {
             headers["Content-Type"] = headers["Content-Type"] || 'application/json; charset=utf-8';
         }
 
-        return headers;        
+        return headers;
     }
 
     private async _processResponse<T>(res: httpm.HttpClientResponse, options: IRequestOptions): Promise<IRestResponse<T>> {
-        return new Promise<IRestResponse<T>>(async(resolve, reject) => {
+        return new Promise<IRestResponse<T>>(async (resolve, reject) => {
             let rres: IRestResponse<T> = <IRestResponse<T>>{};
             let statusCode: number = res.message.statusCode;
             rres.statusCode = statusCode;
 
             // not found leads to null obj returned
-            if (statusCode == httpm.HttpCodes.NotFound) {    
+            if (statusCode == httpm.HttpCodes.NotFound) {
                 resolve(rres);
             }
 
@@ -221,7 +220,7 @@ export class RestClient {
                 reject(new Error(msg));
             } else {
                 resolve(rres);
-            }            
-        });        
-    } 
+            }
+        });
+    }
 }

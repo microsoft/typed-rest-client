@@ -12,7 +12,7 @@ http.globalAgent.maxSockets = 100;
 export enum HttpCodes {
     OK = 200,
     MultipleChoices = 300,
-    MovedPermanantly = 301,
+    MovedPermanently = 301,
     ResourceMoved = 302,
     NotModified = 304,
     UseProxy = 305,
@@ -44,7 +44,7 @@ export class HttpClientResponse {
 
     public message: http.IncomingMessage;
     readBody(): Promise<string> {
-        return new Promise<string>(async(resolve, reject) => { 
+        return new Promise<string>(async (resolve, reject) => {
             let output: string = '';
 
             this.message.on('data', (chunk: string) => {
@@ -53,8 +53,8 @@ export class HttpClientResponse {
 
             this.message.on('end', () => {
                 resolve(output);
-            }); 
-        });       
+            });
+        });
     }
 }
 
@@ -66,18 +66,37 @@ export interface RequestInfo {
 
 export function isHttps(requestUrl: string) {
     let parsedUrl: url.Url = url.parse(requestUrl);
-    return parsedUrl.protocol === 'https:';    
+    return parsedUrl.protocol === 'https:';
 }
 
 export class HttpClient {
     userAgent: string;
     handlers: ifm.IRequestHandler[];
-    socketTimeout: number;
+    requestOptions: ifm.IRequestOptions;
 
-    constructor(userAgent: string, handlers?: ifm.IRequestHandler[], socketTimeout?: number) {
+    private _ignoreSslError: boolean = false;
+    private _socketTimeout: number;
+    private _httpProxy: ifm.IProxyConfiguration;
+    private _httpProxyBypassHosts: RegExp[];
+
+    constructor(userAgent: string, handlers?: ifm.IRequestHandler[], requestOptions?: ifm.IRequestOptions) {
         this.userAgent = userAgent;
         this.handlers = handlers;
-        this.socketTimeout = socketTimeout ? socketTimeout : 3 * 60000;
+        this.requestOptions = requestOptions;
+        if (requestOptions) {
+            if (requestOptions.ignoreSslError != null) {
+                this._ignoreSslError = requestOptions.ignoreSslError;
+            }
+
+            this._socketTimeout = requestOptions.socketTimeout;
+            this._httpProxy = requestOptions.proxy;
+            if (requestOptions.proxy && requestOptions.proxy.proxyBypassHosts) {
+                this._httpProxyBypassHosts = [];
+                requestOptions.proxy.proxyBypassHosts.forEach(bypass => {
+                    this._httpProxyBypassHosts.push(new RegExp(bypass, 'i'));
+                });
+            }
+        }
     }
 
     public options(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<HttpClientResponse> {
@@ -102,7 +121,11 @@ export class HttpClient {
 
     public put(requestUrl: string, data: string, additionalHeaders?: ifm.IHeaders): Promise<HttpClientResponse> {
         return this.request('PUT', requestUrl, data, additionalHeaders || {});
-    }        
+    }
+
+    public head(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<HttpClientResponse> {
+        return this.request('HEAD', requestUrl, null, additionalHeaders || {});
+    }
 
     public sendStream(verb: string, requestUrl: string, stream: NodeJS.ReadableStream, additionalHeaders?: ifm.IHeaders): Promise<HttpClientResponse> {
         return this.request(verb, requestUrl, stream, additionalHeaders);
@@ -114,11 +137,11 @@ export class HttpClient {
      * Prefer get, del, post and patch
      */
     public request(verb: string, requestUrl: string, data: string | NodeJS.ReadableStream, headers: ifm.IHeaders): Promise<HttpClientResponse> {
-        return new Promise<HttpClientResponse>(async(resolve, reject) => {
+        return new Promise<HttpClientResponse>(async (resolve, reject) => {
             try {
                 var info: RequestInfo = this._prepareRequest(verb, requestUrl, headers);
                 let res: HttpClientResponse = await this._requestRaw(info, data);
-                
+
                 // TODO: check 401 if handled
 
                 // TODO: retry support
@@ -137,9 +160,9 @@ export class HttpClient {
         return new Promise<HttpClientResponse>((resolve, reject) => {
             let socket;
 
-            let isDataString = typeof(data) === 'string';
+            let isDataString = typeof (data) === 'string';
 
-            if (typeof(data) === 'string') {
+            if (typeof (data) === 'string') {
                 info.options.headers["Content-Length"] = Buffer.byteLength(data, 'utf8');
             }
 
@@ -153,7 +176,7 @@ export class HttpClient {
             });
 
             // If we ever get disconnected, we want the socket to timeout eventually
-            req.setTimeout(this.socketTimeout, () => {
+            req.setTimeout(this._socketTimeout || 3 * 60000, () => {
                 if (socket) {
                     socket.end();
                 }
@@ -166,11 +189,11 @@ export class HttpClient {
                 reject(err);
             });
 
-            if (data && typeof(data) === 'string') {
+            if (data && typeof (data) === 'string') {
                 req.write(data, 'utf8');
             }
 
-            if (data && typeof(data) !== 'string') {
+            if (data && typeof (data) !== 'string') {
                 data.on('close', function () {
                     req.end();
                 });
@@ -191,14 +214,33 @@ export class HttpClient {
         info.httpModule = usingSsl ? https : http;
         var defaultPort: number = usingSsl ? 443 : 80;
 
-        var proxyUrl: url.Url;
-        if (process.env.HTTPS_PROXY && usingSsl) {
-            proxyUrl = url.parse(process.env.HTTPS_PROXY);
-        } else if (process.env.HTTP_PROXY) {
-            proxyUrl = url.parse(process.env.HTTP_PROXY);
+        let proxyConfig: ifm.IProxyConfiguration = this._httpProxy;
+
+        // fallback to http_proxy and https_proxy env
+        if (!proxyConfig) {
+            if (process.env.HTTPS_PROXY && usingSsl) {
+                proxyConfig = {
+                    proxyUrl: process.env.HTTPS_PROXY
+                };
+            } else if (process.env.HTTP_PROXY) {
+                proxyConfig = {
+                    proxyUrl: process.env.HTTP_PROXY
+                };
+            }
         }
 
-        process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+        let proxyUrl: url.Url;
+        let proxyAuth: string;
+        if (proxyConfig) {
+            if (proxyConfig.proxyUrl.length > 0) {
+                proxyUrl = url.parse(proxyConfig.proxyUrl);
+            }
+
+            if (proxyConfig.proxyUsername || proxyConfig.proxyPassword) {
+                proxyAuth = proxyConfig.proxyUsername + ":" + encodeURIComponent(proxyConfig.proxyPassword);
+            }
+        }
+
         info.options = <http.RequestOptions>{};
         info.options.host = info.parsedUrl.hostname;
         info.options.port = info.parsedUrl.port ? parseInt(info.parsedUrl.port) : defaultPort;
@@ -207,16 +249,15 @@ export class HttpClient {
         info.options.headers = headers || {};
         info.options.headers["User-Agent"] = this.userAgent;
 
-        let useProxy = proxyUrl && proxyUrl.hostname;
+        let useProxy = proxyUrl && proxyUrl.hostname && !this._isBypassProxy(requestUrl);
         if (useProxy) {
             var agentOptions: tunnel.TunnelOptions = {
                 maxSockets: http.globalAgent.maxSockets,
                 proxy: {
-                    // TODO: support proxy-authorization
-                    //proxyAuth: "user:password",
+                    proxyAuth: proxyAuth,
                     host: proxyUrl.hostname,
                     port: proxyUrl.port
-                }
+                },
             };
 
             var tunnelAgent: Function;
@@ -226,8 +267,20 @@ export class HttpClient {
             } else {
                 tunnelAgent = overHttps ? tunnel.httpOverHttps : tunnel.httpOverHttp;
             }
-            
+
             info.options.agent = tunnelAgent(agentOptions);
+        }
+
+        if (usingSsl && this._ignoreSslError) {
+            if (!info.options.agent) {
+                info.options.agent = https.globalAgent;
+            }
+
+            // we don't want to set NODE_TLS_REJECT_UNAUTHORIZED=0 since that will affect request for entire process
+            // http.RequestOptions doesn't expose a way to modify RequestOptions.agent.options
+            // we have to cast it to any and change it directly
+            let agent: any = info.options.agent;
+            agent.options = Object.assign(agent.options || {}, { rejectUnauthorized: false });
         }
 
         // gives handlers an opportunity to participate
@@ -238,5 +291,20 @@ export class HttpClient {
         }
 
         return info;
-    }        
+    }
+
+    private _isBypassProxy(requestUrl: string): Boolean {
+        if (!this._httpProxyBypassHosts) {
+            return false;
+        }
+
+        let bypass: boolean = false;
+        this._httpProxyBypassHosts.forEach(bypassHost => {
+            if (bypassHost.test(requestUrl)) {
+                bypass = true;
+            }
+        });
+
+        return bypass;
+    }
 }
