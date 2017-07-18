@@ -9,7 +9,7 @@ let sampleFilePath: string = path.join(process.cwd(), 'httpClientStreamSample.tx
 
 let httpc: httpm.HttpClient = new httpm.HttpClient('vsts-node-api');
 
-export async function run() {    
+export async function run() {
     try {
         cm.banner('Http Samples');
 
@@ -20,9 +20,8 @@ export async function run() {
         //
         cm.heading('get request output body');
         let res: httpm.HttpClientResponse = await httpc.get('https://httpbin.org/get');
-        let status: number = res.message.statusCode;
         let body: string = await res.readBody();
-        cm.outputHttpBinResponse(body, status);
+        cm.outputHttpBinResponse(body, res.message);
 
         //
         // Http get request reading body to end in a single line
@@ -41,41 +40,42 @@ export async function run() {
         body = fs.readFileSync(sampleFilePath).toString();
         cm.outputHttpBinResponse(body);
 
+        // HEAD request
+        cm.heading('head request');
+        res = await httpc.head('https://httpbin.org/get');
+        body = await res.readBody();
+        cm.outputHttpBinResponse(body, res.message);
+
         // DELETE request
         cm.heading('delete request');
         res = await httpc.del('https://httpbin.org/delete');
-        status = res.message.statusCode;
         body = await res.readBody();
-        cm.outputHttpBinResponse(body, status);
+        cm.outputHttpBinResponse(body, res.message);
 
         let b: string = 'Hello World!';
 
         // POST request
         cm.heading('post request');
         res = await httpc.post('https://httpbin.org/post', b);
-        status = res.message.statusCode;
         body = await res.readBody();
-        cm.outputHttpBinResponse(body, status);       
+        cm.outputHttpBinResponse(body, res.message);
 
         // PATCH request
         cm.heading('patch request');
         res = await httpc.patch('https://httpbin.org/patch', b);
-        status = res.message.statusCode;
         body = await res.readBody();
-        cm.outputHttpBinResponse(body, status);
+        cm.outputHttpBinResponse(body, res.message);
 
         cm.heading('options request');
         res = await httpc.options('https://httpbin.org');
-        status = res.message.statusCode;
         body = await res.readBody();
-        cm.outputHttpBinResponse(body, status);
+        cm.outputHttpBinResponse(body, res.message);
 
         // GET not found
         cm.heading('get not found');
         res = await httpc.get('https://httpbin.org/status/404');
-        status = res.message.statusCode;
         body = await res.readBody();
-        cm.outputHttpBinResponse(body, status);
+        cm.outputHttpBinResponse(body, res.message);
     }
     catch (err) {
         console.error('Failed: ' + err.message);

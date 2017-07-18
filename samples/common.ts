@@ -1,9 +1,10 @@
+import http = require("http");
 import * as restm from 'typed-rest-client/RestClient';
 
 // using httpbin.org.
 export interface HttpBinData {
     url: string;
-    data: any; 
+    data: any;
 }
 
 export function banner(title: string): void {
@@ -21,17 +22,23 @@ export function heading(title: string): void {
 //
 // Utility functions
 //
-export async function outputHttpBinResponse(body: string, status?: number) {
-    if (status) {
-        console.log('status', status);
+export async function outputHttpBinResponse(body: string, message?: http.IncomingMessage) {
+    if (message) {
+        if (message.statusCode) {
+            console.log('status', message.statusCode);
+        }
+
+        if (message.rawHeaders) {
+            console.log('headers:' + JSON.stringify(message.rawHeaders));
+        }
     }
-    
+
     if (body) {
         let obj = JSON.parse(body.toString());
         console.log('response from ' + obj.url);
         if (obj.data) {
             console.log('data:', obj.data);
-        }        
+        }
     }
 }
 
