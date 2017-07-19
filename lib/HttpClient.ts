@@ -37,7 +37,7 @@ export enum HttpCodes {
     GatewayTimeout = 504,
 }
 
-export class HttpClientResponse {
+export class HttpClientResponse implements ifm.IHttpClientResponse {
     constructor(message: http.IncomingMessage) {
         this.message = message;
     }
@@ -58,18 +58,12 @@ export class HttpClientResponse {
     }
 }
 
-export interface RequestInfo {
-    options: http.RequestOptions;
-    parsedUrl: url.Url;
-    httpModule: any;
-}
-
 export function isHttps(requestUrl: string) {
     let parsedUrl: url.Url = url.parse(requestUrl);
     return parsedUrl.protocol === 'https:';    
 }
 
-export class HttpClient {
+export class HttpClient implements ifm.IHttpClient {
     userAgent: string;
     handlers: ifm.IRequestHandler[];
     socketTimeout: number;
@@ -116,10 +110,22 @@ export class HttpClient {
     public request(verb: string, requestUrl: string, data: string | NodeJS.ReadableStream, headers: ifm.IHeaders): Promise<HttpClientResponse> {
         return new Promise<HttpClientResponse>(async(resolve, reject) => {
             try {
-                var info: RequestInfo = this._prepareRequest(verb, requestUrl, headers);
-                let res: HttpClientResponse = await this._requestRaw(info, data);
-                
-                // TODO: check 401 if handled
+                var info: ifm.IRequestInfo = this._prepareRequest(verb, requestUrl, headers);
+                let res: HttpClientResponse = await this.requestRaw(info, data);
+
+                if (res && res.message.statusCode === 401) {
+                    let authHandler: ifm.IRequestHandler;
+                    for (let i = 0; i < this.handlers.length; i++) {
+                        if (this.handlers[i].canHandleAuthentication(res)) {
+                            authHandler = this.handlers[i];
+                            break;
+                        }
+                    }
+
+                    if (authHandler) {
+                        authHandler.handleAuthentication(this, info, data);
+                    }                    
+                }
 
                 // TODO: retry support
 
@@ -133,7 +139,10 @@ export class HttpClient {
         });
     }
 
-    private _requestRaw(info: RequestInfo, data: string | NodeJS.ReadableStream): Promise<HttpClientResponse> {
+    /**
+     * Internal raw request method.  Do not use.
+     */
+    public requestRaw(info: ifm.IRequestInfo, data: string | NodeJS.ReadableStream): Promise<HttpClientResponse> {
         return new Promise<HttpClientResponse>((resolve, reject) => {
             let socket;
 
@@ -183,8 +192,8 @@ export class HttpClient {
         });
     }
 
-    private _prepareRequest(method: string, requestUrl: string, headers: any): RequestInfo {
-        let info: RequestInfo = <RequestInfo>{};
+    private _prepareRequest(method: string, requestUrl: string, headers: any): ifm.IRequestInfo {
+        let info: ifm.IRequestInfo = <ifm.IRequestInfo>{};
 
         info.parsedUrl = url.parse(requestUrl);
         let usingSsl = info.parsedUrl.protocol === 'https:';
