@@ -6,6 +6,7 @@ import http = require("http");
 import https = require("https");
 import tunnel = require("tunnel");
 import ifm = require('./Interfaces');
+import fs = require('fs');
 
 http.globalAgent.maxSockets = 100;
 
@@ -79,6 +80,11 @@ export class HttpClient {
     private _httpProxy: ifm.IProxyConfiguration;
     private _httpProxyBypassHosts: RegExp[];
 
+    private _certConfig: ifm.ICertConfiguration;
+    private _ca: string;
+    private _cert: string;
+    private _key: string;
+
     constructor(userAgent: string, handlers?: ifm.IRequestHandler[], requestOptions?: ifm.IRequestOptions) {
         this.userAgent = userAgent;
         this.handlers = handlers;
@@ -95,6 +101,21 @@ export class HttpClient {
                 requestOptions.proxy.proxyBypassHosts.forEach(bypass => {
                     this._httpProxyBypassHosts.push(new RegExp(bypass, 'i'));
                 });
+            }
+
+            this._certConfig = requestOptions.cert;
+
+            // cache the cert content into memory, so we don't have to read it from disk every time 
+            if (this._certConfig && this._certConfig.caFile && fs.existsSync(this._certConfig.caFile)) {
+                this._ca = fs.readFileSync(this._certConfig.caFile, 'utf8');
+            }
+
+            if (this._certConfig && this._certConfig.certFile && fs.existsSync(this._certConfig.certFile)) {
+                this._cert = fs.readFileSync(this._certConfig.certFile, 'utf8');
+            }
+
+            if (this._certConfig && this._certConfig.keyFile && fs.existsSync(this._certConfig.keyFile)) {
+                this._key = fs.readFileSync(this._certConfig.keyFile, 'utf8');
             }
         }
     }
@@ -281,6 +302,15 @@ export class HttpClient {
             // we have to cast it to any and change it directly
             let agent: any = info.options.agent;
             agent.options = Object.assign(agent.options || {}, { rejectUnauthorized: false });
+        }
+
+        if (usingSsl && this._certConfig) {
+            if (!info.options.agent) {
+                info.options.agent = https.globalAgent;
+            }
+
+            let agent: any = info.options.agent;
+            agent.options = Object.assign(agent.options || {}, { ca: this._ca, cert: this._cert, key: this._key, passphrase: this._certConfig.passphrase });
         }
 
         // gives handlers an opportunity to participate
