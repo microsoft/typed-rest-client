@@ -53,7 +53,7 @@ Once typings is installed, create a ```typings.json``` file in the root of your 
 Then, in the console, run typings to create the typings files:
 ```typings install```
 
-Finally, ensure that your ```tsconfig.json``` has the requisite ```compilerOptions``` to ensure that typed-rest-client is found:
+Ensure that your ```tsconfig.json``` has the requisite ```compilerOptions``` to ensure that typed-rest-client is found:
 ```javascript
 {
     "compilerOptions": {
