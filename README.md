@@ -33,7 +33,42 @@ console.log(res.result.name);
   - Layered for Rest or Http use
   - Full Samples and Tests included for usage
 
-## Install the library
+## Installing
+This client requires `typings` in order to work correctly. Firstly, ensure that you have typings installed by installing the typings module globally via the command line:
+
+```npm i -g typings```
+
+Once typings is installed, create a ```typings.json``` file in the root of your project:
+
+```javascript
+{
+  "dependencies": {},
+  "globalDependencies": {
+    "node": "registry:dt/node#6.0.0+20160720070758",
+    "q": "registry:dt/q#0.0.0+20160613154756"
+  }
+}
+```
+
+Then, in the console, run typings to create the typings files:
+```typings install```
+
+Ensure that your ```tsconfig.json``` has the requisite ```compilerOptions``` to ensure that typed-rest-client is found:
+```javascript
+{
+    "compilerOptions": {
+        "target": "ES6",
+        "module": "commonjs",
+        "moduleResolution": "node"
+    },
+    "files": [
+        "my_file.ts"
+    ]
+}
+```
+
+Finally, install the typed-rest-client using the npm console command: 
+
 ```
 npm install typed-rest-client --save
 ```
