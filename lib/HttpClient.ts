@@ -124,8 +124,17 @@ export class HttpClient {
         return this.request('OPTIONS', requestUrl, null, additionalHeaders || {});
     }
 
-    public get(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<HttpClientResponse> {
-        return this.request('GET', requestUrl, null, additionalHeaders || {});
+    public async get(requestUrl: string, additionalHeaders?: ifm.IHeaders, allowRedirects: boolean = true, maxRedirects: number = 50): Promise<HttpClientResponse> {
+        let response = await this.request('GET', requestUrl, null, additionalHeaders || {});
+
+        while (response.message.statusCode === HttpCodes.ResourceMoved
+               && allowRedirects
+               && Math.max(maxRedirects, 0) > 0) {
+             const location: string = response.message.headers["location"];
+             response = await this.get(location, additionalHeaders, allowRedirects, maxRedirects - 1);
+        }
+        
+        return response;
     }
 
     public del(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<HttpClientResponse> {
