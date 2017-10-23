@@ -130,7 +130,7 @@ export class HttpClient {
         while (response.message.statusCode === HttpCodes.ResourceMoved
                && allowRedirects
                && Math.max(maxRedirects, 0) > 0) {
-             const location: string = response.message.headers["location"];
+             const location: any = response.message.headers["location"];
              response = await this.get(location, additionalHeaders, allowRedirects, maxRedirects - 1);
         }
         
