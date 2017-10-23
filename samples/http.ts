@@ -29,6 +29,21 @@ export async function run() {
         cm.outputHttpBinResponse(body);
 
         //
+        // Http get request disabling redirects
+        //
+        cm.heading('get request disabling redirects');
+        body = await (await httpc.get("http://httpbin.org/redirect-to?url=" + encodeURIComponent("http://httpbin.org/bytes/100"), null, false)).readBody();
+        cm.outputHttpBinResponse(body);
+
+        //
+        // Http get request implicity allowing redirects
+        //
+        cm.heading('get request with implicitly allowed redirects');
+        res = await httpc.get("http://httpbin.org/redirect-to?url=" + encodeURIComponent("http://httpbin.org/get"));
+        body = await res.readBody();
+        cm.outputHttpBinResponse(body, res.message);
+
+        //
         // Http get piping to another stream
         // response message is an IncomingMessage which is a stream
         //

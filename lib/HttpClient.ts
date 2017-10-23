@@ -136,6 +136,11 @@ export class HttpClient {
                && allowRedirects
                && Math.max(maxRedirects, 0) > 0) {
              const location: any = response.message.headers["location"];
+
+             if (!location) {
+                throw new Error("Unable to find location header after HTTP 302 redirect.");
+             }
+
              response = await this.get(location, additionalHeaders, allowRedirects, maxRedirects - 1);
         }
         
