@@ -70,6 +70,11 @@ export function isHttps(requestUrl: string) {
     return parsedUrl.protocol === 'https:';
 }
 
+enum EnvironmentVariables {
+    HTTP_PROXY = "HTTP_PROXY", 
+    HTTPS_PROXY = "HTTPS_PROXY",
+}
+
 export class HttpClient {
     userAgent: string;
     handlers: ifm.IRequestHandler[];
@@ -247,14 +252,17 @@ export class HttpClient {
         let proxyConfig: ifm.IProxyConfiguration = this._httpProxy;
 
         // fallback to http_proxy and https_proxy env
+        let https_proxy: string = process.env[EnvironmentVariables.HTTPS_PROXY];
+        let http_proxy: string = process.env[EnvironmentVariables.HTTP_PROXY];
+
         if (!proxyConfig) {
-            if (process.env.HTTPS_PROXY && usingSsl) {
+            if (https_proxy && usingSsl) {
                 proxyConfig = {
-                    proxyUrl: process.env.HTTPS_PROXY
+                    proxyUrl: https_proxy
                 };
-            } else if (process.env.HTTP_PROXY) {
+            } else if (http_proxy) {
                 proxyConfig = {
-                    proxyUrl: process.env.HTTP_PROXY
+                    proxyUrl: http_proxy
                 };
             }
         }

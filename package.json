@@ -26,9 +26,13 @@
   },
   "homepage": "https://github.com/Microsoft/typed-rest-client#readme",
   "devDependencies": {
-    "@types/node": "^8.0.44",
-    "shelljs": "0.7.0",
-    "typescript": "2.1.4"
+    "typescript": "2.4.2",
+    "node": "^8.0.19",
+    "@types/node": "^8.0.19",
+    "shelljs": "0.7.6",
+    "@types/shelljs": "0.7.4",
+    "mocha": "^3.2.0",
+    "@types/mocha": "^2.2.41"
   },
   "dependencies": {
     "tunnel": "0.0.4",

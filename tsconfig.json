@@ -3,9 +3,9 @@
         "target": "es2015",
         "module": "commonjs",
         "moduleResolution": "node",
+        "typeRoots": [ "node_modules/@types" ], 
         "declaration": true,
-        "outDir": "_build", 
-        "types": ["node"]
+        "outDir": "_build" 
     },
     "files": [
         "lib/Index.ts"
