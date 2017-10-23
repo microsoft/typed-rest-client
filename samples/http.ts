@@ -1,5 +1,3 @@
-/// <reference path="../typings/index.d.ts" />
-
 import * as httpm from 'typed-rest-client/HttpClient';
 import * as fs from 'fs';
 import * as path from 'path';

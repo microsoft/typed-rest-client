@@ -4,9 +4,15 @@
   "description": "Typed Rest Client Samples",
   "main": "samples.js",
   "dependencies": {
-    "typed-rest-client": "^1.0.0"
+    "typed-rest-client": "file:../_build"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "typescript": "2.4.2",
+    "node": "^8.0.19",
+    "@types/node": "^8.0.19",
+    "q": "1.5.1",
+    "@types/q": "1.0.5"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },

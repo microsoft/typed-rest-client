@@ -2,7 +2,8 @@
     "compilerOptions": {
         "target": "ES6",
         "module": "commonjs",
-        "moduleResolution": "node"
+        "moduleResolution": "node", 
+        "typeRoots": [ "node_modules/@types" ]
     },
     "files": [
         "samples.ts"
