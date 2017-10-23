@@ -4,7 +4,8 @@
         "module": "commonjs",
         "moduleResolution": "node",
         "declaration": true,
-        "outDir": "_build"
+        "outDir": "_build", 
+        "types": ["node"]
     },
     "files": [
         "lib/Index.ts"
