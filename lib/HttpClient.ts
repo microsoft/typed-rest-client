@@ -86,6 +86,8 @@ export class HttpClient {
     private _socketTimeout: number;
     private _httpProxy: ifm.IProxyConfiguration;
     private _httpProxyBypassHosts: RegExp[];
+    private _allowRedirects: boolean = true;
+    private _maxRedirects: number = 50
 
     private _certConfig: ifm.ICertConfiguration;
     private _ca: string;
@@ -123,6 +125,14 @@ export class HttpClient {
 
             if (this._certConfig && this._certConfig.keyFile && fs.existsSync(this._certConfig.keyFile)) {
                 this._key = fs.readFileSync(this._certConfig.keyFile, 'utf8');
+            }
+
+            if (requestOptions.allowRedirects != null) {
+                this._allowRedirects = requestOptions.allowRedirects;
+            }
+
+            if (requestOptions.maxRedirects != null) {
+                this._maxRedirects = Math.max(requestOptions.maxRedirects, 0);
             }
         }
     }
@@ -167,16 +177,10 @@ export class HttpClient {
     public async request(verb: string, requestUrl: string, data: string | NodeJS.ReadableStream, headers: ifm.IHeaders): Promise<HttpClientResponse> {
         let info: RequestInfo = this._prepareRequest(verb, requestUrl, headers);
         let response: HttpClientResponse = await this._requestRaw(info, data);
-
-        /////////////////////
-        const allowRedirects: boolean = true;
-        const maxRedirects: number = 50
-
-
-        let redirectsRemaining: number = Math.max(maxRedirects, 0);
-
-        while (response.message.statusCode in HttpRedirectCodes
-               && allowRedirects
+        
+        let redirectsRemaining: number = this._maxRedirects;
+        while (HttpRedirectCodes.indexOf(response.message.statusCode) != -1
+               && this._allowRedirects
                && redirectsRemaining > 0) {
           const location: any = response.message.headers["location"];
 
@@ -184,6 +188,7 @@ export class HttpClient {
              throw new Error(`Unable to find location header after HTTP ${response.message.statusCode} redirect.`);
           }
 
+          info = this._prepareRequest(verb, location, headers);
           response = await this._requestRaw(info, data);
           redirectsRemaining--;
         }
