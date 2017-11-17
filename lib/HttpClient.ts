@@ -38,6 +38,8 @@ export enum HttpCodes {
     GatewayTimeout = 504,
 }
 
+const HttpRedirectCodes: number[] = [ HttpCodes.MovedPermanently, HttpCodes.ResourceMoved, HttpCodes.TemporaryRedirect, HttpCodes.PermanentRedirect ];
+
 export class HttpClientResponse {
     constructor(message: http.IncomingMessage) {
         this.message = message;
@@ -132,7 +134,7 @@ export class HttpClient {
     public async get(requestUrl: string, additionalHeaders?: ifm.IHeaders, allowRedirects: boolean = true, maxRedirects: number = 50): Promise<HttpClientResponse> {
         let response = await this.request('GET', requestUrl, null, additionalHeaders || {});
 
-        while (response.message.statusCode === HttpCodes.ResourceMoved
+        while (response.message.statusCode in HttpRedirectCodes
                && allowRedirects
                && Math.max(maxRedirects, 0) > 0) {
              const location: any = response.message.headers["location"];
