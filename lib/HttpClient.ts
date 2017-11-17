@@ -131,22 +131,8 @@ export class HttpClient {
         return this.request('OPTIONS', requestUrl, null, additionalHeaders || {});
     }
 
-    public async get(requestUrl: string, additionalHeaders?: ifm.IHeaders, allowRedirects: boolean = true, maxRedirects: number = 50): Promise<HttpClientResponse> {
-        let response = await this.request('GET', requestUrl, null, additionalHeaders || {});
-
-        while (response.message.statusCode in HttpRedirectCodes
-               && allowRedirects
-               && Math.max(maxRedirects, 0) > 0) {
-             const location: any = response.message.headers["location"];
-
-             if (!location) {
-                throw new Error("Unable to find location header after HTTP 302 redirect.");
-             }
-
-             response = await this.get(location, additionalHeaders, allowRedirects, maxRedirects - 1);
-        }
-        
-        return response;
+    public get(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<HttpClientResponse> {
+        return this.request('GET', requestUrl, null, additionalHeaders || {});
     }
 
     public del(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<HttpClientResponse> {
@@ -178,24 +164,31 @@ export class HttpClient {
      * All other methods such as get, post, patch, and request ultimately call this.
      * Prefer get, del, post and patch
      */
-    public request(verb: string, requestUrl: string, data: string | NodeJS.ReadableStream, headers: ifm.IHeaders): Promise<HttpClientResponse> {
-        return new Promise<HttpClientResponse>(async (resolve, reject) => {
-            try {
-                var info: RequestInfo = this._prepareRequest(verb, requestUrl, headers);
-                let res: HttpClientResponse = await this._requestRaw(info, data);
+    public async request(verb: string, requestUrl: string, data: string | NodeJS.ReadableStream, headers: ifm.IHeaders): Promise<HttpClientResponse> {
+        let info: RequestInfo = this._prepareRequest(verb, requestUrl, headers);
+        let response: HttpClientResponse = await this._requestRaw(info, data);
 
-                // TODO: check 401 if handled
+        /////////////////////
+        const allowRedirects: boolean = true;
+        const maxRedirects: number = 50
 
-                // TODO: retry support
 
-                resolve(res);
-            }
-            catch (err) {
-                // only throws in truly exceptional cases (connection, can't resolve etc...)
-                // responses from the server do not throw
-                reject(err);
-            }
-        });
+        let redirectsRemaining: number = Math.max(maxRedirects, 0);
+
+        while (response.message.statusCode in HttpRedirectCodes
+               && allowRedirects
+               && redirectsRemaining > 0) {
+          const location: any = response.message.headers["location"];
+
+          if (!location) {
+             throw new Error(`Unable to find location header after HTTP ${response.message.statusCode} redirect.`);
+          }
+
+          response = await this._requestRaw(info, data);
+          redirectsRemaining--;
+        }
+
+        return response;
     }
 
     private _requestRaw(info: RequestInfo, data: string | NodeJS.ReadableStream): Promise<HttpClientResponse> {
