@@ -1,5 +1,3 @@
-/// <reference path="../typings/index.d.ts" />
-
 import * as httpm from 'typed-rest-client/HttpClient';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -29,6 +27,26 @@ export async function run() {
         cm.heading('get request in a single line');
         body = await (await httpc.get('https://httpbin.org/get')).readBody();
         cm.outputHttpBinResponse(body);
+
+        //
+        // Http get request disabling redirects
+        //
+        cm.heading('get request disabling redirects');
+        httpc = new httpm.HttpClient('vsts-node-api', null, { allowRedirects: false });
+        res = await httpc.get("http://httpbin.org/redirect-to?url=" + encodeURIComponent("http://httpbin.org/get"))
+        body = await res.readBody();
+        cm.outputHttpBinResponse(body, res.message);
+
+        // reset the client
+        httpc = new httpm.HttpClient('vsts-node-api');
+
+        //
+        // Http get request implicity allowing redirects
+        //
+        cm.heading('get request with implicitly allowed redirects');
+        res = await httpc.get("http://httpbin.org/redirect-to?url=" + encodeURIComponent("http://httpbin.org/get"))
+        body = await res.readBody();
+        cm.outputHttpBinResponse(body, res.message);
 
         //
         // Http get piping to another stream

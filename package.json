@@ -1,36 +1,41 @@
 {
-    "name": "typed-rest-client",
-    "version": "0.12.0",
-    "description": "Node Rest and Http Clients with typings for use with TypeScript",
-    "main": "./RestClient.js",
-    "scripts": {
-        "build": "node make.js build",
-        "test": "node make.js test",
-        "samples": "node make.js samples"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/Microsoft/typed-rest-client.git"
-    },
-    "keywords": [
-        "rest",
-        "http",
-        "client",
-        "typescript",
-        "node"
-    ],
-    "author": "Microsoft Corporation",
-    "license": "MIT",
-    "bugs": {
-        "url": "https://github.com/Microsoft/typed-rest-client/issues"
-    },
-    "homepage": "https://github.com/Microsoft/typed-rest-client#readme",
-    "devDependencies": {
-        "shelljs": "0.7.0",
-        "typescript": "2.1.4"
-    },
-    "dependencies": {
-        "tunnel": "0.0.4",
-        "underscore": "1.8.3"
-    }
+  "name": "typed-rest-client",
+  "version": "0.13.0",
+  "description": "Node Rest and Http Clients for use with TypeScript",
+  "main": "./RestClient.js",
+  "scripts": {
+    "build": "node make.js build",
+    "test": "node make.js test",
+    "samples": "node make.js samples"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Microsoft/typed-rest-client.git"
+  },
+  "keywords": [
+    "rest",
+    "http",
+    "client",
+    "typescript",
+    "node"
+  ],
+  "author": "Microsoft Corporation",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Microsoft/typed-rest-client/issues"
+  },
+  "homepage": "https://github.com/Microsoft/typed-rest-client#readme",
+  "devDependencies": {
+    "typescript": "2.4.2",
+    "node": "^8.0.19",
+    "@types/node": "^8.0.19",
+    "shelljs": "0.7.6",
+    "@types/shelljs": "0.7.4",
+    "mocha": "^3.2.0",
+    "@types/mocha": "^2.2.41"
+  },
+  "dependencies": {
+    "tunnel": "0.0.4",
+    "underscore": "1.8.3"
+  }
 }

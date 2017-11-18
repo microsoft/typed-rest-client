@@ -38,6 +38,8 @@ export enum HttpCodes {
     GatewayTimeout = 504,
 }
 
+const HttpRedirectCodes: number[] = [ HttpCodes.MovedPermanently, HttpCodes.ResourceMoved, HttpCodes.TemporaryRedirect, HttpCodes.PermanentRedirect ];
+
 export class HttpClientResponse {
     constructor(message: http.IncomingMessage) {
         this.message = message;
@@ -70,6 +72,11 @@ export function isHttps(requestUrl: string) {
     return parsedUrl.protocol === 'https:';
 }
 
+enum EnvironmentVariables {
+    HTTP_PROXY = "HTTP_PROXY", 
+    HTTPS_PROXY = "HTTPS_PROXY",
+}
+
 export class HttpClient {
     userAgent: string;
     handlers: ifm.IRequestHandler[];
@@ -79,6 +86,8 @@ export class HttpClient {
     private _socketTimeout: number;
     private _httpProxy: ifm.IProxyConfiguration;
     private _httpProxyBypassHosts: RegExp[];
+    private _allowRedirects: boolean = true;
+    private _maxRedirects: number = 50
 
     private _certConfig: ifm.ICertConfiguration;
     private _ca: string;
@@ -116,6 +125,14 @@ export class HttpClient {
 
             if (this._certConfig && this._certConfig.keyFile && fs.existsSync(this._certConfig.keyFile)) {
                 this._key = fs.readFileSync(this._certConfig.keyFile, 'utf8');
+            }
+
+            if (requestOptions.allowRedirects != null) {
+                this._allowRedirects = requestOptions.allowRedirects;
+            }
+
+            if (requestOptions.maxRedirects != null) {
+                this._maxRedirects = Math.max(requestOptions.maxRedirects, 0);
             }
         }
     }
@@ -157,24 +174,26 @@ export class HttpClient {
      * All other methods such as get, post, patch, and request ultimately call this.
      * Prefer get, del, post and patch
      */
-    public request(verb: string, requestUrl: string, data: string | NodeJS.ReadableStream, headers: ifm.IHeaders): Promise<HttpClientResponse> {
-        return new Promise<HttpClientResponse>(async (resolve, reject) => {
-            try {
-                var info: RequestInfo = this._prepareRequest(verb, requestUrl, headers);
-                let res: HttpClientResponse = await this._requestRaw(info, data);
+    public async request(verb: string, requestUrl: string, data: string | NodeJS.ReadableStream, headers: ifm.IHeaders): Promise<HttpClientResponse> {
+        let info: RequestInfo = this._prepareRequest(verb, requestUrl, headers);
+        let response: HttpClientResponse = await this._requestRaw(info, data);
+        
+        let redirectsRemaining: number = this._maxRedirects;
+        while (HttpRedirectCodes.indexOf(response.message.statusCode) != -1
+               && this._allowRedirects
+               && redirectsRemaining > 0) {
+          const location: any = response.message.headers["location"];
 
-                // TODO: check 401 if handled
+          if (!location) {
+             throw new Error(`Unable to find location header after HTTP ${response.message.statusCode} redirect.`);
+          }
 
-                // TODO: retry support
+          info = this._prepareRequest(verb, location, headers);
+          response = await this._requestRaw(info, data);
+          redirectsRemaining--;
+        }
 
-                resolve(res);
-            }
-            catch (err) {
-                // only throws in truly exceptional cases (connection, can't resolve etc...)
-                // responses from the server do not throw
-                reject(err);
-            }
-        });
+        return response;
     }
 
     private _requestRaw(info: RequestInfo, data: string | NodeJS.ReadableStream): Promise<HttpClientResponse> {
@@ -238,14 +257,17 @@ export class HttpClient {
         let proxyConfig: ifm.IProxyConfiguration = this._httpProxy;
 
         // fallback to http_proxy and https_proxy env
+        let https_proxy: string = process.env[EnvironmentVariables.HTTPS_PROXY];
+        let http_proxy: string = process.env[EnvironmentVariables.HTTP_PROXY];
+
         if (!proxyConfig) {
-            if (process.env.HTTPS_PROXY && usingSsl) {
+            if (https_proxy && usingSsl) {
                 proxyConfig = {
-                    proxyUrl: process.env.HTTPS_PROXY
+                    proxyUrl: https_proxy
                 };
-            } else if (process.env.HTTP_PROXY) {
+            } else if (http_proxy) {
                 proxyConfig = {
-                    proxyUrl: process.env.HTTP_PROXY
+                    proxyUrl: http_proxy
                 };
             }
         }

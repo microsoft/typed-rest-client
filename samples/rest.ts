@@ -1,5 +1,3 @@
-/// <reference path="../typings/index.d.ts" />
-
 import * as rm from 'typed-rest-client/RestClient';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -8,7 +6,6 @@ import * as cm from './common';
 let baseUrl: string = 'https://httpbin.org';
 let restc: rm.RestClient = new rm.RestClient('rest-samples', 
                                              baseUrl);
-
 
 export async function run() {
     
