@@ -4,6 +4,7 @@ import * as restSamples from './rest';
 async function run() {
     await httpSamples.run();
     await restSamples.run();
+    process.exit();
 }
 
 run();
