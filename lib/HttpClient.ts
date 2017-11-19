@@ -177,7 +177,7 @@ export class HttpClient {
     public async request(verb: string, requestUrl: string, data: string | NodeJS.ReadableStream, headers: ifm.IHeaders): Promise<HttpClientResponse> {
         let info: RequestInfo = this._prepareRequest(verb, requestUrl, headers);
         let response: HttpClientResponse = await this._requestRaw(info, data);
-        
+
         let redirectsRemaining: number = this._maxRedirects;
         while (HttpRedirectCodes.indexOf(response.message.statusCode) != -1
                && this._allowRedirects
@@ -189,6 +189,10 @@ export class HttpClient {
           }
 
           info = this._prepareRequest(verb, location, headers);
+
+          //https://nodejs.org/api/http.html#http_agent_destroy
+          response.message.destroy();
+
           response = await this._requestRaw(info, data);
           redirectsRemaining--;
         }
