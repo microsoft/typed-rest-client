@@ -182,19 +182,21 @@ export class HttpClient {
         while (HttpRedirectCodes.indexOf(response.message.statusCode) != -1
                && this._allowRedirects
                && redirectsRemaining > 0) {
-          const location: any = response.message.headers["location"];
 
-          if (!location) {
-             throw new Error(`Unable to find location header after HTTP ${response.message.statusCode} redirect.`);
-          }
+            const redirectUrl: any = response.message.headers["location"];
+            if (!redirectUrl) {
+                // if there's no location to redirect to, we won't
+                break;
+            }
 
-          info = this._prepareRequest(verb, location, headers);
+            // we need to finish reading the response before reassigning response
+            // which will leak the open socket.
+            response.readBody();
 
-          //https://nodejs.org/api/http.html#http_agent_destroy
-          response.message.destroy();
-
-          response = await this._requestRaw(info, data);
-          redirectsRemaining--;
+            // let's make the request with the new redirectUrl
+            info = this._prepareRequest(verb, redirectUrl, headers);
+            response = await this._requestRaw(info, data);
+            redirectsRemaining--;
         }
 
         return response;
