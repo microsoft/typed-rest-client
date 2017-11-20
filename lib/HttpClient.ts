@@ -191,7 +191,7 @@ export class HttpClient {
 
             // we need to finish reading the response before reassigning response
             // which will leak the open socket.
-            response.readBody();
+            await response.readBody();
 
             // let's make the request with the new redirectUrl
             info = this._prepareRequest(verb, redirectUrl, headers);
