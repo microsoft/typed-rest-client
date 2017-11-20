@@ -25,7 +25,11 @@ npm install typed-rest-client --save
 
 ## Samples
 
-See [samples](./samples) for complete coding examples
+See [samples](./samples) for complete coding examples.
+
+```bash
+npm run samples
+```
 
 ## Contributing
 
