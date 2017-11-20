@@ -10,6 +10,13 @@ With 0.9 just published, we believe the API surface for 1.0 has settled.  More t
 
   - Rest Client with typescript generics and async/await/Promises
   - Http Client with pipe stream support and async/await/Promises 
+  - Typings included so no need to acquire separately (great for intellisense and no versioning drift)
+
+  - Basic, Bearer and NTLM Support out of the box
+  - Proxy support
+  - Certificate support (Self-signed server and client cert)
+  - Layered for Rest or Http use
+  - Full Samples and Tests included for usage
 
 ```javascript
 import * as rm from 'typed-rest-client/RestClient';
@@ -23,15 +30,7 @@ console.log(res.statusCode);
 console.log(res.result.name);
 ```
 
-  - Typings included so no need to acquire separately (great for intellisense and no versioning drift)
-
 ![intellisense](./docs/intellisense.png)
-
-  - Basic, Bearer and NTLM Support out of the box
-  - Proxy support
-  - Certificate support (Self-signed server and client cert)
-  - Layered for Rest or Http use
-  - Full Samples and Tests included for usage
 
 ## Install the library
 ```
