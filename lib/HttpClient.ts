@@ -177,20 +177,26 @@ export class HttpClient {
     public async request(verb: string, requestUrl: string, data: string | NodeJS.ReadableStream, headers: ifm.IHeaders): Promise<HttpClientResponse> {
         let info: RequestInfo = this._prepareRequest(verb, requestUrl, headers);
         let response: HttpClientResponse = await this._requestRaw(info, data);
-        
+
         let redirectsRemaining: number = this._maxRedirects;
         while (HttpRedirectCodes.indexOf(response.message.statusCode) != -1
                && this._allowRedirects
                && redirectsRemaining > 0) {
-          const location: any = response.message.headers["location"];
 
-          if (!location) {
-             throw new Error(`Unable to find location header after HTTP ${response.message.statusCode} redirect.`);
-          }
+            const redirectUrl: any = response.message.headers["location"];
+            if (!redirectUrl) {
+                // if there's no location to redirect to, we won't
+                break;
+            }
 
-          info = this._prepareRequest(verb, location, headers);
-          response = await this._requestRaw(info, data);
-          redirectsRemaining--;
+            // we need to finish reading the response before reassigning response
+            // which will leak the open socket.
+            await response.readBody();
+
+            // let's make the request with the new redirectUrl
+            info = this._prepareRequest(verb, redirectUrl, headers);
+            response = await this._requestRaw(info, data);
+            redirectsRemaining--;
         }
 
         return response;
