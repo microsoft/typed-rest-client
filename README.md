@@ -42,36 +42,6 @@ npm install typed-rest-client --save
 
 See [samples](./samples) for complete coding examples
 
-### Typings
-
-Typings (.d.ts) are distributed with the client, so intellisense and compile support just works from `tsc` and [vscode]()  
-
-## Pre-Requisites
-
-Pre-req: prefer [Node 6.9.3 LTS](https://nodejs.org), minimum [Node >= 4.4.7 LTS](https://nodejs.org)
-Typings: `npm install typings -g`  
-
-Once (or when dependencies change):  
-
-```bash
-npm install
-typings install
-```
-
-## Build 
-
-```bash
-npm run build
-```
-
-## Running Samples
-
-Run samples:  
-
-```bash
-$ npm run samples
-```
-
 ## Contributing
 
 To contribute to this repository, see the [contribution guide](./CONTRIBUTING.md)
