@@ -18,18 +18,7 @@ With 0.9 just published, we believe the API surface for 1.0 has settled.  More t
   - Layered for Rest or Http use
   - Full Samples and Tests included for usage
 
-```javascript
-import * as rm from 'typed-rest-client/RestClient';
-
-let restc: rm.RestClient = new rm.RestClient('rest-samples', 
-                                             'https://mystudentapiserver');
-
-let res: rm.IRestResponse<Student> = await restc.get<Student>('/students/5');
-
-console.log(res.statusCode);
-console.log(res.result.name);
-```
-
+Intellisense and compile support from typing the REST calls:
 ![intellisense](./docs/intellisense.png)
 
 ## Install the library
