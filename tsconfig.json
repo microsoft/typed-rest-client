@@ -8,6 +8,7 @@
         "outDir": "_build" 
     },
     "files": [
-        "lib/Index.ts"
+        "lib/Index.ts",
+        "lib/Handlers.ts"
     ]
 }
