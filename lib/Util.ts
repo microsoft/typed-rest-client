@@ -1,4 +1,5 @@
 import * as url from 'url';
+import * as path from 'path';
 
 /**
  * creates an url from a request url and optional base url (http://server:8080)
@@ -21,11 +22,13 @@ export function getUrl(requestUrl: string, baseUrl?: string, preservePath?: bool
     combined.host = combined.host || base.host;
 
     if (preservePath) {
-        combined.pathname = base.pathname + combined.pathname;
+        combined.pathname = path.join(base.pathname, combined.pathname);
     }
 
     // path from requestUrl always wins
     let res: string = url.format(combined);
+
+    console.log(res)
 
     return res;
 }

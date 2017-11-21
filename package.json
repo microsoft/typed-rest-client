@@ -8,10 +8,6 @@
     "test": "node make.js test",
     "samples": "node make.js samples"
   },
-  "engines": {
-    "node": ">=8.9.0",
-    "npm": ">=5.5.1"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Microsoft/typed-rest-client.git"

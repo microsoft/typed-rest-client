@@ -87,6 +87,9 @@ describe('Rest Tests', function () {
         }
     });
 
+    //--------------------------------------------------------
+    // Path in baseUrl tests
+    //--------------------------------------------------------
     it('removes the path from the base url', async() => {
         // Arrange
         let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/pathtoremove');
@@ -120,6 +123,32 @@ describe('Rest Tests', function () {
 
         // Assert
         assert(restRes.statusCode == 200, "statusCode should be 200");
+        assert(restRes.result.url === 'https://httpbin.org/anything/anythingextra');
+    });
+
+    it('maintains the path from the base url with no slashes', async() => {
+        // Arrange
+        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything', null, null, true);
+
+        // Act
+        let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('anythingextra');
+
+        // Assert
+        assert(restRes.statusCode == 200, "statusCode should be 200");
+        console.log(restRes.result.url)
+        assert(restRes.result.url === 'https://httpbin.org/anything/anythingextra');
+    });
+
+    it('maintains the path from the base url with double slashes', async() => {
+        // Arrange
+        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything/', null, null, true);
+
+        // Act
+        let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('/anythingextra');
+
+        // Assert
+        assert(restRes.statusCode == 200, "statusCode should be 200");
+        console.log(restRes.result.url)
         assert(restRes.result.url === 'https://httpbin.org/anything/anythingextra');
     });
 
