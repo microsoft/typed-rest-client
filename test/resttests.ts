@@ -9,6 +9,7 @@ import * as path from 'path';
 export interface HttpBinData {
     url: string;
     data: any;
+    args?: any
 }
 
 describe('Rest Tests', function () {
@@ -84,7 +85,93 @@ describe('Rest Tests', function () {
             assert(err['statusCode'] == 500, "statusCode should be 500");
             assert(err.message && err.message.length > 0, "should have error message");
         }
-    });    
+    });
+
+    it('removes the path from the base url', async() => {
+        // Arrange
+        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/pathtoremove');
+
+        // Act
+        let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('/get');
+
+        // Assert
+        assert(restRes.statusCode == 200, "statusCode should be 200");
+        assert(restRes.result.url === 'https://httpbin.org/get');
+    });
+
+    it('removes the path from the base url when excplicit', async() => {
+        // Arrange
+        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/pathtoremove', null, null, false);
+
+        // Act
+        let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('/get');
+
+        // Assert
+        assert(restRes.statusCode == 200, "statusCode should be 200");
+        assert(restRes.result.url === 'https://httpbin.org/get');
+    });
+
+    it('maintains the path from the base url', async() => {
+        // Arrange
+        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything', null, null, true);
+
+        // Act
+        let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('/anythingextra');
+
+        // Assert
+        assert(restRes.statusCode == 200, "statusCode should be 200");
+        assert(restRes.result.url === 'https://httpbin.org/anything/anythingextra');
+    });
+
+    it('maintains the path from the base url with multiple parts', async() => {
+        // Arrange
+        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything/extrapart', null, null, true);
+
+        // Act
+        let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('/anythingextra');
+
+        // Assert
+        assert(restRes.statusCode == 200, "statusCode should be 200");
+        assert(restRes.result.url === 'https://httpbin.org/anything/extrapart/anythingextra');
+    });
+
+    it('maintains the path from the base url where request has multiple parts', async() => {
+        // Arrange
+        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything', null, null, true);
+
+        // Act
+        let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('/anythingextra/moreparts');
+
+        // Assert
+        assert(restRes.statusCode == 200, "statusCode should be 200");
+        assert(restRes.result.url === 'https://httpbin.org/anything/anythingextra/moreparts');
+    });
+
+    it('maintains the path from the base url where both have multiple parts', async() => {
+        // Arrange
+        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything/multiple', null, null, true);
+
+        // Act
+        let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('/anythingextra/moreparts');
+
+        // Assert
+        assert(restRes.statusCode == 200, "statusCode should be 200");
+        assert(restRes.result.url === 'https://httpbin.org/anything/multiple/anythingextra/moreparts');
+    });
+
+    it('maintains the path from the base url where request has query parameters', async() => {
+        // Arrange
+        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything/multiple', null, null, true);
+
+        // Act
+        let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('/anythingextra/moreparts?foo=bar&baz=top');
+
+        // Assert
+        assert(restRes.statusCode == 200, "statusCode should be 200");
+        assert(restRes.result.url === 'https://httpbin.org/anything/multiple/anythingextra/moreparts?foo=bar&baz=top');
+        assert(restRes.result.args.foo === 'bar');
+        assert(restRes.result.args.baz === 'top');
+    });
 
     // TODO: more tests here    
 });

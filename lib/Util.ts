@@ -4,9 +4,10 @@ import * as url from 'url';
  * creates an url from a request url and optional base url (http://server:8080)
  * @param {string} requestUrl - a fully qualified url or relative url
  * @param {string} baseUrl - an optional baseUrl (http://server:8080)
+ * @param {boolean} preservePath - an optional baseUrl (http://server:8080)
  * @return {string} - resultant url 
  */
-export function getUrl(requestUrl: string, baseUrl?: string): string  {
+export function getUrl(requestUrl: string, baseUrl?: string, preservePath?: boolean): string  {
     if (!baseUrl) {
         return requestUrl;
     }
@@ -18,8 +19,13 @@ export function getUrl(requestUrl: string, baseUrl?: string): string  {
     combined.protocol = combined.protocol || base.protocol;
     combined.auth = combined.auth || base.auth;
     combined.host = combined.host || base.host;
-    // path from requestUrl always wins
 
+    if (preservePath) {
+        combined.pathname = base.pathname + combined.pathname;
+    }
+
+    // path from requestUrl always wins
     let res: string = url.format(combined);
+
     return res;
 }

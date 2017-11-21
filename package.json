@@ -1,12 +1,16 @@
 {
   "name": "typed-rest-client",
-  "version": "0.14.2",
+  "version": "0.15.0",
   "description": "Node Rest and Http Clients for use with TypeScript",
   "main": "./RestClient.js",
   "scripts": {
     "build": "node make.js build",
     "test": "node make.js test",
     "samples": "node make.js samples"
+  },
+  "engines": {
+    "node": ">=8.9.0",
+    "npm": ">=5.5.1"
   },
   "repository": {
     "type": "git",
