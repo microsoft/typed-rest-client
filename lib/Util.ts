@@ -28,7 +28,5 @@ export function getUrl(requestUrl: string, baseUrl?: string, preservePath?: bool
     // path from requestUrl always wins
     let res: string = url.format(combined);
 
-    console.log(res)
-
     return res;
 }
