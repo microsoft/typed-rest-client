@@ -3,6 +3,7 @@
 
 import assert = require('assert');
 import * as httpm from 'typed-rest-client/HttpClient';
+import * as hm from 'typed-rest-client/Handlers';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -47,10 +48,38 @@ describe('Http Tests', function () {
     it('does basic https get request', async() => {
         let res: httpm.HttpClientResponse = await _http.get('https://httpbin.org/get');
         assert(res.message.statusCode == 200, "status code should be 200");
-        let body: string = await res.readBody();      
+        let body: string = await res.readBody();
         let obj:any = JSON.parse(body);
         assert(obj.url === "https://httpbin.org/get");
     });
+
+    it('does basic http get request with basic auth', async() => {
+        let bh: hm.BasicCredentialHandler = new hm.BasicCredentialHandler('johndoe', 'password');
+        let http: httpm.HttpClient = new httpm.HttpClient('typed-rest-client-tests', [bh]);
+        let res: httpm.HttpClientResponse = await http.get('http://httpbin.org/get');
+        assert(res.message.statusCode == 200, "status code should be 200");
+        let body: string = await res.readBody(); 
+        let obj:any = JSON.parse(body);
+        let auth: string = obj.headers.Authorization;
+        let creds: string = Buffer.from(auth.substring('Basic '.length), 'base64').toString();
+        assert(creds === 'johndoe:password', "should be the username and password");
+        assert(obj.url === "http://httpbin.org/get");
+    });
+    
+    it('does basic http get request with pat token auth', async() => {
+        let token: string = 'scbfb44vxzku5l4xgc3qfazn3lpk4awflfryc76esaiq7aypcbhs';
+        let ph: hm.PersonalAccessTokenCredentialHandler = 
+            new hm.PersonalAccessTokenCredentialHandler(token);
+        let http: httpm.HttpClient = new httpm.HttpClient('typed-rest-client-tests', [ph]);
+        let res: httpm.HttpClientResponse = await http.get('http://httpbin.org/get');
+        assert(res.message.statusCode == 200, "status code should be 200");
+        let body: string = await res.readBody(); 
+        let obj:any = JSON.parse(body);
+        let auth: string = obj.headers.Authorization;
+        let creds: string = Buffer.from(auth.substring('Basic '.length), 'base64').toString();
+        assert(creds === 'PAT:' + token, "creds should be the token");
+        assert(obj.url === "http://httpbin.org/get");
+    });    
 
     it('pipes a get request', () => {
         return new Promise<string>(async (resolve, reject) => {
