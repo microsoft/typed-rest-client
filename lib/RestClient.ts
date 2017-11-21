@@ -160,11 +160,6 @@ export class RestClient {
         return this._processResponse<T>(res, options);
     }
 
-    // should move to the consumer
-    // public createAcceptHeader(type: string, apiVersion?: string): string {
-    //     return type + (apiVersion ? (';' + this.versionParam + '=' + apiVersion) : '');
-    // }
-
     private _headersFromOptions(options: IRequestOptions, contentType?: boolean): ifm.IHeaders {
         options = options || {};
         let headers: ifm.IHeaders = options.additionalHeaders || {};
@@ -204,9 +199,10 @@ export class RestClient {
                 }
             }
             catch (err) {
-                reject(new Error('Invalid Resource'));
+                // Invalid resource (contents not json);  leaving result obj null
             }
 
+            // note that 3xx redirects are handled by the http layer.
             if (statusCode > 299) {
                 let msg: string;
 
@@ -214,10 +210,18 @@ export class RestClient {
                 if (obj && obj.message) {
                     msg = obj.message;
                 } else {
-                    msg = "Failed request: (" + statusCode + ") " + res.message.url;
+                    msg = "Failed request: (" + statusCode + ")";
                 }
 
-                reject(new Error(msg));
+                let err: Error = new Error(msg);
+
+                // attach statusCode and body obj (if available) to the error object
+                err['statusCode'] = statusCode;
+                if (rres.result) {
+                    err['result'] = rres.result;
+                }
+
+                reject(err);
             } else {
                 resolve(rres);
             }
