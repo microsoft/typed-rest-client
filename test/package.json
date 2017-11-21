@@ -1,0 +1,22 @@
+{
+  "name": "typed-rest-client-tests",
+  "version": "1.0.0",
+  "description": "Tests for typed-rest-client",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Microsoft/typed-rest-client.git"
+  },
+  "author": "Microsoft Corporation",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Microsoft/typed-rest-client/issues"
+  },
+  "homepage": "https://github.com/Microsoft/typed-rest-client#readme",
+  "dependencies": {
+    "typed-rest-client": "file:../_build"
+  }
+}

@@ -1,0 +1,125 @@
+// Copyright (c) Microsoft. All rights reserved.
+// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+
+import assert = require('assert');
+import * as httpm from 'typed-rest-client/HttpClient';
+import * as fs from 'fs';
+import * as path from 'path';
+
+let sampleFilePath: string = path.join(__dirname, 'testoutput.txt');
+
+describe('Http Tests', function () {
+    let _http: httpm.HttpClient;
+
+    before(() => {
+        _http = new httpm.HttpClient('typed-test-client-tests');
+    });
+
+    after(() => {
+    });
+
+    it('constructs', () => {
+        this.timeout(1000);
+
+        let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests');
+        assert(http, 'http client should not be null');
+    });
+
+    // responses from httpbin return something like:
+    // {
+    //     "args": {}, 
+    //     "headers": {
+    //       "Connection": "close", 
+    //       "Host": "httpbin.org", 
+    //       "User-Agent": "typed-test-client-tests"
+    //     }, 
+    //     "origin": "173.95.152.44", 
+    //     "url": "https://httpbin.org/get"
+    //  }  
+    it('does basic http get request', async() => {
+        let res: httpm.HttpClientResponse = await _http.get('http://httpbin.org/get');
+        assert(res.message.statusCode == 200, "status code should be 200");
+        let body: string = await res.readBody();      
+        let obj:any = JSON.parse(body);
+        assert(obj.url === "http://httpbin.org/get");
+    });
+
+    it('does basic https get request', async() => {
+        let res: httpm.HttpClientResponse = await _http.get('https://httpbin.org/get');
+        assert(res.message.statusCode == 200, "status code should be 200");
+        let body: string = await res.readBody();      
+        let obj:any = JSON.parse(body);
+        assert(obj.url === "https://httpbin.org/get");
+    });
+
+    it('pipes a get request', () => {
+        return new Promise<string>(async (resolve, reject) => {
+            let file: NodeJS.WritableStream = fs.createWriteStream(sampleFilePath);
+            (await _http.get('https://httpbin.org/get')).message.pipe(file).on('close', () => {
+                let body: string = fs.readFileSync(sampleFilePath).toString();
+                let obj:any = JSON.parse(body);
+                assert(obj.url === "https://httpbin.org/get", "response from piped stream should have url");
+                resolve();
+            });
+        });
+    });
+    
+    it('does basic get request with redirects', async() => {
+        let res: httpm.HttpClientResponse = await _http.get("https://httpbin.org/redirect-to?url=" + encodeURIComponent("https://httpbin.org/get"))
+        assert(res.message.statusCode == 200, "status code should be 200");
+        let body: string = await res.readBody();
+        let obj:any = JSON.parse(body);
+        assert(obj.url === "https://httpbin.org/get");
+    });
+    
+    it('does not follow redirects if disabled', async() => {
+        let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests', null, { allowRedirects: false });
+        let res: httpm.HttpClientResponse = await http.get("https://httpbin.org/redirect-to?url=" + encodeURIComponent("https://httpbin.org/get"))
+        assert(res.message.statusCode == 302, "status code should be 302");
+        let body: string = await res.readBody();
+    });    
+    
+    it('does basic head request', async() => {
+        let res: httpm.HttpClientResponse = await _http.head('http://httpbin.org/get');
+        assert(res.message.statusCode == 200, "status code should be 200");
+    });    
+
+    it('does basic http delete request', async() => {
+        let res: httpm.HttpClientResponse = await _http.del('http://httpbin.org/delete');
+        assert(res.message.statusCode == 200, "status code should be 200");
+        let body: string = await res.readBody();      
+        let obj:any = JSON.parse(body);
+    });
+
+    it('does basic http post request', async() => {
+        let b: string = 'Hello World!';
+        let res: httpm.HttpClientResponse = await _http.post('http://httpbin.org/post', b);
+        assert(res.message.statusCode == 200, "status code should be 200");
+        let body: string = await res.readBody();
+        let obj:any = JSON.parse(body);
+        assert(obj.data === b);
+        assert(obj.url === "http://httpbin.org/post");
+    });
+    
+    it('does basic http patch request', async() => {
+        let b: string = 'Hello World!';
+        let res: httpm.HttpClientResponse = await _http.patch('http://httpbin.org/patch', b);
+        assert(res.message.statusCode == 200, "status code should be 200");
+        let body: string = await res.readBody();
+        let obj:any = JSON.parse(body);
+        assert(obj.data === b);
+        assert(obj.url === "http://httpbin.org/patch");
+    }); 
+    
+    it('does basic http options request', async() => {
+        let res: httpm.HttpClientResponse = await _http.options('http://httpbin.org');
+        assert(res.message.statusCode == 200, "status code should be 200");
+        let body: string = await res.readBody();
+    }); 
+    
+    it('returns 404 for not found get request', async() => {
+        let res: httpm.HttpClientResponse = await _http.get('http://httpbin.org/status/404');
+        assert(res.message.statusCode == 404, "status code should be 404");
+        let body: string = await res.readBody();
+    });    
+});

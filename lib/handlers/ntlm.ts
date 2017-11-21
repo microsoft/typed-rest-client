@@ -1,14 +1,14 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-import VsoBaseInterfaces = require('../interfaces');
+import ifm = require('../interfaces');
 
 import http = require("http");
 import https = require("https");
 var _ = require("underscore");
 var ntlm = require("../opensource/node-http-ntlm/ntlm");
 
-export class NtlmCredentialHandler implements VsoBaseInterfaces.IRequestHandler {
+export class NtlmCredentialHandler implements ifm.IRequestHandler {
     username: string;
     password: string;
     workstation: string;
@@ -33,7 +33,7 @@ export class NtlmCredentialHandler implements VsoBaseInterfaces.IRequestHandler 
         }
     }
 
-    canHandleAuthentication(res: VsoBaseInterfaces.IHttpResponse): boolean {
+    canHandleAuthentication(res: ifm.IHttpResponse): boolean {
         if (res && res.statusCode === 401) {
             // Ensure that we're talking NTLM here
             // Once we have the www-authenticate header, split it so we can ensure we can talk NTLM

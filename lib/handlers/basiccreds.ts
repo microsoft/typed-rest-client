@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-import VsoBaseInterfaces = require('../interfaces');
+import ifm = require('../interfaces');
 
-export class BasicCredentialHandler implements VsoBaseInterfaces.IRequestHandler {
+export class BasicCredentialHandler implements ifm.IRequestHandler {
     username: string;
     password: string;
 
@@ -20,7 +20,7 @@ export class BasicCredentialHandler implements VsoBaseInterfaces.IRequestHandler
     }
 
     // This handler cannot handle 401
-    canHandleAuthentication(res: VsoBaseInterfaces.IHttpResponse): boolean {
+    canHandleAuthentication(res: ifm.IHttpResponse): boolean {
         return false;
     }
 

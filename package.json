@@ -1,6 +1,6 @@
 {
   "name": "typed-rest-client",
-  "version": "0.8.0",
+  "version": "0.14.1",
   "description": "Node Rest and Http Clients for use with TypeScript",
   "main": "./RestClient.js",
   "scripts": {
@@ -26,13 +26,13 @@
   },
   "homepage": "https://github.com/Microsoft/typed-rest-client#readme",
   "devDependencies": {
-    "typescript": "2.4.2",
-    "node": "^8.0.19",
+    "@types/mocha": "^2.2.44",
     "@types/node": "^8.0.19",
-    "shelljs": "0.7.6",
     "@types/shelljs": "0.7.4",
-    "mocha": "^3.2.0",
-    "@types/mocha": "^2.2.41"
+    "mocha": "^3.5.3",
+    "node": "^8.0.19",
+    "shelljs": "0.7.6",
+    "typescript": "2.4.2"
   },
   "dependencies": {
     "tunnel": "0.0.4",

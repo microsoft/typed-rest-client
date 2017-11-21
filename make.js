@@ -7,7 +7,7 @@ var rp = function (relPath) {
 }
 
 var buildPath = path.join(__dirname, '_build');
-var testPath = path.join(__dirname, '_test');
+var testPath = path.join(__dirname, 'test');
 
 var run = function (cl) {
     console.log('> ' + cl);
@@ -20,37 +20,32 @@ var run = function (cl) {
 
 target.clean = function () {
     rm('-Rf', buildPath);
-    rm('-Rf', testPath);
 };
 
 target.build = function () {
     target.clean();
 
     run(path.join(__dirname, 'node_modules/.bin/tsc') + ' --outDir ' + buildPath);
-    // cp(rp('dependencies/typings.json'), buildPath);
     cp('-Rf', rp('lib/opensource'), buildPath);
     cp(rp('package.json'), buildPath);
     cp(rp('README.md'), buildPath);
     cp(rp('LICENSE'), buildPath);
-    // just a bootstrap file to avoid /// in final js and .d.ts file
-    // rm(path.join(buildPath, 'index.*'));
 }
 
-// test is just building samples
-target.test = function () {
+target.test = function() {
     target.build();
 
-    var modPath = path.join(__dirname, 'samples', 'node_modules');
-    rm('-Rf', modPath);
-    mkdir('-p', modPath);
-    pushd('samples');
-    run('npm install ../_build --production');
+    // install the just built lib into the test proj
+    pushd('test')
+    run('npm install ../_build');
     popd();
-    run(path.join(__dirname, 'node_modules/.bin/tsc') + ' -p ' + 'samples');
+
+    run('tsc -p ./test');
+    run('mocha test');
 }
 
 target.samples = function () {
-    target.test();
+    target.build();
 
     pushd('samples');
     run('node samples.js');
