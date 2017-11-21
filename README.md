@@ -32,18 +32,18 @@ Also see [rest](./test/resttests.ts) and [http](./test/httptests.ts) tests for d
 ## Errors
 
 ### http
-The http client does not throw unless truly exceptional.  A request that successfully executes resulting in a 404, 500 etc... will return a response object with a status code and a body.
+The http client does not throw unless truly exceptional.  A request that successfully executes resulting in a 404, 500 etc... will return a response object with a status code and a body.  Redirects (3xx) will be followed by default.
 
 See [http tests](./test/httptests.ts) for detailed examples.
 
 ### rest
-The rest client is a high level client which uses the http client.  It's responsibility is to turn a body into a serialized typed object.  
+The rest client is a high level client which uses the http client.  It's responsibility is to turn a body into a typed resource object.  
 
 A 200 will be success.  
-Redirects (3xx) will be handled for you.  
+Redirects (3xx) will be followed.  
 A 404 will not throw but the result object will be null and the result statusCode will be set.
 
-Other 4xx and 5xx errors will throw.  The status code will be attached to the error object.  If a restfull error object is returned ({ message: xxx}), then the error message will be that.  Otherwise, it will be a generic, "Failed Request: (xxx)".
+Other 4xx and 5xx errors will throw.  The status code will be attached to the error object.  If a restful error object is returned ({ message: xxx}), then the error message will be that.  Otherwise, it will be a generic, "Failed Request: (xxx)".
 
 See [rest tests](./test/resttests.ts) for detailed examples.
 
