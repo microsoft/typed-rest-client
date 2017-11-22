@@ -33,23 +33,18 @@ export class RestClient {
      * @param {string} baseUrl - (Optional) If not specified, use full urls per request.  If supplied and a function passes a relative url, it will be appended to this
      * @param {ifm.IRequestHandler[]} handlers - handlers are typically auth handlers (basic, bearer, ntlm supplied)
      * @param {ifm.IRequestOptions} requestOptions - options for each http requests (http proxy setting, socket timeout)
-     * @param {boolean} preservePath - 
      */
     constructor(userAgent: string,
                 baseUrl?: string,
                 handlers?: ifm.IRequestHandler[],
-                requestOptions?: ifm.IRequestOptions,
-                preservePath?: boolean) {
+                requestOptions?: ifm.IRequestOptions) {
         this.client = new httpm.HttpClient(userAgent, handlers, requestOptions);
         if (baseUrl) {
             this._baseUrl = baseUrl;
         }
-
-        this._preservePath = preservePath || false;
     }
 
     private _baseUrl: string;
-    private _preservePath: boolean;
 
     /**
      * Gets a resource from an endpoint
@@ -60,7 +55,7 @@ export class RestClient {
     public async options<T>(requestUrl: string,
         options?: IRequestOptions): Promise<IRestResponse<T>> {
 
-        let url: string = util.getUrl(requestUrl, this._baseUrl, this._preservePath);
+        let url: string = util.getUrl(requestUrl, this._baseUrl);
         let res: httpm.HttpClientResponse = await this.client.options(url,
             this._headersFromOptions(options));
         return this._processResponse<T>(res, options);
@@ -75,7 +70,7 @@ export class RestClient {
     public async get<T>(requestUrl: string,
         options?: IRequestOptions): Promise<IRestResponse<T>> {
 
-        let url: string = util.getUrl(requestUrl, this._baseUrl, this._preservePath);
+        let url: string = util.getUrl(requestUrl, this._baseUrl);
         let res: httpm.HttpClientResponse = await this.client.get(url,
             this._headersFromOptions(options));
         return this._processResponse<T>(res, options);
@@ -90,7 +85,7 @@ export class RestClient {
     public async del<T>(requestUrl: string,
         options?: IRequestOptions): Promise<IRestResponse<T>> {
 
-        let url: string = util.getUrl(requestUrl, this._baseUrl, this._preservePath);
+        let url: string = util.getUrl(requestUrl, this._baseUrl);
         let res: httpm.HttpClientResponse = await this.client.del(url,
             this._headersFromOptions(options));
         return this._processResponse<T>(res, options);
@@ -107,7 +102,7 @@ export class RestClient {
         resources: any,
         options?: IRequestOptions): Promise<IRestResponse<T>> {
 
-        let url: string = util.getUrl(requestUrl, this._baseUrl, this._preservePath);
+        let url: string = util.getUrl(requestUrl, this._baseUrl);
         let headers: ifm.IHeaders = this._headersFromOptions(options, true);
 
         let data: string = JSON.stringify(resources, null, 2);
@@ -126,7 +121,7 @@ export class RestClient {
         resources: any,
         options?: IRequestOptions): Promise<IRestResponse<T>> {
 
-        let url: string = util.getUrl(requestUrl, this._baseUrl, this._preservePath);
+        let url: string = util.getUrl(requestUrl, this._baseUrl);
         let headers: ifm.IHeaders = this._headersFromOptions(options, true);
 
         let data: string = JSON.stringify(resources, null, 2);
@@ -145,7 +140,7 @@ export class RestClient {
         resources: any,
         options?: IRequestOptions): Promise<IRestResponse<T>> {
 
-        let url: string = util.getUrl(requestUrl, this._baseUrl, this._preservePath);
+        let url: string = util.getUrl(requestUrl, this._baseUrl);
         let headers: ifm.IHeaders = this._headersFromOptions(options, true);
 
         let data: string = JSON.stringify(resources, null, 2);
@@ -158,7 +153,7 @@ export class RestClient {
         stream: NodeJS.ReadableStream,
         options?: IRequestOptions): Promise<IRestResponse<T>> {
 
-        let url: string = util.getUrl(requestUrl, this._baseUrl, this._preservePath);
+        let url: string = util.getUrl(requestUrl, this._baseUrl);
         let headers: ifm.IHeaders = this._headersFromOptions(options, true);
 
         let res: httpm.HttpClientResponse = await this.client.sendStream(verb, url, stream, headers);

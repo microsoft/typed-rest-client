@@ -90,33 +90,9 @@ describe('Rest Tests', function () {
     //--------------------------------------------------------
     // Path in baseUrl tests
     //--------------------------------------------------------
-    it('removes the path from the base url', async() => {
-        // Arrange
-        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/pathtoremove');
-
-        // Act
-        let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('/get');
-
-        // Assert
-        assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result.url === 'https://httpbin.org/get');
-    });
-
-    it('removes the path from the base url when excplicit', async() => {
-        // Arrange
-        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/pathtoremove', null, null, false);
-
-        // Act
-        let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('/get');
-
-        // Assert
-        assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result.url === 'https://httpbin.org/get');
-    });
-
     it('maintains the path from the base url', async() => {
         // Arrange
-        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything', null, null, true);
+        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything');
 
         // Act
         let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('/anythingextra');
@@ -128,33 +104,31 @@ describe('Rest Tests', function () {
 
     it('maintains the path from the base url with no slashes', async() => {
         // Arrange
-        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything', null, null, true);
+        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything');
 
         // Act
         let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('anythingextra');
 
         // Assert
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        console.log(restRes.result.url)
         assert(restRes.result.url === 'https://httpbin.org/anything/anythingextra');
     });
 
     it('maintains the path from the base url with double slashes', async() => {
         // Arrange
-        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything/', null, null, true);
+        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything/');
 
         // Act
         let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('/anythingextra');
 
         // Assert
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        console.log(restRes.result.url)
         assert(restRes.result.url === 'https://httpbin.org/anything/anythingextra');
     });
 
     it('maintains the path from the base url with multiple parts', async() => {
         // Arrange
-        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything/extrapart', null, null, true);
+        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything/extrapart');
 
         // Act
         let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('/anythingextra');
@@ -166,7 +140,7 @@ describe('Rest Tests', function () {
 
     it('maintains the path from the base url where request has multiple parts', async() => {
         // Arrange
-        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything', null, null, true);
+        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything');
 
         // Act
         let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('/anythingextra/moreparts');
@@ -178,7 +152,7 @@ describe('Rest Tests', function () {
 
     it('maintains the path from the base url where both have multiple parts', async() => {
         // Arrange
-        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything/multiple', null, null, true);
+        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything/multiple');
 
         // Act
         let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('/anythingextra/moreparts');
@@ -190,7 +164,7 @@ describe('Rest Tests', function () {
 
     it('maintains the path from the base url where request has query parameters', async() => {
         // Arrange
-        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything/multiple', null, null, true);
+        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything/multiple');
 
         // Act
         let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('/anythingextra/moreparts?foo=bar&baz=top');
