@@ -5,7 +5,8 @@
         "moduleResolution": "node",
         "typeRoots": [ "node_modules/@types" ], 
         "declaration": true,
-        "outDir": "_build" 
+        "outDir": "_build",
+        "forceConsistentCasingInFileNames": true
     },
     "files": [
         "lib/Index.ts",
