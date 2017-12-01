@@ -187,22 +187,17 @@ describe('Rest Tests', function () {
 
     it('resolves a full resource and no baseUrl', async() => {
         let res: string = util.getUrl('http://httpbin.org/get?x=y&a=b');
-        assert(res === 'http://httpbin.org/get?x=y&a=b', "should be http://httpbin.org/get?x=y&a=b");
+        assert(res === 'http://httpbin.org/get?x=y&a=b', `should be http://httpbin.org/get?x=y&a=b but is ${res}`);
     });
 
     it('resolves a rooted path resource with host baseUrl', async() => {
         let res: string = util.getUrl('/get/foo', 'http://httpbin.org');
-        assert(res === 'http://httpbin.org/get/foo', "should be http://httpbin.org/get/foo");
-    });
-
-    it('resolves a rooted path resource with pathed baseUrl', async() => {
-        let res: string = util.getUrl('/get/foo', 'http://httpbin.org/bar');
-        assert(res === 'http://httpbin.org/get/foo', "should be http://httpbin.org/get/foo");
+        assert(res === 'http://httpbin.org/get/foo', `should be http://httpbin.org/get/foo but is ${res}`);
     });
 
     it('resolves a relative path resource with pathed baseUrl', async() => {
         let res: string = util.getUrl('get/foo', 'http://httpbin.org/bar');
-        assert(res === 'http://httpbin.org/bar/get/foo', "should be http://httpbin.org/bar/get/foo");
+        assert(res === 'http://httpbin.org/bar/get/foo', `should be http://httpbin.org/bar/get/foo but is ${res}`);
     });
     // TODO: more tests here    
 });
