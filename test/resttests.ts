@@ -3,6 +3,7 @@
 
 import assert = require('assert');
 import * as restm from 'typed-rest-client/RestClient';
+import * as util from 'typed-rest-client/Util';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -176,5 +177,32 @@ describe('Rest Tests', function () {
         assert(restRes.result.args.baz === 'top');
     });
 
+    //
+    // getUrl path tests
+    //
+    it('resolves a just host resource and no baseUrl', async() => {
+        let res: string = util.getUrl('http://httpbin.org');
+        assert(res === 'http://httpbin.org', "should be http://httpbin.org");
+    });
+
+    it('resolves a full resource and no baseUrl', async() => {
+        let res: string = util.getUrl('http://httpbin.org/get?x=y&a=b');
+        assert(res === 'http://httpbin.org/get?x=y&a=b', "should be http://httpbin.org/get?x=y&a=b");
+    });
+
+    it('resolves a rooted path resource with host baseUrl', async() => {
+        let res: string = util.getUrl('/get/foo', 'http://httpbin.org');
+        assert(res === 'http://httpbin.org/get/foo', "should be http://httpbin.org/get/foo");
+    });
+
+    it('resolves a rooted path resource with pathed baseUrl', async() => {
+        let res: string = util.getUrl('/get/foo', 'http://httpbin.org/bar');
+        assert(res === 'http://httpbin.org/get/foo', "should be http://httpbin.org/get/foo");
+    });
+
+    it('resolves a relative path resource with pathed baseUrl', async() => {
+        let res: string = util.getUrl('get/foo', 'http://httpbin.org/bar');
+        assert(res === 'http://httpbin.org/bar/get/foo', "should be http://httpbin.org/bar/get/foo");
+    });
     // TODO: more tests here    
 });
