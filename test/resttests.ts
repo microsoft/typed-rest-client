@@ -96,7 +96,7 @@ describe('Rest Tests', function () {
         let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything');
 
         // Act
-        let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('/anythingextra');
+        let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('anythingextra');
 
         // Assert
         assert(restRes.statusCode == 200, "statusCode should be 200");
@@ -120,7 +120,7 @@ describe('Rest Tests', function () {
         let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything/');
 
         // Act
-        let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('/anythingextra');
+        let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('anythingextra');
 
         // Assert
         assert(restRes.statusCode == 200, "statusCode should be 200");
@@ -132,7 +132,7 @@ describe('Rest Tests', function () {
         let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything/extrapart');
 
         // Act
-        let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('/anythingextra');
+        let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('anythingextra');
 
         // Assert
         assert(restRes.statusCode == 200, "statusCode should be 200");
@@ -144,7 +144,7 @@ describe('Rest Tests', function () {
         let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything');
 
         // Act
-        let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('/anythingextra/moreparts');
+        let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('anythingextra/moreparts');
 
         // Assert
         assert(restRes.statusCode == 200, "statusCode should be 200");
@@ -156,7 +156,7 @@ describe('Rest Tests', function () {
         let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything/multiple');
 
         // Act
-        let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('/anythingextra/moreparts');
+        let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('anythingextra/moreparts');
 
         // Assert
         assert(restRes.statusCode == 200, "statusCode should be 200");
@@ -168,7 +168,7 @@ describe('Rest Tests', function () {
         let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything/multiple');
 
         // Act
-        let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('/anythingextra/moreparts?foo=bar&baz=top');
+        let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('anythingextra/moreparts?foo=bar&baz=top');
 
         // Assert
         assert(restRes.statusCode == 200, "statusCode should be 200");
@@ -193,6 +193,11 @@ describe('Rest Tests', function () {
     it('resolves a rooted path resource with host baseUrl', async() => {
         let res: string = util.getUrl('/get/foo', 'http://httpbin.org');
         assert(res === 'http://httpbin.org/get/foo', `should be http://httpbin.org/get/foo but is ${res}`);
+    });
+
+    it('resolves a rooted path resource with pathed baseUrl', async() => {
+        let res: string = util.getUrl('/get/foo', 'http://httpbin.org/bar');
+        assert(res === 'http://httpbin.org/get/foo', "should be http://httpbin.org/get/foo");
     });
 
     it('resolves a relative path resource with pathed baseUrl', async() => {

@@ -20,8 +20,8 @@ export function getUrl(resource: string, baseUrl?: string): string  {
     resultantUrl.auth = resultantUrl.auth || base.auth;
     resultantUrl.host = resultantUrl.host || base.host;
 
-    let basePathComponent: string = base.pathname === '/' ? '': base.pathname;
-    resultantUrl.pathname = path.posix.join(basePathComponent, resultantUrl.pathname);
+    let basePathComponent: string = base.pathname === '/' ? '' : base.pathname;
+    resultantUrl.pathname = path.posix.resolve(basePathComponent, resultantUrl.pathname);
 
     let res: string = url.format(resultantUrl);
 
