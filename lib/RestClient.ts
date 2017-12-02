@@ -64,13 +64,13 @@ export class RestClient {
     /**
      * Gets a resource from an endpoint
      * Be aware that not found returns a null.  Other error conditions reject the promise
-     * @param {string} requestUrl - fully qualified or relative url
+     * @param {string} resource - fully qualified url or relative path
      * @param {IRequestOptions} requestOptions - (optional) requestOptions object
      */
-    public async get<T>(requestUrl: string,
+    public async get<T>(resource: string,
         options?: IRequestOptions): Promise<IRestResponse<T>> {
 
-        let url: string = util.getUrl(requestUrl, this._baseUrl);
+        let url: string = util.getUrl(resource, this._baseUrl);
         let res: httpm.HttpClientResponse = await this.client.get(url,
             this._headersFromOptions(options));
         return this._processResponse<T>(res, options);
@@ -79,13 +79,13 @@ export class RestClient {
     /**
      * Deletes a resource from an endpoint
      * Be aware that not found returns a null.  Other error conditions reject the promise
-     * @param {string} requestUrl - fully qualified or relative url
+     * @param {string} resource - fully qualified or relative url
      * @param {IRequestOptions} requestOptions - (optional) requestOptions object
      */
-    public async del<T>(requestUrl: string,
+    public async del<T>(resource: string,
         options?: IRequestOptions): Promise<IRestResponse<T>> {
 
-        let url: string = util.getUrl(requestUrl, this._baseUrl);
+        let url: string = util.getUrl(resource, this._baseUrl);
         let res: httpm.HttpClientResponse = await this.client.del(url,
             this._headersFromOptions(options));
         return this._processResponse<T>(res, options);
@@ -95,14 +95,14 @@ export class RestClient {
      * Creates resource(s) from an endpoint
      * T type of object returned.
      * Be aware that not found returns a null.  Other error conditions reject the promise
-     * @param {string} requestUrl - fully qualified or relative url
+     * @param {string} resource - fully qualified or relative url
      * @param {IRequestOptions} requestOptions - (optional) requestOptions object
      */
-    public async create<T>(requestUrl: string,
+    public async create<T>(resource: string,
         resources: any,
         options?: IRequestOptions): Promise<IRestResponse<T>> {
 
-        let url: string = util.getUrl(requestUrl, this._baseUrl);
+        let url: string = util.getUrl(resource, this._baseUrl);
         let headers: ifm.IHeaders = this._headersFromOptions(options, true);
 
         let data: string = JSON.stringify(resources, null, 2);
@@ -114,14 +114,14 @@ export class RestClient {
      * Updates resource(s) from an endpoint
      * T type of object returned.  
      * Be aware that not found returns a null.  Other error conditions reject the promise
-     * @param {string} requestUrl - fully qualified or relative url
+     * @param {string} resource - fully qualified or relative url
      * @param {IRequestOptions} requestOptions - (optional) requestOptions object
      */
-    public async update<T>(requestUrl: string,
+    public async update<T>(resource: string,
         resources: any,
         options?: IRequestOptions): Promise<IRestResponse<T>> {
 
-        let url: string = util.getUrl(requestUrl, this._baseUrl);
+        let url: string = util.getUrl(resource, this._baseUrl);
         let headers: ifm.IHeaders = this._headersFromOptions(options, true);
 
         let data: string = JSON.stringify(resources, null, 2);
@@ -133,14 +133,14 @@ export class RestClient {
      * Replaces resource(s) from an endpoint
      * T type of object returned.
      * Be aware that not found returns a null.  Other error conditions reject the promise
-     * @param {string} requestUrl - fully qualified or relative url
+     * @param {string} resource - fully qualified or relative url
      * @param {IRequestOptions} requestOptions - (optional) requestOptions object
      */
-    public async replace<T>(requestUrl: string,
+    public async replace<T>(resource: string,
         resources: any,
         options?: IRequestOptions): Promise<IRestResponse<T>> {
 
-        let url: string = util.getUrl(requestUrl, this._baseUrl);
+        let url: string = util.getUrl(resource, this._baseUrl);
         let headers: ifm.IHeaders = this._headersFromOptions(options, true);
 
         let data: string = JSON.stringify(resources, null, 2);
