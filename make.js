@@ -1,6 +1,8 @@
 require('shelljs/make');
 var path = require('path');
 var fs = require('fs');
+var semver = require('semver');
+var ncp = require('child_process');
 
 var rp = function (relPath) {
     return path.join(__dirname, relPath);
@@ -8,6 +10,23 @@ var rp = function (relPath) {
 
 var buildPath = path.join(__dirname, '_build');
 var testPath = path.join(__dirname, 'test');
+
+// enforce minimum Node version
+var minimumNodeVersion = '6.12.0';
+var currentNodeVersion = process.versions.node;
+if (semver.lt(currentNodeVersion, minimumNodeVersion)) {
+    fail('requires node >= ' + minimumNodeVersion + '.  installed: ' + currentNodeVersion);
+}
+
+// enforce minimum npm version
+// NOTE: We are enforcing this version of npm because we use package-lock.json
+var minimumNpmVersion = '5.5.1';
+var currentNpmVersion = ncp.execSync('npm -v', { encoding: 'utf-8' });
+console.log(minimumNpmVersion);
+console.log(currentNpmVersion);
+if (semver.lt(currentNpmVersion, minimumNpmVersion)) {
+    fail('requires npm >= ' + minimumNpmVersion + '.  installed: ' + currentNpmVersion);
+}
 
 var run = function (cl) {
     console.log('> ' + cl);
