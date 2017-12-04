@@ -22,8 +22,8 @@ if (semver.lt(currentNodeVersion, minimumNodeVersion)) {
 // NOTE: We are enforcing this version of npm because we use package-lock.json
 var minimumNpmVersion = '5.5.1';
 var currentNpmVersion = ncp.execSync('npm -v', { encoding: 'utf-8' });
-console.log(minimumNpmVersion);
-console.log(currentNpmVersion);
+// console.log(minimumNpmVersion);
+// console.log(currentNpmVersion);
 if (semver.lt(currentNpmVersion, minimumNpmVersion)) {
     fail('requires npm >= ' + minimumNpmVersion + '.  installed: ' + currentNpmVersion);
 }
