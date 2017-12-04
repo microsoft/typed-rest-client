@@ -15,13 +15,25 @@ $ npm run build
 You should test with node 6.x and 8.x LTS.  We recommend using [nvm](https://github.com/creationix/nvm)
 
 ```
-npm test
+npm run test
 ```
 
 ## Run Samples
 
 ```
 npm run samples
+```
+
+## Combined
+
+Run build and test
+```
+npm run bt
+```
+
+Run build, test, and samples
+```
+npm run bts
 ```
 
 # Instructions for Logging Issues
