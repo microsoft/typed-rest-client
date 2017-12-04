@@ -42,8 +42,6 @@ target.clean = function () {
 };
 
 target.build = function () {
-    target.clean();
-
     run(path.join(__dirname, 'node_modules/.bin/tsc') + ' --outDir ' + buildPath);
     cp('-Rf', rp('lib/opensource'), buildPath);
     cp(rp('package.json'), buildPath);
@@ -52,8 +50,6 @@ target.build = function () {
 }
 
 target.test = function() {
-    target.build();
-
     // install the just built lib into the test proj
     pushd('test')
     run('npm install ../_build');
@@ -64,8 +60,6 @@ target.test = function() {
 }
 
 target.samples = function () {
-    target.build();
-
     pushd('samples');
     run('node samples.js');
     popd();
