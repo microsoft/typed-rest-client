@@ -8,6 +8,11 @@ var rp = function (relPath) {
     return path.join(__dirname, relPath);
 }
 
+var fail = function (message) {
+    console.error('ERROR: ' + message);
+    process.exit(1);
+}
+
 var buildPath = path.join(__dirname, '_build');
 var testPath = path.join(__dirname, 'test');
 
