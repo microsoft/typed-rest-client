@@ -22,7 +22,10 @@ export interface IRequestOptions {
     proxy?: IProxyConfiguration,
     cert?: ICertConfiguration,
     allowRedirects?: boolean, 
-    maxRedirects?: number
+    maxRedirects?: number,
+    reuseAgent? : boolean,
+    maxSockets?: number,
+    keepAlive?: boolean
 }
 
 export interface IProxyConfiguration {
