@@ -23,7 +23,6 @@ export interface IRequestOptions {
     cert?: ICertConfiguration,
     allowRedirects?: boolean, 
     maxRedirects?: number,
-    reuseAgent? : boolean,
     maxSockets?: number,
     keepAlive?: boolean
 }

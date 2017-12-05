@@ -90,7 +90,8 @@ export class HttpClient {
     private _maxRedirects: number = 50
     private _agent;
     private _proxyAgent;
-    private _reuseAgent;
+    private _keepAlive: boolean = false;
+    private _disposed: boolean = false;
     private _certConfig: ifm.ICertConfiguration;
     private _ca: string;
     private _cert: string;
@@ -137,7 +138,9 @@ export class HttpClient {
                 this._maxRedirects = Math.max(requestOptions.maxRedirects, 0);
             }
 
-            this._reuseAgent = this.requestOptions.reuseAgent !== false;
+            if (requestOptions.keepAlive != null) {
+                this._keepAlive = requestOptions.keepAlive;
+            }
         }
     }
 
@@ -179,6 +182,10 @@ export class HttpClient {
      * Prefer get, del, post and patch
      */
     public async request(verb: string, requestUrl: string, data: string | NodeJS.ReadableStream, headers: ifm.IHeaders): Promise<HttpClientResponse> {
+        if (this._disposed) {
+            throw new Error("Client has already been disposed");
+        }
+
         let info: RequestInfo = this._prepareRequest(verb, requestUrl, headers);
         let response: HttpClientResponse = await this._requestRaw(info, data);
 
@@ -206,7 +213,10 @@ export class HttpClient {
         return response;
     }
 
-    public destroy() {
+    /**
+     * Needs to be called if keepAlive is set to true in request options.
+     */
+    public dispose() {
         if (this._agent) {
             this._agent.destroy();
         }
@@ -214,6 +224,8 @@ export class HttpClient {
         if (this._proxyAgent) {
             this._proxyAgent.destroy();
         }
+
+        this._disposed = true;
     }
 
     private _requestRaw(info: RequestInfo, data: string | NodeJS.ReadableStream): Promise<HttpClientResponse> {
@@ -294,14 +306,14 @@ export class HttpClient {
 
     private _getAgent(requestUrl: string) {
         let agent;
-        var proxy = this._getProxy(requestUrl);
+        let proxy = this._getProxy(requestUrl);
         let useProxy = proxy.proxyUrl && proxy.proxyUrl.hostname && !this._isBypassProxy(requestUrl);
 
-        if (this._reuseAgent && useProxy) {
+        if (this._keepAlive && useProxy) {
             agent = this._proxyAgent;
         }
 
-        if (this._reuseAgent && !useProxy) {
+        if (this._keepAlive && !useProxy) {
             agent = this._agent;
         }
 
@@ -312,18 +324,15 @@ export class HttpClient {
 
         var parsedUrl = url.parse(requestUrl);
         let usingSsl = parsedUrl.protocol === 'https:';
-        let keepAlive = false;
         let maxSockets = http.globalAgent.maxSockets;
-
         if (!!this.requestOptions) {
-            keepAlive = !!this.requestOptions.keepAlive;
             maxSockets = this.requestOptions.maxSockets || http.globalAgent.maxSockets
         }
 
         if (useProxy) {
             var agentOptions: tunnel.TunnelOptions = {
                 maxSockets: maxSockets,
-                keepAlive: keepAlive,
+                keepAlive: this._keepAlive,
                 proxy: {
                     proxyAuth: proxy.proxyAuth,
                     host: proxy.proxyUrl.hostname,
@@ -344,8 +353,8 @@ export class HttpClient {
         }
 
         // if reusing agent across request and tunneling agent isn't assigned create a new agent
-        if (this._reuseAgent && !agent) {
-            var options = { keepAlive: keepAlive, maxSockets: maxSockets };
+        if (this._keepAlive && !agent) {
+            var options = { keepAlive: this._keepAlive, maxSockets: maxSockets };
             agent = usingSsl ? new https.Agent(options) : new http.Agent(options);
             this._agent = agent;
         }
