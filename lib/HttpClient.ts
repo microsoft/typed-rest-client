@@ -8,8 +8,6 @@ import tunnel = require("tunnel");
 import ifm = require('./Interfaces');
 import fs = require('fs');
 
-http.globalAgent.maxSockets = 100;
-
 export enum HttpCodes {
     OK = 200,
     MultipleChoices = 300,
@@ -324,7 +322,7 @@ export class HttpClient {
 
         var parsedUrl = url.parse(requestUrl);
         let usingSsl = parsedUrl.protocol === 'https:';
-        let maxSockets = http.globalAgent.maxSockets;
+        let maxSockets = 100;
         if (!!this.requestOptions) {
             maxSockets = this.requestOptions.maxSockets || http.globalAgent.maxSockets
         }
