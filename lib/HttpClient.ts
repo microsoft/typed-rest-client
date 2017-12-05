@@ -8,8 +8,6 @@ import tunnel = require("tunnel");
 import ifm = require('./Interfaces');
 import fs = require('fs');
 
-http.globalAgent.maxSockets = 100;
-
 export enum HttpCodes {
     OK = 200,
     MultipleChoices = 300,
@@ -88,7 +86,10 @@ export class HttpClient {
     private _httpProxyBypassHosts: RegExp[];
     private _allowRedirects: boolean = true;
     private _maxRedirects: number = 50
-
+    private _agent;
+    private _proxyAgent;
+    private _keepAlive: boolean = false;
+    private _disposed: boolean = false;
     private _certConfig: ifm.ICertConfiguration;
     private _ca: string;
     private _cert: string;
@@ -134,6 +135,10 @@ export class HttpClient {
             if (requestOptions.maxRedirects != null) {
                 this._maxRedirects = Math.max(requestOptions.maxRedirects, 0);
             }
+
+            if (requestOptions.keepAlive != null) {
+                this._keepAlive = requestOptions.keepAlive;
+            }
         }
     }
 
@@ -175,6 +180,10 @@ export class HttpClient {
      * Prefer get, del, post and patch
      */
     public async request(verb: string, requestUrl: string, data: string | NodeJS.ReadableStream, headers: ifm.IHeaders): Promise<HttpClientResponse> {
+        if (this._disposed) {
+            throw new Error("Client has already been disposed");
+        }
+
         let info: RequestInfo = this._prepareRequest(verb, requestUrl, headers);
         let response: HttpClientResponse = await this._requestRaw(info, data);
 
@@ -200,6 +209,21 @@ export class HttpClient {
         }
 
         return response;
+    }
+
+    /**
+     * Needs to be called if keepAlive is set to true in request options.
+     */
+    public dispose() {
+        if (this._agent) {
+            this._agent.destroy();
+        }
+
+        if (this._proxyAgent) {
+            this._proxyAgent.destroy();
+        }
+
+        this._disposed = true;
     }
 
     private _requestRaw(info: RequestInfo, data: string | NodeJS.ReadableStream): Promise<HttpClientResponse> {
@@ -259,7 +283,102 @@ export class HttpClient {
         let usingSsl = info.parsedUrl.protocol === 'https:';
         info.httpModule = usingSsl ? https : http;
         var defaultPort: number = usingSsl ? 443 : 80;
+        info.options = <http.RequestOptions>{};
+        info.options.host = info.parsedUrl.hostname;
+        info.options.port = info.parsedUrl.port ? parseInt(info.parsedUrl.port) : defaultPort;
+        info.options.path = (info.parsedUrl.pathname || '') + (info.parsedUrl.search || '');
+        info.options.method = method;
+        info.options.headers = headers || {};
+        info.options.headers["User-Agent"] = this.userAgent;
+        info.options.agent = this._getAgent(requestUrl);
 
+        // gives handlers an opportunity to participate
+        if (this.handlers) {
+            this.handlers.forEach((handler) => {
+                handler.prepareRequest(info.options);
+            });
+        }
+
+        return info;
+    }
+
+    private _getAgent(requestUrl: string) {
+        let agent;
+        let proxy = this._getProxy(requestUrl);
+        let useProxy = proxy.proxyUrl && proxy.proxyUrl.hostname && !this._isBypassProxy(requestUrl);
+
+        if (this._keepAlive && useProxy) {
+            agent = this._proxyAgent;
+        }
+
+        if (this._keepAlive && !useProxy) {
+            agent = this._agent;
+        }
+
+        // if agent is already assigned use that agent.
+        if (!!agent) {
+            return agent;
+        }
+
+        var parsedUrl = url.parse(requestUrl);
+        let usingSsl = parsedUrl.protocol === 'https:';
+        let maxSockets = 100;
+        if (!!this.requestOptions) {
+            maxSockets = this.requestOptions.maxSockets || http.globalAgent.maxSockets
+        }
+
+        if (useProxy) {
+            var agentOptions: tunnel.TunnelOptions = {
+                maxSockets: maxSockets,
+                keepAlive: this._keepAlive,
+                proxy: {
+                    proxyAuth: proxy.proxyAuth,
+                    host: proxy.proxyUrl.hostname,
+                    port: proxy.proxyUrl.port
+                },
+            };
+
+            var tunnelAgent: Function;
+            var overHttps = proxy.proxyUrl.protocol === 'https:';
+            if (usingSsl) {
+                tunnelAgent = overHttps ? tunnel.httpsOverHttps : tunnel.httpsOverHttp;
+            } else {
+                tunnelAgent = overHttps ? tunnel.httpOverHttps : tunnel.httpOverHttp;
+            }
+
+            agent = tunnelAgent(agentOptions);
+            this._proxyAgent = agent;
+        }
+
+        // if reusing agent across request and tunneling agent isn't assigned create a new agent
+        if (this._keepAlive && !agent) {
+            var options = { keepAlive: this._keepAlive, maxSockets: maxSockets };
+            agent = usingSsl ? new https.Agent(options) : new http.Agent(options);
+            this._agent = agent;
+        }
+        
+        // if not using private agent and tunnel agent isn't setup then use global agent
+        if(!agent) {
+            agent = usingSsl ? https.globalAgent : http.globalAgent;
+        }
+
+        if (usingSsl && this._ignoreSslError) {
+            // we don't want to set NODE_TLS_REJECT_UNAUTHORIZED=0 since that will affect request for entire process
+            // http.RequestOptions doesn't expose a way to modify RequestOptions.agent.options
+            // we have to cast it to any and change it directly
+            agent.options = Object.assign(agent.options || {}, { rejectUnauthorized: false });
+        }
+
+        if (usingSsl && this._certConfig) {
+            agent.options = Object.assign(agent.options || {}, { ca: this._ca, cert: this._cert, key: this._key, passphrase: this._certConfig.passphrase });
+        }
+
+        return agent;
+    }
+
+    private _getProxy(requestUrl) {
+        var parsedUrl = url.parse(requestUrl);
+        let usingSsl = parsedUrl.protocol === 'https:';
         let proxyConfig: ifm.IProxyConfiguration = this._httpProxy;
 
         // fallback to http_proxy and https_proxy env
@@ -290,65 +409,7 @@ export class HttpClient {
             }
         }
 
-        info.options = <http.RequestOptions>{};
-        info.options.host = info.parsedUrl.hostname;
-        info.options.port = info.parsedUrl.port ? parseInt(info.parsedUrl.port) : defaultPort;
-        info.options.path = (info.parsedUrl.pathname || '') + (info.parsedUrl.search || '');
-        info.options.method = method;
-        info.options.headers = headers || {};
-        info.options.headers["User-Agent"] = this.userAgent;
-
-        let useProxy = proxyUrl && proxyUrl.hostname && !this._isBypassProxy(requestUrl);
-        if (useProxy) {
-            var agentOptions: tunnel.TunnelOptions = {
-                maxSockets: http.globalAgent.maxSockets,
-                proxy: {
-                    proxyAuth: proxyAuth,
-                    host: proxyUrl.hostname,
-                    port: proxyUrl.port
-                },
-            };
-
-            var tunnelAgent: Function;
-            var overHttps = proxyUrl.protocol === 'https:';
-            if (usingSsl) {
-                tunnelAgent = overHttps ? tunnel.httpsOverHttps : tunnel.httpsOverHttp;
-            } else {
-                tunnelAgent = overHttps ? tunnel.httpOverHttps : tunnel.httpOverHttp;
-            }
-
-            info.options.agent = tunnelAgent(agentOptions);
-        }
-
-        if (usingSsl && this._ignoreSslError) {
-            if (!info.options.agent) {
-                info.options.agent = https.globalAgent;
-            }
-
-            // we don't want to set NODE_TLS_REJECT_UNAUTHORIZED=0 since that will affect request for entire process
-            // http.RequestOptions doesn't expose a way to modify RequestOptions.agent.options
-            // we have to cast it to any and change it directly
-            let agent: any = info.options.agent;
-            agent.options = Object.assign(agent.options || {}, { rejectUnauthorized: false });
-        }
-
-        if (usingSsl && this._certConfig) {
-            if (!info.options.agent) {
-                info.options.agent = https.globalAgent;
-            }
-
-            let agent: any = info.options.agent;
-            agent.options = Object.assign(agent.options || {}, { ca: this._ca, cert: this._cert, key: this._key, passphrase: this._certConfig.passphrase });
-        }
-
-        // gives handlers an opportunity to participate
-        if (this.handlers) {
-            this.handlers.forEach((handler) => {
-                handler.prepareRequest(info.options);
-            });
-        }
-
-        return info;
+        return { proxyUrl: proxyUrl, proxyAuth: proxyAuth };
     }
 
     private _isBypassProxy(requestUrl: string): Boolean {
