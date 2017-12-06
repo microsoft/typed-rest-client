@@ -52,3 +52,16 @@ target.samples = function () {
     popd();
     console.log('done');
 }
+
+// run build and test
+target.bt = function() {
+    target.build();
+    target.test();
+}
+
+// run build, test, and samples
+target.bts = function() {
+    target.build();
+    target.test();
+    target.samples();
+}
