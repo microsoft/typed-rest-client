@@ -1,15 +1,37 @@
 require('shelljs/make');
 var path = require('path');
 var fs = require('fs');
+var semver = require('semver');
+var ncp = require('child_process');
 
 var rp = function (relPath) {
     return path.join(__dirname, relPath);
+}
+
+var fail = function (message) {
+    console.error('ERROR: ' + message);
+    process.exit(1);
 }
 
 var buildPath = path.join(__dirname, '_build');
 var testPath = path.join(__dirname, 'test');
 var tsc = path.join(__dirname, 'node_modules/.bin/tsc');
 var tslint = path.join(__dirname, 'node_modules/.bin/tslint');
+
+// enforce minimum Node version
+var minimumNodeVersion = '4.8.6';
+var currentNodeVersion = process.versions.node;
+if (semver.lt(currentNodeVersion, minimumNodeVersion)) {
+    fail('requires node >= ' + minimumNodeVersion + '.  installed: ' + currentNodeVersion);
+}
+
+// enforce minimum npm version
+// NOTE: We are enforcing this version of npm because we use package-lock.json
+var minimumNpmVersion = '5.5.1';
+var currentNpmVersion = ncp.execSync('npm -v', { encoding: 'utf-8' });
+if (semver.lt(currentNpmVersion, minimumNpmVersion)) {
+    fail('requires npm >= ' + minimumNpmVersion + '.  installed: ' + currentNpmVersion);
+}
 
 var run = function (cl) {
     try {
@@ -41,9 +63,7 @@ target.clean = function () {
 };
 
 target.build = function () {
-    target.clean();
-
-    run(tsc + ' --outDir ' + buildPath);
+    run(path.join(__dirname, 'node_modules/.bin/tsc') + ' --outDir ' + buildPath);
     cp('-Rf', rp('lib/opensource'), buildPath);
     cp(rp('package.json'), buildPath);
     cp(rp('README.md'), buildPath);
@@ -53,8 +73,6 @@ target.build = function () {
 }
 
 target.test = function() {
-    target.build();
-
     // install the just built lib into the test proj
     pushd('test')
     run('npm install ../_build');
@@ -70,8 +88,6 @@ target.buildtest = function() {
 }
 
 target.samples = function () {
-    target.build();
-
     pushd('samples');
     run('npm install ../_build');
     run('tsc');

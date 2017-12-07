@@ -34,6 +34,8 @@ describe('Rest Tests', function () {
     })
 
     it('gets a resource', async() => {
+        this.timeout(3000);
+
         let restRes: restm.IRestResponse<HttpBinData> = await _rest.get<HttpBinData>('https://httpbin.org/get');
         assert(restRes.statusCode == 200, "statusCode should be 200");
         assert(restRes.result.url === 'https://httpbin.org/get');
@@ -171,6 +173,8 @@ describe('Rest Tests', function () {
     // Path in baseUrl tests
     //--------------------------------------------------------
     it('maintains the path from the base url', async() => {
+        this.timeout(3000);
+
         // Arrange
         let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything');
 

@@ -35,7 +35,8 @@
     "shelljs": "0.7.6",
     "typescript": "2.4.2",
     "tslint": "5.1.0",
-    "tslint-microsoft-contrib": "5.0.1"
+    "tslint-microsoft-contrib": "5.0.1",
+    "semver": "4.3.3"
   },
   "dependencies": {
     "tunnel": "0.0.4",
