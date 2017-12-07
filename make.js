@@ -4,8 +4,8 @@ var fs = require('fs');
 var semver = require('semver');
 var ncp = require('child_process');
 
-var rp = function (relPath) {
-    return path.join(__dirname, relPath);
+var rp = function (relativePath) {
+    return path.join(__dirname, relativePath);
 }
 
 var fail = function (message) {
@@ -58,6 +58,7 @@ var lint = function () {
     run(tslint + ' ' + filesGlob + ' --rules-dir "' + rulesDir + '" --config "' + config + '"');
 }
 
+// Remove the build folder
 target.clean = function () {
     rm('-Rf', buildPath);
 };
@@ -69,7 +70,9 @@ target.build = function () {
     cp(rp('README.md'), buildPath);
     cp(rp('LICENSE'), buildPath);
 
-    lint();
+    // This will be commented out in master until all linting changes are done.
+    // We are doing it piece by piece since there are many changes that need to be made.
+    //lint();
 }
 
 target.test = function() {
