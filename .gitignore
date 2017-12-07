@@ -6,3 +6,4 @@ samples/*.js
 samples/*.txt
 test/*.js
 test/testoutput.txt
+npm-debug.log
