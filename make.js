@@ -50,6 +50,11 @@ target.test = function() {
     run('mocha test');
 }
 
+target.buildtest = function() {
+    target.build();
+    target.test();
+}
+
 target.samples = function () {
     target.build();
 
