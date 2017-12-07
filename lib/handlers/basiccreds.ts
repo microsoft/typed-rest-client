@@ -2,6 +2,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 import ifm = require('../Interfaces');
+import { HttpClient } from '../HttpClient';  // TODO: Fix to import in way that is consistent with other code. Search for this code in entire codebase.
 
 export class BasicCredentialHandler implements ifm.IRequestHandler {
     username: string;
@@ -24,6 +25,6 @@ export class BasicCredentialHandler implements ifm.IRequestHandler {
         return false;
     }
 
-    handleAuthentication(httpClient, protocol, options, objs, finalCallback): void {
+    handleAuthentication(httpClient: HttpClient, options: any, objs, finalCallback): void {
     }
 }

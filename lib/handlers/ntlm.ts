@@ -5,8 +5,9 @@ import ifm = require('../Interfaces');
 
 import http = require("http");
 import https = require("https");
+import { HttpClient } from '../HttpClient';
 var _ = require("underscore");
-var ntlm = require("../opensource/node-http-ntlm/ntlm");
+var ntlm = require("../opensource/node-http-ntlm/ntlm"); // TODO: Will have to include as ntlm package, this path won't work.
 
 export class NtlmCredentialHandler implements ifm.IRequestHandler {
     username: string;
@@ -54,7 +55,8 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
     }
 
     // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
-    handleAuthentication(httpClient, protocol, options, objs, finalCallback): void {
+    // TODO: I dont think options is ifm.IRequestOptions, I think its http.RequestOptions which we have on interface RequestInfo
+    handleAuthentication(httpClient, options: ifm.IRequestOptions, objs, finalCallback): void {
         // Set up the headers for NTLM authentication
         var ntlmOptions = _.extend(options, {
             username: this.username,
@@ -62,45 +64,53 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
             domain: this.domain || '',
             workstation: this.workstation || ''
         });
-        var keepaliveAgent;
-        if (httpClient.isSsl === true) {
-            keepaliveAgent = new https.Agent({});
-        } else {
-            keepaliveAgent = new http.Agent({ keepAlive: true });
-        }
+        // var keepaliveAgent: https.Agent;
+        // if (httpClient.isSsl === true) {
+        //     keepaliveAgent = new https.Agent({});
+        // } else {
+        //     keepaliveAgent = new http.Agent({ keepAlive: true });
+        // }
         let self = this;
         // The following pattern of sending the type1 message following immediately (in a setImmediate) is
         // critical for the NTLM exchange to happen.  If we removed setImmediate (or call in a different manner)
         // the NTLM exchange will always fail with a 401.
-        this.sendType1Message(httpClient, protocol, ntlmOptions, objs, keepaliveAgent, function (err, res) {
+        this.sendType1Message(httpClient, ntlmOptions, objs, keepaliveAgent, function (err, res: http.ClientResponse) {
             if (err) {
                 return finalCallback(err, null, null);
             }
             setImmediate(function () {
-                self.sendType3Message(httpClient, protocol, ntlmOptions, objs, keepaliveAgent, res, finalCallback);
+                self.sendType3Message(httpClient, ntlmOptions, objs, keepaliveAgent, res, finalCallback);
             });
         });
     }
 
     // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
-    private sendType1Message(httpClient, protocol, options, objs, keepaliveAgent, callback): void {
+    private sendType1Message(httpClient: HttpClient, options, objs, keepaliveAgent, callback): void {
+        // https://github.com/SamDecrock/node-http-ntlm/blob/179e8a6d35de8fac344532aa0d496d571e6b1b6d/ntlm.js#L69
         var type1msg = ntlm.createType1Message(options);
         var type1options = {
             headers: {
                 'Connection': 'keep-alive',
                 'Authorization': type1msg
             },
-            timeout: options.timeout || 0,
+            timeout: options.socketTimeout || 0,
             agent: keepaliveAgent,
              // don't redirect because http could change to https which means we need to change the keepaliveAgent
             allowRedirects: false
         };
         type1options = _.extend(type1options, _.omit(options, 'headers'));
-        httpClient.requestInternal(protocol, type1options, objs, callback);
+
+        // BELOW IS AN EXPERIMENT
+        httpClient.requestOptions.allowRedirects = false;
+        // We dont actually want to do this, we just want to override for one request? So we need to get access to making a request at a lower level.
+        // END EXPERIMENT
+
+        // TODO: How do we know the URL we are going against.
+        httpClient.requestInternal(type1options, objs, callback); // This method I think is from: https://github.com/Microsoft/vsts-vscode/blob/master/src/clients/httpclient.ts#L128
     }
 
     // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
-    private sendType3Message(httpClient, protocol, options, objs, keepaliveAgent, res, callback): void {
+    private sendType3Message(httpClient, options: any, objs, keepaliveAgent, res: http.ClientResponse, callback): void {
         if (!res.headers['www-authenticate']) {
             return callback(new Error('www-authenticate not found on response of second request'));
         }
@@ -120,6 +130,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
         type3options.headers = _.extend(type3options.headers, options.headers);
         type3options = _.extend(type3options, _.omit(options, 'headers'));
         // send type3 message to server:
-        httpClient.requestInternal(protocol, type3options, objs, callback);
+        //httpClient.requestInternal(protocol, type3options, objs, callback);
+        httpClient.request(); // TODO: Maybe this isnt right... We may need the lower level. How do we know the URL?
     }
 }

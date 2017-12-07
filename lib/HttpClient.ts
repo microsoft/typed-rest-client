@@ -7,6 +7,8 @@ import https = require("https");
 import tunnel = require("tunnel");
 import ifm = require('./Interfaces');
 import fs = require('fs');
+import net = require('net');
+import { request } from "http";
 
 export enum HttpCodes {
     OK = 200,
@@ -38,9 +40,12 @@ export enum HttpCodes {
 
 const HttpRedirectCodes: number[] = [ HttpCodes.MovedPermanently, HttpCodes.ResourceMoved, HttpCodes.TemporaryRedirect, HttpCodes.PermanentRedirect ];
 
-export class HttpClientResponse {
+export class HttpClientResponse implements ifm.IHttpResponse {
     constructor(message: http.IncomingMessage) {
         this.message = message;
+
+        this.statusCode = message.statusCode;
+        this.headers = message.headers;
     }
 
     public message: http.IncomingMessage;
@@ -57,8 +62,12 @@ export class HttpClientResponse {
             });
         });
     }
+
+    public statusCode?: number;
+    public headers: any;
 }
 
+// TODO: Rename to IRequestInfo
 export interface RequestInfo {
     options: http.RequestOptions;
     parsedUrl: url.Url;
@@ -188,6 +197,18 @@ export class HttpClient {
         let response: HttpClientResponse = await this._requestRaw(info, data);
 
         let redirectsRemaining: number = this._maxRedirects;
+
+        // TODO: Handle authentication. We should find the first handler that can do this, not do it for all of them... Find the first if there is one that can.
+        for (var handler of this.handlers) {
+            if (handler.canHandleAuthentication(response)) {
+                // TODO; DO we need to be able to make a call in the httpclient that can pass options directly? then the overload uses this.options? They need to be temporarily overridden
+                handler.handleAuthentication(this, info, data, null, null);
+
+                // TODO: once it's done, do we try the request again? look at the NTLM specification and/or at fiddler
+                return await this.request(verb, requestUrl, data, headers);
+            }
+        }
+
         while (HttpRedirectCodes.indexOf(response.message.statusCode) != -1
                && this._allowRedirects
                && redirectsRemaining > 0) {
@@ -211,6 +232,12 @@ export class HttpClient {
         return response;
     }
 
+    // TODO: This is an experimental method.
+    public lowLevelRequest() {
+        // TODO: if this existed, I think it needs to use request so that it gets the direct handling and stuff?
+        // We could refactor request method to only get info and pass that to his low level method that is also publicly accessible?
+    }
+
     /**
      * Needs to be called if keepAlive is set to true in request options.
      */
@@ -228,7 +255,7 @@ export class HttpClient {
 
     private _requestRaw(info: RequestInfo, data: string | NodeJS.ReadableStream): Promise<HttpClientResponse> {
         return new Promise<HttpClientResponse>((resolve, reject) => {
-            let socket;
+            let socket: net.Socket;
 
             let isDataString = typeof (data) === 'string';
 
@@ -241,7 +268,7 @@ export class HttpClient {
                 resolve(res);
             });
 
-            req.on('socket', (sock) => {
+            req.on('socket', (sock: net.Socket) => {
                 socket = sock;
             });
 
@@ -376,7 +403,7 @@ export class HttpClient {
         return agent;
     }
 
-    private _getProxy(requestUrl) {
+    private _getProxy(requestUrl: string) {
         var parsedUrl = url.parse(requestUrl);
         let usingSsl = parsedUrl.protocol === 'https:';
         let proxyConfig: ifm.IProxyConfiguration = this._httpProxy;

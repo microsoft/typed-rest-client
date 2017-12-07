@@ -1,12 +1,21 @@
 {
+    /* https://www.typescriptlang.org/docs/handbook/compiler-options.html */
     "compilerOptions": {
-        "target": "es2015",
-        "module": "commonjs",
-        "moduleResolution": "node",
-        "typeRoots": [ "node_modules/@types" ], 
-        "declaration": true,
-        "outDir": "_build",
-        "forceConsistentCasingInFileNames": true
+        "target": "es2015",                       /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', or 'ESNEXT'. */        
+        "module": "commonjs",                     /* Specify module code generation: 'commonjs', 'amd', 'system', 'umd' or 'es2015'. */        
+        "moduleResolution": "node",               /* Specify module resolution strategy: 'node' (Node.js) or 'classic' (TypeScript pre-1.6). */
+        "typeRoots": [ "node_modules/@types" ],   /* List of folders to include type definitions from. */
+        "declaration": true,                      /* Generates corresponding '.d.ts' file. */
+        "outDir": "_build",                       /* Redirect output structure to the directory. */
+        "forceConsistentCasingInFileNames": true, 
+
+        // strict checks
+        // Enabling --strict enables 
+        "noImplicitThis": true, /* Raise error on this expressions with an implied any type. */
+        // --alwaysStrict, 
+        // --strictNullChecks and 
+        // --strictFunctionTypes.
+        "noImplicitAny": true /* Raise error on expressions and declarations with an implied any type. */
     },
     "files": [
         "lib/Index.ts",

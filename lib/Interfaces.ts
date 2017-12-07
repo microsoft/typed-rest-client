@@ -1,3 +1,5 @@
+import { HttpClient } from "./HttpClient"; // TODO: Fix to import in way that is consistent with other code.
+
 export interface IHeaders { [key: string]: any };
 
 export interface IBasicCredentials {
@@ -6,9 +8,12 @@ export interface IBasicCredentials {
 }
 
 export interface IRequestHandler {
+    // TODO: This could also be https.RequestOptions though?
     prepareRequest(options: any): void;
     canHandleAuthentication(res: IHttpResponse): boolean;
-    handleAuthentication(httpClient, protocol, options, objs, finalCallback): void;
+    //handleAuthentication(httpClient, protocol, options, objs, finalCallback): void;
+    // TODO: what other parameters can we get rid of? what needs to change?
+    handleAuthentication(httpClient: HttpClient, options: any, objs, finalCallback): void;
 }
 
 export interface IHttpResponse {
