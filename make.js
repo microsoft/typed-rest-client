@@ -48,7 +48,7 @@ target.samples = function () {
     target.build();
 
     pushd('samples');
-    run('node samples.js');
+    run('tsc && node samples.js');
     popd();
     console.log('done');
 }
