@@ -4,7 +4,7 @@ A lightweight Rest and Http Client optimized for use with TypeScript with generi
 
 ## Status
 
-With 0.9 just published, we believe the API surface for 1.0 has settled.  More testing in progress then we will release 1.0.
+Stable version 0.15.6 and 1.0 is in preview (npm install typed-rest-client@preview).  We expect to release 1.0 very soon.
 
 ## Features
 
@@ -19,8 +19,14 @@ Intellisense and compile support from typing the REST calls:
 ![intellisense](./docs/intellisense.png)
 
 ## Install the library
+stable:
 ```
 npm install typed-rest-client --save
+```
+
+latest preview:
+```
+npm install typed-rest-client@preview --save
 ```
 
 ## Samples
