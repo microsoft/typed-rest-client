@@ -17,7 +17,7 @@ var buildPath = path.join(__dirname, '_build');
 var testPath = path.join(__dirname, 'test');
 
 // enforce minimum Node version
-var minimumNodeVersion = '6.12.0';
+var minimumNodeVersion = '4.8.6';
 var currentNodeVersion = process.versions.node;
 if (semver.lt(currentNodeVersion, minimumNodeVersion)) {
     fail('requires node >= ' + minimumNodeVersion + '.  installed: ' + currentNodeVersion);
