@@ -1,56 +1,52 @@
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+/**
+ * Copyright (c) Microsoft. All rights reserved.
+ * Licensed under the MIT license. See LICENSE file in the project root for full license information.
+ */
 
 import * as fs from 'fs';
 import * as http from 'http';
-import httpm = require('./HttpClient');
-import ifm = require('./Interfaces');
-import util = require("./Util");
-
-// TODO: Maybe put this in a shared file? Can use in HttpClient too. Seems fine to export it since we are an http client.
-enum Headers {
-    Accept = 'Accept',
-    ContentType = "Content-Type", 
-}
+import HttpClient = require('./HttpClient');
+import Interfaces = require('./Interfaces');
+import Util = require("./Util");
 
 export interface IRestResponse<T> {
-    statusCode: number,
-    result: T
+    statusCode: number;
+    result: T;
 }
 
 export interface IRequestOptions {
     // defaults to application/json
     // common versioning is application/json;version=2.1
-    acceptHeader?: string,
+    acceptHeader?: string;
     // since accept is defaulted, set additional headers if needed
-    additionalHeaders?: ifm.IHeaders,
+    additionalHeaders?: Interfaces.IHeaders;
 
-    responseProcessor?: Function
+    responseProcessor?: Function;
 }
 
 export class RestClient {
-    client: httpm.HttpClient;
-    versionParam: string;
+    public client: HttpClient.HttpClient;
+    public versionParam: string;
+
+    private _baseUrl: string;
 
     /**
      * Creates an instance of the RestClient
      * @constructor
      * @param {string} userAgent - userAgent for requests
      * @param {string} baseUrl - (Optional) If not specified, use full urls per request.  If supplied and a function passes a relative url, it will be appended to this
-     * @param {ifm.IRequestHandler[]} handlers - handlers are typically auth handlers (basic, bearer, ntlm supplied)
-     * @param {ifm.IRequestOptions} requestOptions - options for each http requests (http proxy setting, socket timeout)
+     * @param {Interfaces.IRequestHandler[]} handlers - handlers are typically auth handlers (basic, bearer, ntlm supplied)
+     * @param {Interfaces.IRequestOptions} requestOptions - options for each http requests (http proxy setting, socket timeout)
      */
     constructor(userAgent: string,
                 baseUrl?: string,
-                handlers?: ifm.IRequestHandler[],
-                requestOptions?: ifm.IRequestOptions) {
-        this.client = new httpm.HttpClient(userAgent, handlers, requestOptions);
+                handlers?: Interfaces.IRequestHandler[],
+                requestOptions?: Interfaces.IRequestOptions) {
+        this.client = new HttpClient.HttpClient(userAgent, handlers, requestOptions);
         if (baseUrl) {
             this._baseUrl = baseUrl;
         }
     }
-
-    private _baseUrl: string;
 
     /**
      * Gets a resource from an endpoint
@@ -61,8 +57,8 @@ export class RestClient {
     public async options<T>(requestUrl: string,
                             options?: IRequestOptions): Promise<IRestResponse<T>> {
 
-        const url: string = util.getUrl(requestUrl, this._baseUrl);
-        const res: httpm.HttpClientResponse = await this.client.options(url, this._headersFromOptions(options));
+        const url: string = Util.getUrl(requestUrl, this._baseUrl);
+        const res: HttpClient.HttpClientResponse = await this.client.options(url, this._headersFromOptions(options));
 
         return this._processResponse<T>(res, options);
     }
@@ -76,8 +72,8 @@ export class RestClient {
     public async get<T>(resource: string,
                         options?: IRequestOptions): Promise<IRestResponse<T>> {
 
-        const url: string = util.getUrl(resource, this._baseUrl);
-        const res: httpm.HttpClientResponse = await this.client.get(url, this._headersFromOptions(options));
+        const url: string = Util.getUrl(resource, this._baseUrl);
+        const res: HttpClient.HttpClientResponse = await this.client.get(url, this._headersFromOptions(options));
 
         return this._processResponse<T>(res, options);
     }
@@ -91,8 +87,8 @@ export class RestClient {
     public async del<T>(resource: string,
                         options?: IRequestOptions): Promise<IRestResponse<T>> {
 
-        const url: string = util.getUrl(resource, this._baseUrl);
-        const res: httpm.HttpClientResponse = await this.client.del(url, this._headersFromOptions(options));
+        const url: string = Util.getUrl(resource, this._baseUrl);
+        const res: HttpClient.HttpClientResponse = await this.client.del(url, this._headersFromOptions(options));
 
         return this._processResponse<T>(res, options);
     }
@@ -108,11 +104,11 @@ export class RestClient {
                            resources: any,
                            options?: IRequestOptions): Promise<IRestResponse<T>> {
 
-        const url: string = util.getUrl(resource, this._baseUrl);
-        const headers: ifm.IHeaders = this._headersFromOptions(options, true);
+        const url: string = Util.getUrl(resource, this._baseUrl);
+        const headers: Interfaces.IHeaders = this._headersFromOptions(options, true);
 
         const data: string = JSON.stringify(resources, null, 2);
-        const res: httpm.HttpClientResponse = await this.client.post(url, data, headers);
+        const res: HttpClient.HttpClientResponse = await this.client.post(url, data, headers);
 
         return this._processResponse<T>(res, options);
     }
@@ -128,11 +124,11 @@ export class RestClient {
                            resources: any,
                            options?: IRequestOptions): Promise<IRestResponse<T>> {
 
-        const url: string = util.getUrl(resource, this._baseUrl);
-        const headers: ifm.IHeaders = this._headersFromOptions(options, true);
+        const url: string = Util.getUrl(resource, this._baseUrl);
+        const headers: Interfaces.IHeaders = this._headersFromOptions(options, true);
 
         const data: string = JSON.stringify(resources, null, 2);
-        const res: httpm.HttpClientResponse = await this.client.patch(url, data, headers);
+        const res: HttpClient.HttpClientResponse = await this.client.patch(url, data, headers);
 
         return this._processResponse<T>(res, options);
     }
@@ -148,11 +144,11 @@ export class RestClient {
                             resources: any,
                             options?: IRequestOptions): Promise<IRestResponse<T>> {
 
-        const url: string = util.getUrl(resource, this._baseUrl);
-        const headers: ifm.IHeaders = this._headersFromOptions(options, true);
+        const url: string = Util.getUrl(resource, this._baseUrl);
+        const headers: Interfaces.IHeaders = this._headersFromOptions(options, true);
 
         const data: string = JSON.stringify(resources, null, 2);
-        const res: httpm.HttpClientResponse = await this.client.put(url, data, headers);
+        const res: HttpClient.HttpClientResponse = await this.client.put(url, data, headers);
 
         return this._processResponse<T>(res, options);
     }
@@ -162,34 +158,34 @@ export class RestClient {
                                  stream: NodeJS.ReadableStream,
                                  options?: IRequestOptions): Promise<IRestResponse<T>> {
 
-        const url: string = util.getUrl(requestUrl, this._baseUrl);
-        const headers: ifm.IHeaders = this._headersFromOptions(options, true);
+        const url: string = Util.getUrl(requestUrl, this._baseUrl);
+        const headers: Interfaces.IHeaders = this._headersFromOptions(options, true);
 
-        const res: httpm.HttpClientResponse = await this.client.sendStream(verb, url, stream, headers);
+        const res: HttpClient.HttpClientResponse = await this.client.sendStream(verb, url, stream, headers);
 
         return this._processResponse<T>(res, options);
     }
 
-    private _headersFromOptions(options: IRequestOptions, contentType?: boolean): ifm.IHeaders {
+    private _headersFromOptions(options: IRequestOptions, contentType?: boolean): Interfaces.IHeaders {
         options = options || {};
-        const headers: ifm.IHeaders = options.additionalHeaders || {};
-        headers[Headers.Accept] = options.acceptHeader || 'application/json';
+        const headers: Interfaces.IHeaders = options.additionalHeaders || {};
+        headers[HttpClient.Headers.Accept] = options.acceptHeader || 'application/json';
 
         if (contentType) {
-            headers[Headers.ContentType] = headers[Headers.ContentType] || 'application/json; charset=utf-8';
+            headers[HttpClient.Headers.ContentType] = headers[HttpClient.Headers.ContentType] || 'application/json; charset=utf-8';
         }
 
         return headers;
     }
 
-    private async _processResponse<T>(res: httpm.HttpClientResponse, options: IRequestOptions): Promise<IRestResponse<T>> {
+    private async _processResponse<T>(res: HttpClient.HttpClientResponse, options: IRequestOptions): Promise<IRestResponse<T>> {
         return new Promise<IRestResponse<T>>(async (resolve, reject) => {
             const rres: IRestResponse<T> = <IRestResponse<T>>{};
             const statusCode: number = res.message.statusCode;
             rres.statusCode = statusCode;
 
             // not found leads to null obj returned
-            if (statusCode == httpm.HttpCodes.NotFound) {
+            if (statusCode == HttpClient.HttpCodes.NotFound) {
                 resolve(rres);
             }
 
