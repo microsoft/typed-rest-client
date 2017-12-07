@@ -16,19 +16,21 @@ var fail = function (message) {
 var buildPath = path.join(__dirname, '_build');
 var testPath = path.join(__dirname, 'test');
 
-// enforce minimum Node version
-var minimumNodeVersion = '4.8.6';
-var currentNodeVersion = process.versions.node;
-if (semver.lt(currentNodeVersion, minimumNodeVersion)) {
-    fail('requires node >= ' + minimumNodeVersion + '.  installed: ' + currentNodeVersion);
-}
+var enforceMinimumVersions = function () {
+    // enforce minimum Node version
+    var minimumNodeVersion = '4.8.6';
+    var currentNodeVersion = process.versions.node;
+    if (semver.lt(currentNodeVersion, minimumNodeVersion)) {
+        fail('requires node >= ' + minimumNodeVersion + '.  installed: ' + currentNodeVersion);
+    }
 
-// enforce minimum npm version
-// NOTE: We are enforcing this version of npm because we use package-lock.json
-var minimumNpmVersion = '5.5.1';
-var currentNpmVersion = ncp.execSync('npm -v', { encoding: 'utf-8' });
-if (semver.lt(currentNpmVersion, minimumNpmVersion)) {
-    fail('requires npm >= ' + minimumNpmVersion + '.  installed: ' + currentNpmVersion);
+    // enforce minimum npm version
+    // NOTE: We are enforcing this version of npm because we use package-lock.json
+    var minimumNpmVersion = '5.5.1';
+    var currentNpmVersion = ncp.execSync('npm -v', { encoding: 'utf-8' });
+    if (semver.lt(currentNpmVersion, minimumNpmVersion)) {
+        fail('requires npm >= ' + minimumNpmVersion + '.  installed: ' + currentNpmVersion);
+    }
 }
 
 var run = function (cl) {
@@ -51,6 +53,7 @@ target.clean = function () {
 };
 
 target.build = function () {
+    enforceMinimumVersions();
     run(path.join(__dirname, 'node_modules/.bin/tsc') + ' --outDir ' + buildPath);
     cp('-Rf', rp('lib/opensource'), buildPath);
     cp(rp('package.json'), buildPath);
