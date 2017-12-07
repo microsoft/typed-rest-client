@@ -11,6 +11,7 @@ let sampleFilePath: string = path.join(__dirname, 'testoutput.txt');
 
 describe('Http Tests', function () {
     let _http: httpm.HttpClient;
+    let _httpbin: httpm.HttpClient;
 
     before(() => {
         _http = new httpm.HttpClient('typed-test-client-tests');
@@ -144,11 +145,68 @@ describe('Http Tests', function () {
         let res: httpm.HttpClientResponse = await _http.options('http://httpbin.org');
         assert(res.message.statusCode == 200, "status code should be 200");
         let body: string = await res.readBody();
-    }); 
+    });
     
     it('returns 404 for not found get request', async() => {
         let res: httpm.HttpClientResponse = await _http.get('http://httpbin.org/status/404');
         assert(res.message.statusCode == 404, "status code should be 404");
         let body: string = await res.readBody();
+    });
+});
+
+describe('Http Tests with keepAlive', function () {
+    let _http: httpm.HttpClient;
+
+    before(() => {
+        _http = new httpm.HttpClient('typed-test-client-tests', [], { keepAlive: true });
+    });
+
+    after(() => {
+    });
+
+    it('does basic http get request with keepAlive true', async() => {
+        let res: httpm.HttpClientResponse = await _http.get('http://httpbin.org/get');
+        assert(res.message.statusCode == 200, "status code should be 200");
+        let body: string = await res.readBody();      
+        let obj:any = JSON.parse(body);
+        assert(obj.url === "http://httpbin.org/get");
+    });
+
+    it('does basic head request with keepAlive true', async() => {
+        let res: httpm.HttpClientResponse = await _http.head('http://httpbin.org/get');
+        assert(res.message.statusCode == 200, "status code should be 200");
     });    
+
+    it('does basic http delete request with keepAlive true', async() => {
+        let res: httpm.HttpClientResponse = await _http.del('http://httpbin.org/delete');
+        assert(res.message.statusCode == 200, "status code should be 200");
+        let body: string = await res.readBody();      
+        let obj:any = JSON.parse(body);
+    });
+
+    it('does basic http post request with keepAlive true', async() => {
+        let b: string = 'Hello World!';
+        let res: httpm.HttpClientResponse = await _http.post('http://httpbin.org/post', b);
+        assert(res.message.statusCode == 200, "status code should be 200");
+        let body: string = await res.readBody();
+        let obj:any = JSON.parse(body);
+        assert(obj.data === b);
+        assert(obj.url === "http://httpbin.org/post");
+    });
+    
+    it('does basic http patch request with keepAlive true', async() => {
+        let b: string = 'Hello World!';
+        let res: httpm.HttpClientResponse = await _http.patch('http://httpbin.org/patch', b);
+        assert(res.message.statusCode == 200, "status code should be 200");
+        let body: string = await res.readBody();
+        let obj:any = JSON.parse(body);
+        assert(obj.data === b);
+        assert(obj.url === "http://httpbin.org/patch");
+    }); 
+    
+    it('does basic http options request with keepAlive true', async() => {
+        let res: httpm.HttpClientResponse = await _http.options('http://httpbin.org');
+        assert(res.message.statusCode == 200, "status code should be 200");
+        let body: string = await res.readBody();
+    });
 });

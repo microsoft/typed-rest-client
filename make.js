@@ -32,11 +32,17 @@ if (semver.lt(currentNpmVersion, minimumNpmVersion)) {
 }
 
 var run = function (cl) {
-    console.log('> ' + cl);
-    var rc = exec(cl).code;
-    if (rc !== 0) {
-        echo('Exec failed with rc ' + rc);
-        exit(rc);
+    try {
+        console.log('> ' + cl);
+        var rc = exec(cl).code;
+        if (rc !== 0) {
+            echo('Exec failed with rc ' + rc);
+            exit(rc);
+        }
+    }
+    catch (err) {
+        echo(err.message);
+        exit(1);
     }
 }
 
@@ -62,9 +68,22 @@ target.test = function() {
     run('mocha test');
 }
 
+target.buildtest = function() {
+    target.build();
+    target.test();
+}
+
 target.samples = function () {
     pushd('samples');
+    run('npm install ../_build');
+    run('tsc');
     run('node samples.js');
     popd();
     console.log('done');
+}
+
+target.validate = function() {
+    target.build();
+    target.test();
+    target.samples();
 }
