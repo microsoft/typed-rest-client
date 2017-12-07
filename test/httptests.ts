@@ -11,6 +11,7 @@ let sampleFilePath: string = path.join(__dirname, 'testoutput.txt');
 
 describe('Http Tests', function () {
     let _http: httpm.HttpClient;
+    let _httpbin: httpm.HttpClient;
 
     before(() => {
         _http = new httpm.HttpClient('typed-test-client-tests');
@@ -144,7 +145,7 @@ describe('Http Tests', function () {
         let res: httpm.HttpClientResponse = await _http.options('http://httpbin.org');
         assert(res.message.statusCode == 200, "status code should be 200");
         let body: string = await res.readBody();
-    }); 
+    });
     
     it('returns 404 for not found get request', async() => {
         let res: httpm.HttpClientResponse = await _http.get('http://httpbin.org/status/404');

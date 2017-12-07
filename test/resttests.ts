@@ -10,14 +10,17 @@ import * as path from 'path';
 export interface HttpBinData {
     url: string;
     data: any;
+    json: any;
     args?: any
 }
 
 describe('Rest Tests', function () {
     let _rest: restm.RestClient;
+    let _restBin: restm.RestClient;
 
     before(() => {
         _rest = new restm.RestClient('typed-rest-client-tests');
+        _restBin = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org');
     });
 
     after(() => {
@@ -35,6 +38,82 @@ describe('Rest Tests', function () {
         assert(restRes.statusCode == 200, "statusCode should be 200");
         assert(restRes.result.url === 'https://httpbin.org/get');
     });
+
+    it('gets a resource with baseUrl', async() => {
+        let restRes: restm.IRestResponse<HttpBinData> = await _restBin.get<HttpBinData>('get');
+        assert(restRes.statusCode == 200, "statusCode should be 200");
+        assert(restRes.result.url === 'https://httpbin.org/get');
+    });
+    
+    it('creates a resource', async() => {
+        let res: any = { name: 'foo' };
+        let restRes: restm.IRestResponse<HttpBinData> = await _rest.create<HttpBinData>('https://httpbin.org/post', res);
+        assert(restRes.statusCode == 200, "statusCode should be 200");
+        assert(restRes.result.url === 'https://httpbin.org/post');
+        assert(restRes.result.json.name === 'foo');
+    });
+    
+    it('creates a resource with a baseUrl', async() => {
+        let res: any = { name: 'foo' };
+        let restRes: restm.IRestResponse<HttpBinData> = await _restBin.create<HttpBinData>('post', res);
+        assert(restRes.statusCode == 200, "statusCode should be 200");
+        assert(restRes.result.url === 'https://httpbin.org/post');
+        assert(restRes.result.json.name === 'foo');
+    }); 
+    
+    it('replaces a resource', async() => {
+        let res: any = { name: 'foo' };
+        let restRes: restm.IRestResponse<HttpBinData> = await _rest.replace<HttpBinData>('https://httpbin.org/put', res);
+        assert(restRes.statusCode == 200, "statusCode should be 200");
+        assert(restRes.result.url === 'https://httpbin.org/put');
+        assert(restRes.result.json.name === 'foo');
+    });
+    
+    it('replaces a resource with a baseUrl', async() => {
+        let res: any = { name: 'foo' };
+        let restRes: restm.IRestResponse<HttpBinData> = await _restBin.replace<HttpBinData>('put', res);
+        assert(restRes.statusCode == 200, "statusCode should be 200");
+        assert(restRes.result.url === 'https://httpbin.org/put');
+        assert(restRes.result.json.name === 'foo');
+    });
+    
+    it('updates a resource', async() => {
+        let res: any = { name: 'foo' };
+        let restRes: restm.IRestResponse<HttpBinData> = await _rest.update<HttpBinData>('https://httpbin.org/patch', res);
+        assert(restRes.statusCode == 200, "statusCode should be 200");
+        assert(restRes.result.url === 'https://httpbin.org/patch');
+        assert(restRes.result.json.name === 'foo');
+    });
+    
+    it('updates a resource with a baseUrl', async() => {
+        let res: any = { name: 'foo' };
+        let restRes: restm.IRestResponse<HttpBinData> = await _restBin.update<HttpBinData>('patch', res);
+        assert(restRes.statusCode == 200, "statusCode should be 200");
+        assert(restRes.result.url === 'https://httpbin.org/patch');
+        assert(restRes.result.json.name === 'foo');
+    });    
+
+    it('deletes a resource', async() => {
+        let restRes: restm.IRestResponse<HttpBinData> = await _rest.del<HttpBinData>('https://httpbin.org/delete');
+        assert(restRes.statusCode == 200, "statusCode should be 200");
+        assert(restRes.result.url === 'https://httpbin.org/delete');
+    });
+
+    it('deletes a resource with a baseUrl', async() => {
+        let restRes: restm.IRestResponse<HttpBinData> = await _restBin.del<HttpBinData>('delete');
+        assert(restRes.statusCode == 200, "statusCode should be 200");
+        assert(restRes.result.url === 'https://httpbin.org/delete');
+    }); 
+    
+    it('does an options request', async() => {
+        let restRes: restm.IRestResponse<HttpBinData> = await _rest.options<HttpBinData>('https://httpbin.org');
+        assert(restRes.statusCode == 200, "statusCode should be 200");
+    });
+
+    it('does an options request with baseUrl', async() => {
+        let restRes: restm.IRestResponse<HttpBinData> = await _restBin.options<HttpBinData>('');
+        assert(restRes.statusCode == 200, "statusCode should be 200");
+    });    
 
     //----------------------------------------------
     // Get Error Cases
@@ -185,6 +264,16 @@ describe('Rest Tests', function () {
         assert(res === 'http://httpbin.org', "should be http://httpbin.org");
     });
 
+    it('resolves a empty resource with baseUrl', async() => {
+        let res: string = util.getUrl('', 'http://httpbin.org');
+        assert(res === 'http://httpbin.org', "should be http://httpbin.org");
+    });
+    
+    it('resolves a null resource with baseUrl', async() => {
+        let res: string = util.getUrl(null, 'http://httpbin.org');
+        assert(res === 'http://httpbin.org', "should be http://httpbin.org");
+    });    
+
     it('resolves a full resource and no baseUrl', async() => {
         let res: string = util.getUrl('http://httpbin.org/get?x=y&a=b');
         assert(res === 'http://httpbin.org/get?x=y&a=b', `should be http://httpbin.org/get?x=y&a=b but is ${res}`);
@@ -195,6 +284,11 @@ describe('Rest Tests', function () {
         assert(res === 'http://httpbin.org/get/foo', `should be http://httpbin.org/get/foo but is ${res}`);
     });
 
+    it('resolves a relative path resource with host baseUrl', async() => {
+        let res: string = util.getUrl('get/foo', 'http://httpbin.org');
+        assert(res === 'http://httpbin.org/get/foo', `should be http://httpbin.org/get/foo but is ${res}`);
+    });    
+
     it('resolves a rooted path resource with pathed baseUrl', async() => {
         let res: string = util.getUrl('/get/foo', 'http://httpbin.org/bar');
         assert(res === 'http://httpbin.org/get/foo', "should be http://httpbin.org/get/foo");
@@ -204,5 +298,4 @@ describe('Rest Tests', function () {
         let res: string = util.getUrl('get/foo', 'http://httpbin.org/bar');
         assert(res === 'http://httpbin.org/bar/get/foo', `should be http://httpbin.org/bar/get/foo but is ${res}`);
     });
-    // TODO: more tests here    
 });

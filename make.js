@@ -48,6 +48,8 @@ target.samples = function () {
     target.build();
 
     pushd('samples');
+    run('npm install ../_build');
+    run('tsc');
     run('node samples.js');
     popd();
     console.log('done');
