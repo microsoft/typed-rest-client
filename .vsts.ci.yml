@@ -1,0 +1,24 @@
+phases:
+
+################################################################################
+- phase: phase1
+################################################################################
+  displayName: Phase 1
+    #demands: agent.os -equals Windows_NT
+  steps:
+
+  # dotnet restore
+  # - task: DotNetCoreCLI@1
+  #   displayName: "Dotnet restore"
+  #   inputs:
+  #     command: "restore"
+  #     projects: "**/*.csproj"
+  #     arguments: ""
+
+  # Publish artifact
+  # - task: PublishBuildArtifacts@1
+  #   displayName: Publish Artifact
+  #   inputs:
+  #     pathToPublish: $(Build.ArtifactStagingDirectory)
+  #     artifactName: drop
+  #     artifactType: container
