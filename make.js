@@ -8,6 +8,8 @@ var rp = function (relPath) {
 
 var buildPath = path.join(__dirname, '_build');
 var testPath = path.join(__dirname, 'test');
+var tsc = path.join(__dirname, 'node_modules/.bin/tsc');
+var tslint = path.join(__dirname, 'node_modules/.bin/tslint');
 
 var run = function (cl) {
     try {
@@ -24,6 +26,16 @@ var run = function (cl) {
     }
 }
 
+// Run linting on all ts files in the lib directory
+// It's important to have the double quotes in place to run across platforms
+var lint = function () {
+    var filesGlob = '"lib/**/*.ts?(x)"';
+    var rulesDir = path.join(__dirname, 'node_modules/tslint-microsoft-contrib');
+    var config = path.join(__dirname, 'node_modules/tslint-microsoft-contrib/tslint.json');
+
+    run(tslint + ' ' + filesGlob + ' --rules-dir "' + rulesDir + '" --config "' + config + '"');
+}
+
 target.clean = function () {
     rm('-Rf', buildPath);
 };
@@ -31,11 +43,13 @@ target.clean = function () {
 target.build = function () {
     target.clean();
 
-    run(path.join(__dirname, 'node_modules/.bin/tsc') + ' --outDir ' + buildPath);
+    run(tsc + ' --outDir ' + buildPath);
     cp('-Rf', rp('lib/opensource'), buildPath);
     cp(rp('package.json'), buildPath);
     cp(rp('README.md'), buildPath);
     cp(rp('LICENSE'), buildPath);
+
+    lint();
 }
 
 target.test = function() {
