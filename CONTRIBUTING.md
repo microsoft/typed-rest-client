@@ -12,7 +12,7 @@ $ npm run build
 
 ## Test
 
-You should test with node 6.x and 8.x LTS.  We recommend using [nvm](https://github.com/creationix/nvm)
+You should test with node 4.x, 6.x and 8.x LTS.  We recommend using [nvm](https://github.com/creationix/nvm)
 
 ```
 npm test

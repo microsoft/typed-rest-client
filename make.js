@@ -10,11 +10,17 @@ var buildPath = path.join(__dirname, '_build');
 var testPath = path.join(__dirname, 'test');
 
 var run = function (cl) {
-    console.log('> ' + cl);
-    var rc = exec(cl).code;
-    if (rc !== 0) {
-        echo('Exec failed with rc ' + rc);
-        exit(rc);
+    try {
+        console.log('> ' + cl);
+        var rc = exec(cl).code;
+        if (rc !== 0) {
+            echo('Exec failed with rc ' + rc);
+            exit(rc);
+        }
+    }
+    catch (err) {
+        echo(err.message);
+        exit(1);
     }
 }
 
@@ -53,4 +59,10 @@ target.samples = function () {
     run('node samples.js');
     popd();
     console.log('done');
+}
+
+target.validate = function() {
+    target.build();
+    target.test();
+    target.samples();
 }
