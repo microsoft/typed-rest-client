@@ -33,7 +33,7 @@ export enum HttpCodes {
     NotImplemented = 501,
     BadGateway = 502,
     ServiceUnavailable = 503,
-    GatewayTimeout = 504,
+    GatewayTimeout = 504
 }
 
 const HttpRedirectCodes: number[] = [ HttpCodes.MovedPermanently, HttpCodes.ResourceMoved, HttpCodes.TemporaryRedirect, HttpCodes.PermanentRedirect ];
@@ -72,7 +72,7 @@ export function isHttps(requestUrl: string) {
 
 enum EnvironmentVariables {
     HTTP_PROXY = "HTTP_PROXY", 
-    HTTPS_PROXY = "HTTPS_PROXY",
+    HTTPS_PROXY = "HTTPS_PROXY"
 }
 
 export class HttpClient {
@@ -85,7 +85,7 @@ export class HttpClient {
     private _httpProxy: ifm.IProxyConfiguration;
     private _httpProxyBypassHosts: RegExp[];
     private _allowRedirects: boolean = true;
-    private _maxRedirects: number = 50
+    private _maxRedirects: number = 50;
     private _agent;
     private _proxyAgent;
     private _keepAlive: boolean = false;
@@ -233,7 +233,7 @@ export class HttpClient {
             let isDataString = typeof (data) === 'string';
 
             if (typeof (data) === 'string') {
-                info.options.headers["Content-Length"] = Buffer.byteLength(data, 'utf8');
+                info.options.headers['Content-Length'] = Buffer.byteLength(data, 'utf8');
             }
 
             let req: http.ClientRequest = info.httpModule.request(info.options, (msg: http.IncomingMessage) => {
@@ -324,7 +324,7 @@ export class HttpClient {
         let usingSsl = parsedUrl.protocol === 'https:';
         let maxSockets = 100;
         if (!!this.requestOptions) {
-            maxSockets = this.requestOptions.maxSockets || http.globalAgent.maxSockets
+            maxSockets = this.requestOptions.maxSockets || http.globalAgent.maxSockets;
         }
 
         if (useProxy) {
@@ -335,7 +335,7 @@ export class HttpClient {
                     proxyAuth: proxy.proxyAuth,
                     host: proxy.proxyUrl.hostname,
                     port: proxy.proxyUrl.port
-                },
+                }
             };
 
             var tunnelAgent: Function;

@@ -1,4 +1,6 @@
-export interface IHeaders { [key: string]: any };
+export interface IHeaders { 
+    [key: string]: any;
+}
 
 export interface IBasicCredentials {
     username: string;
