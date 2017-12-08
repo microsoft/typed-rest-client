@@ -218,11 +218,7 @@ export class HttpClient {
         if (this._agent) {
             this._agent.destroy();
         }
-
-        if (this._proxyAgent) {
-            this._proxyAgent.destroy();
-        }
-
+        
         this._disposed = true;
     }
 
