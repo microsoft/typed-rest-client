@@ -75,12 +75,12 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
                 // The following pattern of sending the type1 message following immediately (in a setImmediate) is
                 // critical for the NTLM exchange to happen.  If we removed setImmediate (or call in a different manner)
                 // the NTLM exchange will always fail with a 401.
-                let res: ifm.IHttpClientResponse = await this._sendType1Message(httpClient, reqInfo, objs, keepaliveAgent);
+                let response: ifm.IHttpClientResponse = await this._sendType1Message(httpClient, reqInfo, objs, keepaliveAgent);
 
                 let that = this;
                 setImmediate(async() => {
-                    res = await that._sendType3Message(httpClient, reqInfo, objs, keepaliveAgent, res);
-                    resolve(res);
+                    response = await that._sendType3Message(httpClient, reqInfo, objs, keepaliveAgent, response);
+                    resolve(response);
                 });
             }
             catch (err) {
@@ -91,27 +91,24 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
 
     // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
     private async _sendType1Message(httpClient: ifm.IHttpClient, reqInfo: ifm.IRequestInfo, objs, keepaliveAgent): Promise<ifm.IHttpClientResponse> {
-        return new Promise<ifm.IHttpClientResponse>(async(resolve, reject) => {
-            var type1msg = ntlm.createType1Message(this._ntlmOptions);
+        const type1msg = ntlm.createType1Message(this._ntlmOptions);
 
-            let type1options: http.RequestOptions = {
-                headers: {
-                    'Connection': 'keep-alive',
-                    'Authorization': type1msg
-                },
-                //timeout: reqInfo.options.timeout || 0,
-                agent: keepaliveAgent,
-                // don't redirect because http could change to https which means we need to change the keepaliveAgent
-                // allowRedirects: false
-            };
+        const type1options: http.RequestOptions = {
+            headers: {
+                'Connection': 'keep-alive',
+                'Authorization': type1msg
+            },
+            //timeout: reqInfo.options.timeout || 0,
+            agent: keepaliveAgent,
+            // don't redirect because http could change to https which means we need to change the keepaliveAgent
+            // allowRedirects: false
+        };
 
-            let type1info = <ifm.IRequestInfo>{};
-            type1info.httpModule = reqInfo.httpModule;
-            type1info.parsedUrl = reqInfo.parsedUrl;
-            type1info.options = _.extend(type1options, _.omit(reqInfo.options, 'headers'));
-            let res: ifm.IHttpClientResponse = await httpClient.requestRaw(type1info, objs);
-            resolve(res);
-        });
+        const type1info = <ifm.IRequestInfo>{};
+        type1info.httpModule = reqInfo.httpModule;
+        type1info.parsedUrl = reqInfo.parsedUrl;
+        type1info.options = _.extend(type1options, _.omit(reqInfo.options, 'headers'));
+        return await httpClient.requestRaw(type1info, objs);
     }
 
     // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
