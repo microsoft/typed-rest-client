@@ -38,7 +38,7 @@ export enum HttpCodes {
 
 const HttpRedirectCodes: number[] = [ HttpCodes.MovedPermanently, HttpCodes.ResourceMoved, HttpCodes.TemporaryRedirect, HttpCodes.PermanentRedirect ];
 
-export class HttpClientResponse {
+export class HttpClientResponse implements ifm.IHttpClientResponse {
     constructor(message: http.IncomingMessage) {
         this.message = message;
     }
@@ -75,7 +75,7 @@ enum EnvironmentVariables {
     HTTPS_PROXY = "HTTPS_PROXY",
 }
 
-export class HttpClient {
+export class HttpClient implements ifm.IHttpClient {
     userAgent: string;
     handlers: ifm.IRequestHandler[];
     requestOptions: ifm.IRequestOptions;
@@ -179,13 +179,31 @@ export class HttpClient {
      * All other methods such as get, post, patch, and request ultimately call this.
      * Prefer get, del, post and patch
      */
-    public async request(verb: string, requestUrl: string, data: string | NodeJS.ReadableStream, headers: ifm.IHeaders): Promise<HttpClientResponse> {
+    public async request(verb: string, requestUrl: string, data: string | NodeJS.ReadableStream, headers: ifm.IHeaders): Promise<HttpClientResponse/* TODO: Make return type interface? */> {
         if (this._disposed) {
             throw new Error("Client has already been disposed");
         }
 
         let info: RequestInfo = this._prepareRequest(verb, requestUrl, headers);
         let response: HttpClientResponse = await this._requestRaw(info, data);
+
+        // Check if it's an authentication challenge
+        if (response && response.message.statusCode === HttpCodes.Unauthorized) {
+            let authenticationHandler: ifm.IRequestHandler;
+
+            for (let i = 0; i < this.handlers.length; i++) {
+                if (this.handlers[i].canHandleAuthentication(response)) {
+                    authenticationHandler = this.handlers[i];
+                    break;
+                }
+            }
+
+            if (authenticationHandler) {
+                authenticationHandler.handleAuthentication(this, info, data);
+            }
+
+            // TODO: Don't we have to make another request? What does the handshake look like.
+        }
 
         let redirectsRemaining: number = this._maxRedirects;
         while (HttpRedirectCodes.indexOf(response.message.statusCode) != -1
@@ -226,7 +244,12 @@ export class HttpClient {
         this._disposed = true;
     }
 
-    private _requestRaw(info: RequestInfo, data: string | NodeJS.ReadableStream): Promise<HttpClientResponse> {
+    /**
+     * Internal raw request method. Do not use.
+     * @param info 
+     * @param data 
+     */
+    public requestRaw(info: ifm.IRequestInfo, data: string | NodeJS.ReadableStream): Promise<HttpClientResponse/* TODO: Make return type interface? */> {
         return new Promise<HttpClientResponse>((resolve, reject) => {
             let socket;
 
@@ -276,8 +299,8 @@ export class HttpClient {
         });
     }
 
-    private _prepareRequest(method: string, requestUrl: string, headers: any): RequestInfo {
-        let info: RequestInfo = <RequestInfo>{};
+    private _prepareRequest(method: string, requestUrl: string, headers: any): ifm.IRequestInfo {
+        let info: ifm.IRequestInfo = <ifm.IRequestInfo>{};
 
         info.parsedUrl = url.parse(requestUrl);
         let usingSsl = info.parsedUrl.protocol === 'https:';
