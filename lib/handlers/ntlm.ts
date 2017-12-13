@@ -65,7 +65,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
         return new Promise<ifm.IHttpClientResponse>(async(resolve, reject) => {
             try {
                 // Set up the headers for NTLM authentication
-                var keepaliveAgent;
+                let keepaliveAgent;
                 if (httpClient.isSsl === true) {
                     keepaliveAgent = new https.Agent({});
                 } else {
@@ -124,14 +124,14 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
                 return;
             }
 
-            var type2msg = ntlm.parseType2Message(res.message.headers['www-authenticate']);
+            const type2msg = ntlm.parseType2Message(res.message.headers['www-authenticate']);
 
             this._ntlmOptions.username = this._username;
             this._ntlmOptions.password = this._password;
 
-            var type3msg = ntlm.createType3Message(type2msg, this._ntlmOptions);
+            const type3msg = ntlm.createType3Message(type2msg, this._ntlmOptions);
             
-            let type3options: http.RequestOptions = {
+            const type3options: http.RequestOptions = {
                 headers: {
                     'Authorization': type3msg
                 },
@@ -139,14 +139,14 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
                 agent: keepaliveAgent
             };
 
-            let type3info = <ifm.IRequestInfo>{};
+            const type3info = <ifm.IRequestInfo>{};
             type3info.httpModule = reqInfo.httpModule;
             type3info.parsedUrl = reqInfo.parsedUrl;
             // pass along other options:
             type3options.headers = _.extend(type3options.headers, reqInfo.options.headers);
             type3info.options = _.extend(type3options, _.omit(reqInfo.options, 'headers'));
             // send type3 message to server:
-            let type3res: ifm.IHttpClientResponse = await httpClient.requestRaw(type3info, objs);
+            const type3res: ifm.IHttpClientResponse = await httpClient.requestRaw(type3info, objs);
             resolve(type3res);
         });
     }
