@@ -38,8 +38,7 @@ export interface IRequestInfo {
 }
 
 export interface IRequestOptions {
-    headers: IHeaders;
-
+    headers?: IHeaders;
     socketTimeout?: number,
     ignoreSslError?: boolean,
     proxy?: IProxyConfiguration,

@@ -97,7 +97,7 @@ export class HttpClient implements ifm.IHttpClient {
 
     constructor(userAgent: string, handlers?: ifm.IRequestHandler[], requestOptions?: ifm.IRequestOptions) {
         this.userAgent = userAgent;
-        this.handlers = handlers;
+        this.handlers = handlers || [];
         this.requestOptions = requestOptions;
         if (requestOptions) {
             if (requestOptions.ignoreSslError != null) {
@@ -181,11 +181,11 @@ export class HttpClient implements ifm.IHttpClient {
      */
     public async request(verb: string, requestUrl: string, data: string | NodeJS.ReadableStream, headers: ifm.IHeaders): Promise<HttpClientResponse/* TODO: Make return type interface? */> {
         if (this._disposed) {
-            throw new Error("Client has already been disposed");
+            throw new Error("Client has already been disposed.");
         }
 
         let info: RequestInfo = this._prepareRequest(verb, requestUrl, headers);
-        let response: HttpClientResponse = await this._requestRaw(info, data);
+        let response: HttpClientResponse = await this.requestRaw(info, data);
 
         // Check if it's an authentication challenge
         if (response && response.message.statusCode === HttpCodes.Unauthorized) {
@@ -200,9 +200,15 @@ export class HttpClient implements ifm.IHttpClient {
 
             if (authenticationHandler) {
                 authenticationHandler.handleAuthentication(this, info, data);
+            } else {
+                // We have received an unauthorized response but have no handlers to handle it
+                return response;
             }
 
             // TODO: Don't we have to make another request? What does the handshake look like.
+            // Does anything need to be changed on the parameters now that auth is done?
+            // Maybe the data is changed inside handleAuthentication so that we now have it? I don't think this is the case though.
+            return await this.request(verb, requestUrl, data, headers);
         }
 
         let redirectsRemaining: number = this._maxRedirects;
@@ -222,7 +228,7 @@ export class HttpClient implements ifm.IHttpClient {
 
             // let's make the request with the new redirectUrl
             info = this._prepareRequest(verb, redirectUrl, headers);
-            response = await this._requestRaw(info, data);
+            response = await this.requestRaw(info, data);
             redirectsRemaining--;
         }
 
