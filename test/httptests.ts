@@ -80,7 +80,7 @@ describe('Http Tests', function () {
         let creds: string = Buffer.from(auth.substring('Basic '.length), 'base64').toString();
         assert(creds === 'PAT:' + token, "creds should be the token");
         assert(obj.url === "http://httpbin.org/get");
-    });    
+    });
 
     it('pipes a get request', () => {
         return new Promise<string>(async (resolve, reject) => {
@@ -107,12 +107,12 @@ describe('Http Tests', function () {
         let res: httpm.HttpClientResponse = await http.get("https://httpbin.org/redirect-to?url=" + encodeURIComponent("https://httpbin.org/get"))
         assert(res.message.statusCode == 302, "status code should be 302");
         let body: string = await res.readBody();
-    });    
+    });
     
     it('does basic head request', async() => {
         let res: httpm.HttpClientResponse = await _http.head('http://httpbin.org/get');
         assert(res.message.statusCode == 200, "status code should be 200");
-    });    
+    });
 
     it('does basic http delete request', async() => {
         let res: httpm.HttpClientResponse = await _http.del('http://httpbin.org/delete');
@@ -139,7 +139,7 @@ describe('Http Tests', function () {
         let obj:any = JSON.parse(body);
         assert(obj.data === b);
         assert(obj.url === "http://httpbin.org/patch");
-    }); 
+    });
     
     it('does basic http options request', async() => {
         let res: httpm.HttpClientResponse = await _http.options('http://httpbin.org');
