@@ -7,6 +7,7 @@ import https = require("https");
 import tunnel = require("tunnel");
 import ifm = require('./Interfaces');
 import fs = require('fs');
+var _ = require("underscore");
 
 export enum HttpCodes {
     OK = 200,
@@ -199,7 +200,7 @@ export class HttpClient implements ifm.IHttpClient {
             }
 
             if (authenticationHandler) {
-                authenticationHandler.handleAuthentication(this, info, data);
+                return await authenticationHandler.handleAuthentication(this, info, data);
             } else {
                 // We have received an unauthorized response but have no handlers to handle it
                 return response;
@@ -208,7 +209,7 @@ export class HttpClient implements ifm.IHttpClient {
             // TODO: Don't we have to make another request? What does the handshake look like.
             // Does anything need to be changed on the parameters now that auth is done?
             // Maybe the data is changed inside handleAuthentication so that we now have it? I don't think this is the case though.
-            return await this.request(verb, requestUrl, data, headers);
+            //return await this.request(verb, requestUrl, data, headers);
         }
 
         let redirectsRemaining: number = this._maxRedirects;
@@ -261,6 +262,7 @@ export class HttpClient implements ifm.IHttpClient {
 
             let isDataString = typeof (data) === 'string';
 
+            //console.log('info.options: ' + JSON.stringify(_.omit(info.options, 'httpModule')));            
             if (typeof (data) === 'string') {
                 info.options.headers["Content-Length"] = Buffer.byteLength(data, 'utf8');
             }
