@@ -7,23 +7,23 @@ var httpntlm = require('httpntlm');
 export async function run() {
     cm.banner('Handler Samples');
 
-    // process.env["http_proxy"] = "http://127.0.0.1:8888";
-    // console.log("FROM ROOT");
-    // httpntlm.get({
-    //     url: "http://stephenmichaelf:8080/tfs/DefaultCollection/ExperimentalProject/_build/index?context=mine&path=%5C&definitionId=1&_a=completed",
-    //     username: 'stfrance',
-    //     password: process.env["PW"],
-    //     workstation: 'STEPHENMICHAELF',
-    //     domain: 'NORTHAMERICA',
+    process.env["http_proxy"] = "http://127.0.0.1:8888";
+    console.log("FROM ROOT");
+    httpntlm.get({
+        url: "http://stephenmichaelf:8080/tfs/DefaultCollection/ExperimentalProject/_build/index?context=mine&path=%5C&definitionId=1&_a=completed",
+        username: 'stfrance',
+        password: process.env["PW"],
+        workstation: 'STEPHENMICHAELF',
+        domain: 'NORTHAMERICA',
 
-    // }, function (err, res){
-    //     if(err) return console.log('ERROR: ' + err);
+    }, function (err, res){
+        if(err) return console.log('ERROR: ' + err);
     
-    //     console.log('start response log');
-    //     console.log("status code inside: " + res.statusCode);
-    //     console.log('end response log');
-    // });
-    // console.log("END FROM ROOT");
+        console.log('start response log');
+        console.log("status code inside: " + res.statusCode);
+        console.log('end response log');
+    });
+    console.log("END FROM ROOT");
     
     let bh: hm.BasicCredentialHandler = new hm.BasicCredentialHandler('johndoe', 'password');
     let ph: hm.PersonalAccessTokenCredentialHandler = new hm.PersonalAccessTokenCredentialHandler('scbfb44vxzku5l4xgc3qfazn3lpk4awflfryc76esaiq7aypcbhs');

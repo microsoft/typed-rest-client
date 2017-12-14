@@ -200,9 +200,11 @@ export class HttpClient implements ifm.IHttpClient {
             }
 
             if (authenticationHandler) {
-                return await authenticationHandler.handleAuthentication(this, info, data);
+                console.log("YES AUTH HANDLER");
+                return authenticationHandler.handleAuthentication(this, info, data);
             } else {
                 // We have received an unauthorized response but have no handlers to handle it
+                console.log("NO AUTH HANDLER");
                 return response;
             }
 
@@ -210,6 +212,8 @@ export class HttpClient implements ifm.IHttpClient {
             // Does anything need to be changed on the parameters now that auth is done?
             // Maybe the data is changed inside handleAuthentication so that we now have it? I don't think this is the case though.
             //return await this.request(verb, requestUrl, data, headers);
+            // Or maybe request raw?
+            //return await this.requestRaw(info, data);
         }
 
         let redirectsRemaining: number = this._maxRedirects;
@@ -262,7 +266,8 @@ export class HttpClient implements ifm.IHttpClient {
 
             let isDataString = typeof (data) === 'string';
 
-            //console.log('info.options: ' + JSON.stringify(_.omit(info.options, 'httpModule')));            
+            //console.log('info.options: ' + JSON.stringify(_.omit(info.options, 'httpModule')));
+            console.log('outoing headers: ' + info.options.headers);
             if (typeof (data) === 'string') {
                 info.options.headers["Content-Length"] = Buffer.byteLength(data, 'utf8');
             }

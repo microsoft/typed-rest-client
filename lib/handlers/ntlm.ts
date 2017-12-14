@@ -120,7 +120,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
         // console.log('type1info.parsedUrl: ' + JSON.stringify(type1info.parsedUrl));
         // console.log('type1info.options: ' + JSON.stringify(type1info.options));
 
-        //console.log('type1info: ' + JSON.stringify(type1info));
+        console.log('type1info.options.headers: ' + JSON.stringify(type1info.options.headers));
 
         return await httpClient.requestRaw(type1info, objs);
     }
@@ -151,7 +151,8 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
             
             const type3options: http.RequestOptions = {
                 headers: {
-                    'Authorization': type3msg
+                    'Authorization': type3msg,
+                    'Connection': 'close'
                 },
                 //allowRedirects: false,
                 agent: keepaliveAgent
@@ -173,6 +174,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
             //console.log('parsedUrl: ' + reqInfo.parsedUrl);
             //console.log('type3info.options: ' + JSON.stringify(type3info.options));
             //console.log('objs json: ' + JSON.stringify(objs));
+            console.log('[OURS] type3info.options.headers: ' + JSON.stringify(type3info.options.headers));
 
             const type3res: ifm.IHttpClientResponse = await httpClient.requestRaw(type3info, objs);
             resolve(type3res);
