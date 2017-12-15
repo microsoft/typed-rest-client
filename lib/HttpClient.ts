@@ -255,6 +255,24 @@ export class HttpClient implements ifm.IHttpClient {
         this._disposed = true;
     }
 
+    private printOptions(options: http.RequestOptions)
+    {
+        console.log('protocol: ' + options.protocol);
+        console.log('host: ' + options.host);
+        console.log('hostname: ' + options.hostname);
+        console.log('family: ' + options.family);
+        console.log('port: ' + options.port);
+        console.log('localAddress: ' + options.localAddress);
+        console.log('socketPath: ' + options.socketPath);
+        console.log('method: ' + options.method);
+        console.log('path: ' + options.path);
+
+        // headers?: OutgoingHttpHeaders;
+        // auth?: string;
+        // agent?: Agent | boolean;
+        // timeout?: number;
+    }
+
     /**
      * Internal raw request method. Do not use.
      * @param info 
@@ -266,8 +284,10 @@ export class HttpClient implements ifm.IHttpClient {
 
             let isDataString = typeof (data) === 'string';
 
-            //console.log('info.options: ' + JSON.stringify(_.omit(info.options, 'httpModule')));
-            console.log('outoing headers: ' + info.options.headers);
+            // console.log('info.options: ' + JSON.stringify(_.omit(info.options, 'httpModule')));
+            console.log('info.options: ' + this.printOptions(info.options));
+            console.log('outoing headers: ' + JSON.stringify(info.options.headers));
+            console.log('parsed url: ' + JSON.stringify(info.parsedUrl));
             if (typeof (data) === 'string') {
                 info.options.headers["Content-Length"] = Buffer.byteLength(data, 'utf8');
             }

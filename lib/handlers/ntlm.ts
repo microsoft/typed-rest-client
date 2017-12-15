@@ -35,7 +35,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
         // If a (proxy) agent is set, remove it as we don't support proxy for NTLM at this time
         if (options.agent) {
             // TEMPORARILY COMMENTING THIS TO TRY AND USE PROXY.
-            delete options.agent;
+            //delete options.agent;
         }
     }
 
@@ -152,7 +152,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
             const type3options: http.RequestOptions = {
                 headers: {
                     'Authorization': type3msg,
-                    'Connection': 'close'
+                    'Connection': 'Close'
                 },
                 //allowRedirects: false,
                 agent: keepaliveAgent
