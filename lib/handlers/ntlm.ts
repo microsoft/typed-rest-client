@@ -79,11 +79,11 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
                 // The following pattern of sending the type1 message following immediately (in a setImmediate) is
                 // critical for the NTLM exchange to happen.  If we removed setImmediate (or call in a different manner)
                 // the NTLM exchange will always fail with a 401.
-                console.log('sending type 1 message');
+
+                // TODO: Is this where our bug is?
                 let response: ifm.IHttpClientResponse = await this._sendType1Message(httpClient, reqInfo, objs, keepaliveAgent);
                 let that = this;
                 setImmediate(async() => {
-                    console.log('sending type 3 message');
                     response = await that._sendType3Message(httpClient, reqInfo, objs, keepaliveAgent, response);
                     resolve(response);
                 });
@@ -96,8 +96,6 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
 
     // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
     private async _sendType1Message(httpClient: ifm.IHttpClient, reqInfo: ifm.IRequestInfo, objs, keepaliveAgent): Promise<ifm.IHttpClientResponse> {
-        //console.log('sending to createType1Message: ' + JSON.stringify(this._ntlmOptions));
-        console.log('sending type 1 message continued');
         const type1msg = ntlm.createType1Message(this._ntlmOptions);
 
         const type1options: http.RequestOptions = {
@@ -108,7 +106,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
             //timeout: reqInfo.options.timeout || 0,
             agent: keepaliveAgent,
             // don't redirect because http could change to https which means we need to change the keepaliveAgent
-            //allowRedirects: false
+            // allowRedirects: false
         };
 
         const type1info = <ifm.IRequestInfo>{};
@@ -116,12 +114,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
         type1info.parsedUrl = reqInfo.parsedUrl;
         type1info.options = _.extend(type1options, _.omit(reqInfo.options, 'headers'));
 
-        // console.log('type1info, about to fail');
-        // console.log('type1info.parsedUrl: ' + JSON.stringify(type1info.parsedUrl));
-        // console.log('type1info.options: ' + JSON.stringify(type1info.options));
-
-        console.log('type1info.options.headers: ' + JSON.stringify(type1info.options.headers));
-
+        console.log('[OURS] sending type 1, options: ' + JSON.stringify(type1info));
         return await httpClient.requestRaw(type1info, objs);
     }
 
@@ -138,17 +131,9 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
                 return;
             }
 
-            // console.log("type 2 raw: " + res.message.headers['www-authenticate']);
             const type2msg = ntlm.parseType2Message(res.message.headers['www-authenticate']);
-            // console.log("[OURS] parseType2Message completed: " + JSON.stringify(type2msg));
-
-            // console.log('[OURS] createType3Message');
-            // console.log('msg2: ' + JSON.stringify(type2msg));
-            // console.log('options: ' + JSON.stringify(this._ntlmOptions));
             const type3msg = ntlm.createType3Message(type2msg, this._ntlmOptions);
 
-            // console.log('type3msg: ' + type3msg);
-            
             const type3options: http.RequestOptions = {
                 headers: {
                     'Authorization': type3msg,
@@ -158,24 +143,21 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
                 agent: keepaliveAgent
             };
 
-            //console.log('type3options: ' + JSON.stringify(type3options));
-
             const type3info = <ifm.IRequestInfo>{};
             type3info.httpModule = reqInfo.httpModule;
             type3info.parsedUrl = reqInfo.parsedUrl;
             
             // pass along other options:
+            // EXPERIMENT, commenting this out.
             type3options.headers = _.extend(type3options.headers, reqInfo.options.headers);
+            //type3options.headers = type3options.headers;
+
+            // EXPERIMENT, commenting this out.
             type3info.options = _.extend(type3options, _.omit(reqInfo.options, 'headers'));
+            //type3info.options = type3options;
+
             // send type3 message to server:
-
-            //console.log('type3info: ' + JSON.stringify(type3info));
-            // console.log('objs: ' + objs);
-            //console.log('parsedUrl: ' + reqInfo.parsedUrl);
-            //console.log('type3info.options: ' + JSON.stringify(type3info.options));
-            //console.log('objs json: ' + JSON.stringify(objs));
-            console.log('[OURS] type3info.options.headers: ' + JSON.stringify(type3info.options.headers));
-
+            console.log('[OURS] sending type 3, options: ' + JSON.stringify(type3info));
             const type3res: ifm.IHttpClientResponse = await httpClient.requestRaw(type3info, objs);
             resolve(type3res);
         });
