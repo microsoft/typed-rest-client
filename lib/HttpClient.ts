@@ -267,6 +267,7 @@ export class HttpClient implements ifm.IHttpClient {
                 info.options.headers["Content-Length"] = Buffer.byteLength(data, 'utf8');
             }
 
+            // info.options.agent, this is the keep alive agent but we arent using it...
             let req: http.ClientRequest = info.httpModule.request(info.options, (msg: http.IncomingMessage) => {
                 let res: HttpClientResponse = new HttpClientResponse(msg);
                 resolve(res);

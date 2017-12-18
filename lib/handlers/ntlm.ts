@@ -8,10 +8,10 @@ var _ = require("underscore");
 var ntlm = require("../opensource/node-http-ntlm/ntlm");
 
 interface INtlmOptions {
-    domain: string,
-    workstation: string,
     username?:string,
-    password?:string
+    password?:string,
+    domain: string,
+    workstation: string
 }
 
 export class NtlmCredentialHandler implements ifm.IRequestHandler {
@@ -35,7 +35,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
         // If a (proxy) agent is set, remove it as we don't support proxy for NTLM at this time
         if (options.agent) {
             // TEMPORARILY COMMENTING THIS TO TRY AND USE PROXY.
-            //delete options.agent;
+            delete options.agent;
         }
     }
 
@@ -81,8 +81,8 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
                 // the NTLM exchange will always fail with a 401.
 
                 // TODO: Is this where our bug is?
-                let response: ifm.IHttpClientResponse = await this._sendType1Message(httpClient, reqInfo, objs, keepaliveAgent);
                 let that = this;
+                let response: ifm.IHttpClientResponse = await this._sendType1Message(httpClient, reqInfo, objs, keepaliveAgent);
                 setImmediate(async() => {
                     response = await that._sendType3Message(httpClient, reqInfo, objs, keepaliveAgent, response);
                     resolve(response);
@@ -103,10 +103,10 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
                 'Connection': 'keep-alive',
                 'Authorization': type1msg
             },
-            //timeout: reqInfo.options.timeout || 0,
+            timeout: reqInfo.options.timeout || 0,
             agent: keepaliveAgent,
             // don't redirect because http could change to https which means we need to change the keepaliveAgent
-            // allowRedirects: false
+            //allowRedirects: false
         };
 
         const type1info = <ifm.IRequestInfo>{};
@@ -114,7 +114,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
         type1info.parsedUrl = reqInfo.parsedUrl;
         type1info.options = _.extend(type1options, _.omit(reqInfo.options, 'headers'));
 
-        console.log('[OURS] sending type 1, options: ' + JSON.stringify(type1info));
+        //console.log('[OURS] sending type 1, options: ' + Object.keys(type1info));
         return await httpClient.requestRaw(type1info, objs);
     }
 
@@ -137,7 +137,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
             const type3options: http.RequestOptions = {
                 headers: {
                     'Authorization': type3msg,
-                    'Connection': 'Close'
+                    //'Connection': 'Close'
                 },
                 //allowRedirects: false,
                 agent: keepaliveAgent
@@ -146,18 +146,10 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
             const type3info = <ifm.IRequestInfo>{};
             type3info.httpModule = reqInfo.httpModule;
             type3info.parsedUrl = reqInfo.parsedUrl;
-            
-            // pass along other options:
-            // EXPERIMENT, commenting this out.
             type3options.headers = _.extend(type3options.headers, reqInfo.options.headers);
-            //type3options.headers = type3options.headers;
-
-            // EXPERIMENT, commenting this out.
             type3info.options = _.extend(type3options, _.omit(reqInfo.options, 'headers'));
-            //type3info.options = type3options;
 
             // send type3 message to server:
-            console.log('[OURS] sending type 3, options: ' + JSON.stringify(type3info));
             const type3res: ifm.IHttpClientResponse = await httpClient.requestRaw(type3info, objs);
             resolve(type3res);
         });
