@@ -157,69 +157,61 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
         // return httpClient.requestRaw(type1info, objs);
 
         const type1msg = ntlm.createType1Message(requestInfo.options);
+        
         const headers = {
                 'Connection': 'keep-alive',
                 'Authorization': type1msg
         };
+        
         requestInfo.options.headers = headers;
-        httpClient.requestRaw(requestInfo, data);
+
+        return httpClient.requestRaw(requestInfo, data);
     }
 
     // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
     private async _sendType3Message(httpClient: ifm.IHttpClient, 
-                                    reqInfo: ifm.IRequestInfo,
+                                    requestInfo: ifm.IRequestInfo,
                                     data: any, 
-                                    res: ifm.IHttpClientResponse): Promise<ifm.IHttpClientResponse> {
+                                    type1response: ifm.IHttpClientResponse): Promise<ifm.IHttpClientResponse> {
+        // if (!res.message.headers && !res.message.headers['www-authenticate']) {
+        //     throw new Error('www-authenticate not found on response of second request');
+        // }
 
-            if (!res.message.headers && !res.message.headers['www-authenticate']) {
-                throw new Error('www-authenticate not found on response of second request');
-            }
+        // const type2msg = ntlm.parseType2Message(res.message.headers['www-authenticate']);
+        // const type3msg = ntlm.createType3Message(type2msg, this._ntlmOptions);
 
-            const type2msg = ntlm.parseType2Message(res.message.headers['www-authenticate']);
-            const type3msg = ntlm.createType3Message(type2msg, this._ntlmOptions);
+        // const type3options: http.RequestOptions = {
+        //     headers: {
+        //         'Authorization': type3msg,
+        //         //'Connection': 'Close'
+        //     },
+        //     //allowRedirects: false,
+        //     agent: keepaliveAgent
+        // };
 
-            const type3options: http.RequestOptions = {
-                headers: {
-                    'Authorization': type3msg,
-                    //'Connection': 'Close'
-                },
-                //allowRedirects: false,
-                agent: keepaliveAgent
-            };
+        // const type3info = <ifm.IRequestInfo>{};
+        // type3info.httpModule = reqInfo.httpModule;
+        // type3info.parsedUrl = reqInfo.parsedUrl;
+        // type3options.headers = _.extend(type3options.headers, reqInfo.options.headers);
+        // type3info.options = _.extend(type3options, _.omit(reqInfo.options, 'headers'));
 
-            const type3info = <ifm.IRequestInfo>{};
-            type3info.httpModule = reqInfo.httpModule;
-            type3info.parsedUrl = reqInfo.parsedUrl;
-            type3options.headers = _.extend(type3options.headers, reqInfo.options.headers);
-            type3info.options = _.extend(type3options, _.omit(reqInfo.options, 'headers'));
+        // // send type3 message to server:
+        // return httpClient.requestRaw(type3info, data);
+        
+        if (!type1response.message.headers['www-authenticate']) {
+            throw new Error('www-authenticate not found on response of second request');
+        }
 
-            // send type3 message to server:
-            return httpClient.requestRaw(type3info, data);
+        const type2message = ntlm.parseType2Message(type1response.message.headers['www-authenticate']);
+        const type3message = ntlm.createType3Message(type2message, requestInfo.options);
+
+        const headers = {
+            'Connection': 'Close',
+            'Authorization': type3message
+        };
+
+        requestInfo.options.headers = headers;
+
+        return httpClient.requestRaw(requestInfo, data);
     }
 }
-
-// TO COPY
-
-// // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
-// NtlmCredentialHandler.prototype.sendType3Message = function (httpClient, protocol, options, objs, keepaliveAgent, res, callback) {
-//     if (!res.headers['www-authenticate']) {
-//         return callback(new Error('www-authenticate not found on response of second request'));
-//     }
-//     // parse type2 message from server:
-//     var type2msg = ntlm.parseType2Message(res.headers['www-authenticate']);
-//     // create type3 message:
-//     var type3msg = ntlm.createType3Message(type2msg, options);
-//     // build type3 request:
-//     var type3options = {
-//         headers: {
-//             'Authorization': type3msg
-//         },
-//         allowRedirects: false,
-//         agent: keepaliveAgent
-//     };
-//     // pass along other options:
-//     type3options.headers = _.extend(type3options.headers, options.headers);
-//     type3options = _.extend(type3options, _.omit(options, 'headers'));
-//     // send type3 message to server:
-//     httpClient.requestInternal(protocol, type3options, objs, callback);
-// };
