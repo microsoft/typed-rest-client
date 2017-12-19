@@ -93,7 +93,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
         //     throw err;
         // }
 
-        const ntlmOptions = _.extend(requestInfo.options, {
+        requestInfo.options = _.extend(requestInfo.options, {
             username: this._ntlmOptions.username,
             password: this._ntlmOptions.password,
             domain: this._ntlmOptions.domain,
@@ -135,27 +135,34 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
     }
 
     // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
-    private async _sendType1Message(httpClient: ifm.IHttpClient, reqInfo: ifm.IRequestInfo, data: any): Promise<ifm.IHttpClientResponse> {
-        const type1msg = ntlm.createType1Message(this._ntlmOptions);
+    private async _sendType1Message(httpClient: ifm.IHttpClient, requestInfo: ifm.IRequestInfo, data: any): Promise<ifm.IHttpClientResponse> {
+        // const type1msg = ntlm.createType1Message(this._ntlmOptions);
 
-        const type1options: http.RequestOptions = {
-            headers: {
+        // const type1options: http.RequestOptions = {
+        //     headers: {
+        //         'Connection': 'keep-alive',
+        //         'Authorization': type1msg
+        //     },
+        //     timeout: reqInfo.options.timeout || 0,
+        //     agent: keepaliveAgent,
+        //     // don't redirect because http could change to https which means we need to change the keepaliveAgent
+        //     //allowRedirects: false
+        // };
+
+        // const type1info = <ifm.IRequestInfo>{};
+        // type1info.httpModule = reqInfo.httpModule;
+        // type1info.parsedUrl = reqInfo.parsedUrl;
+        // type1info.options = _.extend(type1options, _.omit(reqInfo.options, 'headers'));
+
+        // return httpClient.requestRaw(type1info, objs);
+
+        const type1msg = ntlm.createType1Message(requestInfo.options);
+        const headers = {
                 'Connection': 'keep-alive',
                 'Authorization': type1msg
-            },
-            timeout: reqInfo.options.timeout || 0,
-            agent: keepaliveAgent,
-            // don't redirect because http could change to https which means we need to change the keepaliveAgent
-            //allowRedirects: false
         };
-
-        const type1info = <ifm.IRequestInfo>{};
-        type1info.httpModule = reqInfo.httpModule;
-        type1info.parsedUrl = reqInfo.parsedUrl;
-        type1info.options = _.extend(type1options, _.omit(reqInfo.options, 'headers'));
-
-        //console.log('[OURS] sending type 1, options: ' + Object.keys(type1info));
-        return httpClient.requestRaw(type1info, objs);
+        requestInfo.options.headers = headers;
+        httpClient.requestRaw(requestInfo, data);
     }
 
     // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
@@ -193,27 +200,6 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
 
 // TO COPY
 
-// // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
-// NtlmCredentialHandler.prototype.handleAuthentication = function (httpClient, protocol, options, objs, finalCallback) {
-//     // Set up the headers for NTLM authentication
-
-// };
-// // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
-// NtlmCredentialHandler.prototype.sendType1Message = function (httpClient, protocol, options, objs, keepaliveAgent, callback) {
-//     var type1msg = ntlm.createType1Message(options);
-//     var type1options = {
-//         headers: {
-//             'Connection': 'keep-alive',
-//             'Authorization': type1msg
-//         },
-//         timeout: options.timeout || 0,
-//         agent: keepaliveAgent,
-//         // don't redirect because http could change to https which means we need to change the keepaliveAgent
-//         allowRedirects: false
-//     };
-//     type1options = _.extend(type1options, _.omit(options, 'headers'));
-//     httpClient.requestInternal(protocol, type1options, objs, callback);
-// };
 // // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
 // NtlmCredentialHandler.prototype.sendType3Message = function (httpClient, protocol, options, objs, keepaliveAgent, res, callback) {
 //     if (!res.headers['www-authenticate']) {
