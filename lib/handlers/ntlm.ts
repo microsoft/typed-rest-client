@@ -16,25 +16,25 @@ interface INtlmOptions {
 
 export class NtlmCredentialHandler implements ifm.IRequestHandler {
     private _ntlmOptions: INtlmOptions;
-    private _username: string;
-    private _password: string;
 
     constructor(username: string, password: string,  workstation?: string, domain?: string) {
         this._ntlmOptions = <INtlmOptions>{};
 
-        this._username = username;
-        this._password = password;
-        this._ntlmOptions.workstation = workstation || '';
-        this._ntlmOptions.domain = domain || '';
-        this._ntlmOptions.username = this._username;
-        this._ntlmOptions.password = this._password;
+        this._ntlmOptions.username = username;
+        this._ntlmOptions.password = password;
+
+        if (domain !== undefined) {
+            this._ntlmOptions.domain = domain;
+        }
+        if (workstation !== undefined) {
+            this._ntlmOptions.workstation = workstation;
+        }
     }
 
     prepareRequest(options:http.RequestOptions): void {
         // No headers or options need to be set.  We keep the credentials on the handler itself.
         // If a (proxy) agent is set, remove it as we don't support proxy for NTLM at this time
         if (options.agent) {
-            // TEMPORARILY COMMENTING THIS TO TRY AND USE PROXY.
             delete options.agent;
         }
     }
@@ -62,42 +62,39 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
     }
 
     // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
-    async handleAuthentication(httpClient,
-                               reqInfo: ifm.IRequestInfo, 
-                               objs): Promise<ifm.IHttpClientResponse> {
-        
-            try {
-                // Set up the headers for NTLM authentication
-                let keepaliveAgent;
-                if (httpClient.isSsl === true) {
-                    keepaliveAgent = new https.Agent({ keepAlive: true });
-                } else {
-                    keepaliveAgent = new http.Agent({ keepAlive: true });
-                }
-
-                // The following pattern of sending the type1 message following immediately (in a setImmediate) is
-                // critical for the NTLM exchange to happen.  If we removed setImmediate (or call in a different manner)
-                // the NTLM exchange will always fail with a 401.
-
-                // TODO: Is this where our bug is?
-                let that = this;
-                let response: ifm.IHttpClientResponse;
-                
-                response = await this._sendType1Message(httpClient, reqInfo, objs, keepaliveAgent);
-                setImmediate(async() => {
-                    return that._sendType3Message(httpClient, reqInfo, objs, keepaliveAgent, response);
-                    //console.log("set immediate done");
-                    // TODO: Is this running late?
-                });
-                throw new Error('why did the code get here');
+    async handleAuthentication(httpClient: any, reqInfo: ifm.IRequestInfo, data: any): Promise<ifm.IHttpClientResponse> {
+        try {
+            // Set up the headers for NTLM authentication
+            let keepaliveAgent;
+            if (httpClient.isSsl === true) {
+                keepaliveAgent = new https.Agent({ keepAlive: true });
+            } else {
+                keepaliveAgent = new http.Agent({ keepAlive: true });
             }
-            catch (err) {
-                throw err;
-            }
+
+            // The following pattern of sending the type1 message following immediately (in a setImmediate) is
+            // critical for the NTLM exchange to happen.  If we removed setImmediate (or call in a different manner)
+            // the NTLM exchange will always fail with a 401.
+
+            // TODO: Is this where our bug is?
+            const that = this;
+            let response: ifm.IHttpClientResponse;
+            
+            response = await this._sendType1Message(httpClient, reqInfo, data, keepaliveAgent);
+            setImmediate(async() => {
+                return that._sendType3Message(httpClient, reqInfo, data, keepaliveAgent, response);
+                //console.log("set immediate done");
+                // TODO: Is this running late?
+            });
+            throw new Error('why did the code get here');
+        }
+        catch (err) {
+            throw err;
+        }
     }
 
     // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
-    private async _sendType1Message(httpClient: ifm.IHttpClient, reqInfo: ifm.IRequestInfo, objs, keepaliveAgent): Promise<ifm.IHttpClientResponse> {
+    private async _sendType1Message(httpClient: ifm.IHttpClient, reqInfo: ifm.IRequestInfo, data: any, keepaliveAgent: any): Promise<ifm.IHttpClientResponse> {
         const type1msg = ntlm.createType1Message(this._ntlmOptions);
 
         const type1options: http.RequestOptions = {
@@ -123,7 +120,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
     // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
     private async _sendType3Message(httpClient: ifm.IHttpClient, 
                                     reqInfo: ifm.IRequestInfo,
-                                    objs, 
+                                    data: any, 
                                     keepaliveAgent, 
                                     res: ifm.IHttpClientResponse): Promise<ifm.IHttpClientResponse> {
 
@@ -150,47 +147,12 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
             type3info.options = _.extend(type3options, _.omit(reqInfo.options, 'headers'));
 
             // send type3 message to server:
-            return httpClient.requestRaw(type3info, objs);
+            return httpClient.requestRaw(type3info, data);
     }
 }
 
 // TO COPY
-// function NtlmCredentialHandler(username, password, domain, workstation) {
-//     this.username = username;
-//     this.password = password;
-//     if (domain !== undefined) {
-//         this.domain = domain;
-//     }
-//     if (workstation !== undefined) {
-//         this.workstation = workstation;
-//     }
-// }
-// NtlmCredentialHandler.prototype.prepareRequest = function (options) {
-//     // No headers or options need to be set.  We keep the credentials on the handler itself.
-//     // If a (proxy) agent is set, remove it as we don't support proxy for NTLM at this time
-//     if (options.agent) {
-//         delete options.agent;
-//     }
-// };
-// NtlmCredentialHandler.prototype.canHandleAuthentication = function (res) {
-//     if (res && res.statusCode === 401) {
-//         // Ensure that we're talking NTLM here
-//         // Once we have the www-authenticate header, split it so we can ensure we can talk NTLM
-//         var wwwAuthenticate = res.headers['www-authenticate'];
-//         if (wwwAuthenticate !== undefined) {
-//             var mechanisms = wwwAuthenticate.split(', ');
-//             var idx = mechanisms.indexOf("NTLM");
-//             if (idx >= 0) {
-//                 // Check specifically for 'NTLM' since www-authenticate header can also contain
-//                 // the Authorization value to use in the form of 'NTLM TlRMTVNT....AAAADw=='
-//                 if (mechanisms[idx].length == 4) {
-//                     return true;
-//                 }
-//             }
-//         }
-//     }
-//     return false;
-// };
+
 // // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
 // NtlmCredentialHandler.prototype.handleAuthentication = function (httpClient, protocol, options, objs, finalCallback) {
 //     // Set up the headers for NTLM authentication
@@ -259,4 +221,3 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
 //     // send type3 message to server:
 //     httpClient.requestInternal(protocol, type3options, objs, callback);
 // };
-// return NtlmCredentialHandler;
