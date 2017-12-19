@@ -63,34 +63,63 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
 
     // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
     async handleAuthentication(httpClient: any, reqInfo: ifm.IRequestInfo, data: any): Promise<ifm.IHttpClientResponse> {
-        try {
-            // Set up the headers for NTLM authentication
-            let keepaliveAgent;
-            if (httpClient.isSsl === true) {
-                keepaliveAgent = new https.Agent({ keepAlive: true });
-            } else {
-                keepaliveAgent = new http.Agent({ keepAlive: true });
-            }
+        // try {
+        //     // Set up the headers for NTLM authentication
+        //     let keepaliveAgent;
+        //     if (httpClient.isSsl === true) {
+        //         keepaliveAgent = new https.Agent({ keepAlive: true });
+        //     } else {
+        //         keepaliveAgent = new http.Agent({ keepAlive: true });
+        //     }
 
-            // The following pattern of sending the type1 message following immediately (in a setImmediate) is
-            // critical for the NTLM exchange to happen.  If we removed setImmediate (or call in a different manner)
-            // the NTLM exchange will always fail with a 401.
+        //     // The following pattern of sending the type1 message following immediately (in a setImmediate) is
+        //     // critical for the NTLM exchange to happen.  If we removed setImmediate (or call in a different manner)
+        //     // the NTLM exchange will always fail with a 401.
 
-            // TODO: Is this where our bug is?
-            const that = this;
-            let response: ifm.IHttpClientResponse;
+        //     // TODO: Is this where our bug is?
+        //     const that = this;
+        //     let response: ifm.IHttpClientResponse;
             
-            response = await this._sendType1Message(httpClient, reqInfo, data, keepaliveAgent);
-            setImmediate(async() => {
-                return that._sendType3Message(httpClient, reqInfo, data, keepaliveAgent, response);
-                //console.log("set immediate done");
-                // TODO: Is this running late?
-            });
-            throw new Error('why did the code get here');
+        //     response = await this._sendType1Message(httpClient, reqInfo, data, keepaliveAgent);
+        //     setImmediate(async() => {
+        //         return that._sendType3Message(httpClient, reqInfo, data, keepaliveAgent, response);
+        //         //console.log("set immediate done");
+        //         // TODO: Is this running late?
+        //     });
+        //     throw new Error('why did the code get here');
+        // }
+        // catch (err) {
+        //     throw err;
+        // }
+
+        const ntlmOptions = _.extend(reqInfo.options, {
+            username: this._ntlmOptions.username,
+            password: this._ntlmOptions.password,
+            domain: this._ntlmOptions.domain,
+            workstation: this._ntlmOptions.workstation
+        });
+        // Is this replacing the current agent in info.options? Is it supposed to?
+        //let keepaliveAgent;
+        if (httpClient.isSsl === true) {
+            //keepaliveAgent = new https.Agent({ keepAlive: true });
+            reqInfo.options.agent = new https.Agent({ keepAlive: true });
         }
-        catch (err) {
-            throw err;
+        else {
+            //keepaliveAgent = new http.Agent({ keepAlive: true });
+            reqInfo.options.agent = new http.Agent({ keepAlive: true });
         }
+        //     var self = this;
+        //     // The following pattern of sending the type1 message following immediately (in a setImmediate) is
+        //     // critical for the NTLM exchange to happen.  If we removed setImmediate (or call in a different manner)
+        //     // the NTLM exchange will always fail with a 401.
+        //     this.sendType1Message(httpClient, protocol, ntlmOptions, objs, keepaliveAgent, function (err, res) {
+        //         if (err) {
+        //             return finalCallback(err, null, null);
+        //         }
+        //         setImmediate(function () {
+        //             self.sendType3Message(httpClient, protocol, ntlmOptions, objs, keepaliveAgent, res, finalCallback);
+        //         });
+        //     });
     }
 
     // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
@@ -156,31 +185,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
 // // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
 // NtlmCredentialHandler.prototype.handleAuthentication = function (httpClient, protocol, options, objs, finalCallback) {
 //     // Set up the headers for NTLM authentication
-//     var ntlmOptions = _.extend(options, {
-//         username: this.username,
-//         password: this.password,
-//         domain: this.domain || '',
-//         workstation: this.workstation || ''
-//     });
-//     var keepaliveAgent;
-//     if (httpClient.isSsl === true) {
-//         keepaliveAgent = new https.Agent({ keepAlive: true });
-//     }
-//     else {
-//         keepaliveAgent = new http.Agent({ keepAlive: true });
-//     }
-//     var self = this;
-//     // The following pattern of sending the type1 message following immediately (in a setImmediate) is
-//     // critical for the NTLM exchange to happen.  If we removed setImmediate (or call in a different manner)
-//     // the NTLM exchange will always fail with a 401.
-//     this.sendType1Message(httpClient, protocol, ntlmOptions, objs, keepaliveAgent, function (err, res) {
-//         if (err) {
-//             return finalCallback(err, null, null);
-//         }
-//         setImmediate(function () {
-//             self.sendType3Message(httpClient, protocol, ntlmOptions, objs, keepaliveAgent, res, finalCallback);
-//         });
-//     });
+
 // };
 // // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
 // NtlmCredentialHandler.prototype.sendType1Message = function (httpClient, protocol, options, objs, keepaliveAgent, callback) {
