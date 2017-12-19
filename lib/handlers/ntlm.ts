@@ -4,6 +4,7 @@
 import ifm = require('../Interfaces');
 import http = require("http");
 import https = require("https");
+import { setImmediate } from 'timers';
 var _ = require("underscore");
 var ntlm = require("../opensource/node-http-ntlm/ntlm");
 
@@ -62,7 +63,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
     }
 
     // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
-    async handleAuthentication(httpClient: any, reqInfo: ifm.IRequestInfo, data: any): Promise<ifm.IHttpClientResponse> {
+    async handleAuthentication(httpClient: any, requestInfo: ifm.IRequestInfo, data: any): Promise<ifm.IHttpClientResponse> {
         // try {
         //     // Set up the headers for NTLM authentication
         //     let keepaliveAgent;
@@ -92,7 +93,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
         //     throw err;
         // }
 
-        const ntlmOptions = _.extend(reqInfo.options, {
+        const ntlmOptions = _.extend(requestInfo.options, {
             username: this._ntlmOptions.username,
             password: this._ntlmOptions.password,
             domain: this._ntlmOptions.domain,
@@ -102,28 +103,39 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
         //let keepaliveAgent;
         if (httpClient.isSsl === true) {
             //keepaliveAgent = new https.Agent({ keepAlive: true });
-            reqInfo.options.agent = new https.Agent({ keepAlive: true });
+            requestInfo.options.agent = new https.Agent({ keepAlive: true });
         }
         else {
             //keepaliveAgent = new http.Agent({ keepAlive: true });
-            reqInfo.options.agent = new http.Agent({ keepAlive: true });
+            requestInfo.options.agent = new http.Agent({ keepAlive: true });
         }
-        //     var self = this;
-        //     // The following pattern of sending the type1 message following immediately (in a setImmediate) is
-        //     // critical for the NTLM exchange to happen.  If we removed setImmediate (or call in a different manner)
-        //     // the NTLM exchange will always fail with a 401.
-        //     this.sendType1Message(httpClient, protocol, ntlmOptions, objs, keepaliveAgent, function (err, res) {
-        //         if (err) {
-        //             return finalCallback(err, null, null);
-        //         }
-        //         setImmediate(function () {
-        //             self.sendType3Message(httpClient, protocol, ntlmOptions, objs, keepaliveAgent, res, finalCallback);
-        //         });
-        //     });
+        const self = this;
+        // The following pattern of sending the type1 message following immediately (in a setImmediate) is
+        // critical for the NTLM exchange to happen.  If we removed setImmediate (or call in a different manner)
+        // the NTLM exchange will always fail with a 401.
+        let type1response: ifm.IHttpClientResponse;
+        try {
+            type1response = await this._sendType1Message(httpClient, requestInfo, data);
+
+            const result: ifm.IHttpClientResponse = await new Promise<ifm.IHttpClientResponse>((resolve, reject) => {
+                setImmediate(async function () {
+                    let r: ifm.IHttpClientResponse;
+                    try {
+                        r = await self._sendType3Message(httpClient, requestInfo, data, type1response);
+                        resolve(r);
+                    } catch(ex) {
+                        reject(ex);
+                    }
+                });
+            });
+            return result;
+        } catch(exception) {
+            throw exception;
+        }
     }
 
     // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
-    private async _sendType1Message(httpClient: ifm.IHttpClient, reqInfo: ifm.IRequestInfo, data: any, keepaliveAgent: any): Promise<ifm.IHttpClientResponse> {
+    private async _sendType1Message(httpClient: ifm.IHttpClient, reqInfo: ifm.IRequestInfo, data: any): Promise<ifm.IHttpClientResponse> {
         const type1msg = ntlm.createType1Message(this._ntlmOptions);
 
         const type1options: http.RequestOptions = {
@@ -150,7 +162,6 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
     private async _sendType3Message(httpClient: ifm.IHttpClient, 
                                     reqInfo: ifm.IRequestInfo,
                                     data: any, 
-                                    keepaliveAgent, 
                                     res: ifm.IHttpClientResponse): Promise<ifm.IHttpClientResponse> {
 
             if (!res.message.headers && !res.message.headers['www-authenticate']) {
