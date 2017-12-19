@@ -82,11 +82,15 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
 
                 // TODO: Is this where our bug is?
                 let that = this;
-                let response: ifm.IHttpClientResponse = await this._sendType1Message(httpClient, reqInfo, objs, keepaliveAgent);
-                setImmediate(async() => {
-                    response = await that._sendType3Message(httpClient, reqInfo, objs, keepaliveAgent, response);
-                    resolve(response);
-                });
+                let response: ifm.IHttpClientResponse;
+                
+                this._sendType1Message(httpClient, reqInfo, objs, keepaliveAgent).then(function(res) {
+                    setImmediate(async() => {
+                        response = await that._sendType3Message(httpClient, reqInfo, objs, keepaliveAgent, res);
+                        resolve(response);
+                    });
+                }
+                );
             }
             catch (err) {
                 reject(err);

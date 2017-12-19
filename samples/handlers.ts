@@ -24,22 +24,25 @@ export async function run() {
     var url = "http://stephenmichaelf:8080/tfs/DefaultCollection/ExperimentalProject/_build/index?context=mine&path=%5C&definitionId=1&_a=completed";
 
     //process.env["http_proxy"] = "http://127.0.0.1:8888";
-    console.log("FROM ROOT " + process.env["PW"]);
-    httpntlm.get({
-        url: url,
-        username: username,
-        password: password,
-        workstation: workstation,
-        domain: domain,
+    // console.log("FROM ROOT " + process.env["PW"]);
+    // httpntlm.get({
+    //     url: url,
+    //     username: username,
+    //     password: password,
+    //     workstation: workstation,
+    //     domain: domain,
 
-    }, function (err, res){
-        if(err) return console.log('ERROR: ' + err);
+    // }, function (err, res){
+    //     if(err) return console.log('ERROR: ' + err);
     
-        console.log('start response log');
-        console.log("status code inside: " + res.statusCode);
-        console.log('end response log');
-    });
-    console.log("END FROM ROOT");
+    //     console.log('start response log');
+    //     console.log("status code inside: " + res.statusCode);
+    //     console.log('end response log');
+    // });
+    // console.log("END FROM ROOT");
+
+    process.env["NODE_DEBUG"] = "http";
+    console.log(process.env["NODE_DEBUG"]);
     
     let bh: hm.BasicCredentialHandler = new hm.BasicCredentialHandler('johndoe', 'password');
     let ph: hm.PersonalAccessTokenCredentialHandler = new hm.PersonalAccessTokenCredentialHandler('scbfb44vxzku5l4xgc3qfazn3lpk4awflfryc76esaiq7aypcbhs');
@@ -47,7 +50,7 @@ export async function run() {
 
     // These handlers would then be passed to the constructors of the http or rest modules
 
-    let httpc: httpm.HttpClient = new httpm.HttpClient('vsts-node-api', [nh], { /*proxy: { proxyUrl: proxyUrl },*/ keepAlive: true, maxSockets: 30 });
+    let httpc: httpm.HttpClient = new httpm.HttpClient('vsts-node-api', [nh], { /*proxy: { proxyUrl: proxyUrl },*/ keepAlive: true, maxSockets: 1 });
     let res: httpm.HttpClientResponse = await httpc.get(url);
     console.log("response code: " + res.message.statusCode);
 }

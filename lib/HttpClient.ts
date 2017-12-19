@@ -275,6 +275,18 @@ export class HttpClient implements ifm.IHttpClient {
 
             req.on('socket', (sock) => {
                 socket = sock;
+                sock.on('connect', function(connection) {
+                    console.log('connected');
+                //     util.puts('req.on socket event called');
+                //     util.puts(util.inspect(sock.address()));
+                //     util.puts('Remote address: ' + sock.remoteAddress + ':' + sock.remotePort);
+                    return;
+                });
+
+                sock.on('close', function(data) {
+                    console.log('CLOSED: ');
+                    return;
+                });
             });
 
             // If we ever get disconnected, we want the socket to timeout eventually
