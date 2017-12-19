@@ -66,7 +66,6 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
                                reqInfo: ifm.IRequestInfo, 
                                objs): Promise<ifm.IHttpClientResponse> {
         
-        return new Promise<ifm.IHttpClientResponse>(async(resolve, reject) => {
             try {
                 // Set up the headers for NTLM authentication
                 let keepaliveAgent;
@@ -84,18 +83,17 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
                 let that = this;
                 let response: ifm.IHttpClientResponse;
                 
-                this._sendType1Message(httpClient, reqInfo, objs, keepaliveAgent).then(function(res) {
-                    setImmediate(async() => {
-                        response = await that._sendType3Message(httpClient, reqInfo, objs, keepaliveAgent, res);
-                        resolve(response);
-                    });
-                }
-                );
+                response = await this._sendType1Message(httpClient, reqInfo, objs, keepaliveAgent);
+                setImmediate(async() => {
+                    return that._sendType3Message(httpClient, reqInfo, objs, keepaliveAgent, response);
+                    //console.log("set immediate done");
+                    // TODO: Is this running late?
+                });
+                throw new Error('why did the code get here');
             }
             catch (err) {
-                reject(err);
+                throw err;
             }
-        });
     }
 
     // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
@@ -119,7 +117,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
         type1info.options = _.extend(type1options, _.omit(reqInfo.options, 'headers'));
 
         //console.log('[OURS] sending type 1, options: ' + Object.keys(type1info));
-        return await httpClient.requestRaw(type1info, objs);
+        return httpClient.requestRaw(type1info, objs);
     }
 
     // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
@@ -129,10 +127,8 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
                                     keepaliveAgent, 
                                     res: ifm.IHttpClientResponse): Promise<ifm.IHttpClientResponse> {
 
-        return new Promise<ifm.IHttpClientResponse>(async(resolve, reject) => {
             if (!res.message.headers && !res.message.headers['www-authenticate']) {
-                reject(new Error('www-authenticate not found on response of second request'));
-                return;
+                throw new Error('www-authenticate not found on response of second request');
             }
 
             const type2msg = ntlm.parseType2Message(res.message.headers['www-authenticate']);
@@ -154,8 +150,6 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
             type3info.options = _.extend(type3options, _.omit(reqInfo.options, 'headers'));
 
             // send type3 message to server:
-            const type3res: ifm.IHttpClientResponse = await httpClient.requestRaw(type3info, objs);
-            resolve(type3res);
-        });
+            return httpClient.requestRaw(type3info, objs);
     }
 }
