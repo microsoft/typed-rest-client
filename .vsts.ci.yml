@@ -1,24 +1,50 @@
-phases:
+steps:
+# use node 8.9.1 this is the recommended version for building the typed rest client
+- task: NodeTool@0
+  inputs:
+    versionSpec: "8.9.1"
 
-################################################################################
-- phase: phase1
-################################################################################
-  displayName: Phase 1
-    #demands: agent.os -equals Windows_NT
-  steps:
+# install dependencies
+- task: CmdLine@1
+  inputs:
+    filename: "npm"
+    arguments: "install"
 
-  # dotnet restore
-  # - task: DotNetCoreCLI@1
-  #   displayName: "Dotnet restore"
-  #   inputs:
-  #     command: "restore"
-  #     projects: "**/*.csproj"
-  #     arguments: ""
+# build
+- task: CmdLine@1
+  inputs:
+    filename: "npm"
+    arguments: "run build"
 
-  # Publish artifact
-  # - task: PublishBuildArtifacts@1
-  #   displayName: Publish Artifact
-  #   inputs:
-  #     pathToPublish: $(Build.ArtifactStagingDirectory)
-  #     artifactName: drop
-  #     artifactType: container
+# test using node 8.9.1
+- task: CmdLine@1
+  inputs:
+    filename: "npm"
+    arguments: "run test"
+
+# test using node 4.8.6
+- task: NodeTool@0
+  inputs:
+    versionSpec: "4.8.6"
+
+- task: CmdLine@1
+  inputs:
+    filename: "npm"
+    arguments: "run test"
+
+# test using node 6.12.0
+- task: NodeTool@0
+  inputs:
+    versionSpec: "6.12.0"
+
+- task: CmdLine@1
+  inputs:
+    filename: "npm"
+    arguments: "run test"
+
+# publish build artifacts to drop folder so we can use them for release
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: "_build"
+    ArtifactName: "drop"
+    ArtifactType: "Container"
