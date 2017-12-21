@@ -7,11 +7,11 @@ steps:
 
 # install dependencies
 - script: npm install
-  display: npm install
+  displayName: npm install
 
 # build
 - script: npm run build
-  display: npm run build
+  displayName: npm run build
 
 # test using node 8.9.1
 - script: npm run test
