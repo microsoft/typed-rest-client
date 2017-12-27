@@ -13,6 +13,21 @@ var fail = function (message) {
     process.exit(1);
 }
 
+var runCommand = function (command) {
+    return ncp.execSync(command, { encoding: 'utf-8' });
+}
+
+var getCurrentNodeVersionFromNvm = function () {
+    var nvmList = runCommand('nvm list');
+
+    // find the row that starts with *, that is the current version
+
+    // it may say "(Currently using 64-bit executable)", strip that out
+
+
+    return '';
+}
+
 var buildPath = path.join(__dirname, '_build');
 var testPath = path.join(__dirname, 'test');
 
@@ -27,7 +42,7 @@ var enforceMinimumVersions = function () {
     // enforce minimum npm version
     // NOTE: We are enforcing this version of npm because we use package-lock.json
     var minimumNpmVersion = '5.5.1';
-    var currentNpmVersion = ncp.execSync('npm -v', { encoding: 'utf-8' });
+    var currentNpmVersion = runCommand('npm -v');
     if (semver.lt(currentNpmVersion, minimumNpmVersion)) {
         fail('requires npm >= ' + minimumNpmVersion + '.  installed: ' + currentNpmVersion);
     }
@@ -69,6 +84,90 @@ target.test = function() {
 
     run('tsc -p ./test');
     run('mocha test');
+}
+
+target.testall = function() {
+    // make sure we have nvm
+    var nvmList = runCommand('nvm');
+    if (nvmList.indexOf('Running version') === -1) {
+        // nvm isn't installed
+        fail('requires nvm to be installed');
+    }
+    
+    // ensure all versions of node are installed
+    var versionsToTest = ['8.9.1', '6.12.0', '4.8.6'];
+
+    // store the current version of node so we can switch back to it later
+    var nodeVersionAtStart;
+
+    
+    var versionList = runCommand('nvm list');
+    var versionListArray = versionList.split('\n');
+    var sanitizedList = [];
+
+    // sanitize values
+    versionListArray.forEach(function (version) {
+        var cleaned = version.trim();
+
+        // 6.12.0 (Currently using 64-bit executable)
+        var openIndex = cleaned.indexOf('(');
+        if (openIndex !== -1) {
+            cleaned = cleaned.substring(0, openIndex - 1);
+        }
+
+        // * 6.12.0
+        var starIndex = cleaned.indexOf('*');
+        if (starIndex !== -1) {
+            cleaned = cleaned.substring(2);
+            nodeVersionAtStart = cleaned;
+        }
+
+        if (cleaned) {
+            sanitizedList.push(cleaned);
+        }
+    });
+
+    // console.log('LENGTH ' + sanitizedList.length);
+    // for (i = 0; i < sanitizedList.length; i++) {
+    //     console.log('|' + sanitizedList[i] + '|');
+    // }
+
+    // test all versions of node are installed
+    // TODO: O(n^2), fix it
+    for (i = 0; i < versionsToTest.length; i++) {
+        var versionIsInstalled = false;
+        for (j = 0; j < sanitizedList.length; j++) {
+            if (versionsToTest[i] === sanitizedList[j]) {
+                versionIsInstalled = true;
+                break;
+            }
+        }
+
+        if (!versionIsInstalled) {
+            fail('node version ' + versionsToTest[i] + ' is not installed, please install and run again');
+        }
+    }
+
+    // test each version
+    sanitizedList.forEach(function(nodeVersion) {
+        // switch to the version we want to test
+        console.log('running tests with node version ' + nodeVersion);
+
+        // TODO: BUG.... we need to set this in the same place we run the tests... not a new child process each time.
+        runCommand('nvm use ' + nodeVersion);
+
+        
+
+        // run the test
+        target.test();
+    });
+
+    // switch back to version being used before we ran
+    if (nodeVersionAtStart) {
+        runCommand('nvm use ' + nodeVersionAtStart);
+    }
+
+    console.log('Test all versions complete.');
 }
 
 target.buildtest = function() {
