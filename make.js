@@ -4,8 +4,8 @@ var fs = require('fs');
 var semver = require('semver');
 var ncp = require('child_process');
 
-var rp = function (relPath) {
-    return path.join(__dirname, relPath);
+var rp = function (relativePath) {
+    return path.join(__dirname, relativePath);
 }
 
 var fail = function (message) {
@@ -15,6 +15,8 @@ var fail = function (message) {
 
 var buildPath = path.join(__dirname, '_build');
 var testPath = path.join(__dirname, 'test');
+var tsc = path.join(__dirname, 'node_modules/.bin/tsc');
+var tslint = path.join(__dirname, 'node_modules/.bin/tslint');
 
 var enforceMinimumVersions = function () {
     // enforce minimum Node version
@@ -48,6 +50,17 @@ var run = function (cl) {
     }
 }
 
+// Run linting on all ts files in the lib directory
+// It's important to have the double quotes in place to run across platforms
+var lint = function () {
+    var filesGlob = '"lib/**/*.ts?(x)"';
+    var rulesDir = path.join(__dirname, 'node_modules/tslint-microsoft-contrib');
+    var config = path.join(__dirname, 'node_modules/tslint-microsoft-contrib/tslint.json');
+
+    run(tslint + ' ' + filesGlob + ' --rules-dir "' + rulesDir + '" --config "' + config + '"');
+}
+
+// Remove the build folder
 target.clean = function () {
     rm('-Rf', buildPath);
 };
@@ -59,6 +72,10 @@ target.build = function () {
     cp(rp('package.json'), buildPath);
     cp(rp('README.md'), buildPath);
     cp(rp('LICENSE'), buildPath);
+
+    // This will be commented out in master until all linting changes are done.
+    // We are doing it piece by piece since there are many changes that need to be made.
+    //lint();
 }
 
 target.test = function() {

@@ -1,10 +1,12 @@
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
+/**
+ * Copyright (c) Microsoft. All rights reserved.
+ * Licensed under the MIT license. See LICENSE file in the project root for full license information.
+ */
 
-import url = require("url");
-import http = require("http");
-import https = require("https");
-import tunnel = require("tunnel");
+import url = require('url');
+import http = require('http');
+import https = require('https');
+import tunnel = require('tunnel');
 import ifm = require('./Interfaces');
 import fs = require('fs');
 
@@ -33,7 +35,13 @@ export enum HttpCodes {
     NotImplemented = 501,
     BadGateway = 502,
     ServiceUnavailable = 503,
-    GatewayTimeout = 504,
+    GatewayTimeout = 504
+}
+
+export enum Headers {
+    Accept = 'Accept',
+    ContentLength = 'Content-Length',
+    ContentType = 'Content-Type'
 }
 
 const HttpRedirectCodes: number[] = [ HttpCodes.MovedPermanently, HttpCodes.ResourceMoved, HttpCodes.TemporaryRedirect, HttpCodes.PermanentRedirect ];
@@ -67,12 +75,13 @@ export interface RequestInfo {
 
 export function isHttps(requestUrl: string) {
     let parsedUrl: url.Url = url.parse(requestUrl);
+
     return parsedUrl.protocol === 'https:';
 }
 
 enum EnvironmentVariables {
-    HTTP_PROXY = "HTTP_PROXY", 
-    HTTPS_PROXY = "HTTPS_PROXY",
+    HTTP_PROXY = 'HTTP_PROXY',
+    HTTPS_PROXY = 'HTTPS_PROXY'
 }
 
 export class HttpClient {
@@ -80,20 +89,20 @@ export class HttpClient {
     handlers: ifm.IRequestHandler[];
     requestOptions: ifm.IRequestOptions;
 
-    private _ignoreSslError: boolean = false;
-    private _socketTimeout: number;
-    private _httpProxy: ifm.IProxyConfiguration;
-    private _httpProxyBypassHosts: RegExp[];
-    private _allowRedirects: boolean = true;
-    private _maxRedirects: number = 50
-    private _agent;
-    private _proxyAgent;
-    private _keepAlive: boolean = false;
-    private _disposed: boolean = false;
-    private _certConfig: ifm.ICertConfiguration;
-    private _ca: string;
-    private _cert: string;
-    private _key: string;
+    private ignoreSslError: boolean = false;
+    private socketTimeout: number;
+    private httpProxy: ifm.IProxyConfiguration;
+    private httpProxyBypassHosts: RegExp[];
+    private allowRedirects: boolean = true;
+    private maxRedirects: number = 50;
+    private agent;
+    private proxyAgent;
+    private keepAlive: boolean = false;
+    private disposed: boolean = false;
+    private certConfig: ifm.ICertConfiguration;
+    private ca: string;
+    private cert: string;
+    private key: string;
 
     constructor(userAgent: string, handlers?: ifm.IRequestHandler[], requestOptions?: ifm.IRequestOptions) {
         this.userAgent = userAgent;
@@ -101,43 +110,43 @@ export class HttpClient {
         this.requestOptions = requestOptions;
         if (requestOptions) {
             if (requestOptions.ignoreSslError != null) {
-                this._ignoreSslError = requestOptions.ignoreSslError;
+                this.ignoreSslError = requestOptions.ignoreSslError;
             }
 
-            this._socketTimeout = requestOptions.socketTimeout;
-            this._httpProxy = requestOptions.proxy;
+            this.socketTimeout = requestOptions.socketTimeout;
+            this.httpProxy = requestOptions.proxy;
             if (requestOptions.proxy && requestOptions.proxy.proxyBypassHosts) {
-                this._httpProxyBypassHosts = [];
+                this.httpProxyBypassHosts = [];
                 requestOptions.proxy.proxyBypassHosts.forEach(bypass => {
-                    this._httpProxyBypassHosts.push(new RegExp(bypass, 'i'));
+                    this.httpProxyBypassHosts.push(new RegExp(bypass, 'i'));
                 });
             }
 
-            this._certConfig = requestOptions.cert;
+            this.certConfig = requestOptions.cert;
 
-            // cache the cert content into memory, so we don't have to read it from disk every time 
-            if (this._certConfig && this._certConfig.caFile && fs.existsSync(this._certConfig.caFile)) {
-                this._ca = fs.readFileSync(this._certConfig.caFile, 'utf8');
+            // cache the cert content into memory, so we don't have to read it from disk every time
+            if (this.certConfig && this.certConfig.caFile && fs.existsSync(this.certConfig.caFile)) {
+                this.ca = fs.readFileSync(this.certConfig.caFile, 'utf8');
             }
 
-            if (this._certConfig && this._certConfig.certFile && fs.existsSync(this._certConfig.certFile)) {
-                this._cert = fs.readFileSync(this._certConfig.certFile, 'utf8');
+            if (this.certConfig && this.certConfig.certFile && fs.existsSync(this.certConfig.certFile)) {
+                this.cert = fs.readFileSync(this.certConfig.certFile, 'utf8');
             }
 
-            if (this._certConfig && this._certConfig.keyFile && fs.existsSync(this._certConfig.keyFile)) {
-                this._key = fs.readFileSync(this._certConfig.keyFile, 'utf8');
+            if (this.certConfig && this.certConfig.keyFile && fs.existsSync(this.certConfig.keyFile)) {
+                this.key = fs.readFileSync(this.certConfig.keyFile, 'utf8');
             }
 
             if (requestOptions.allowRedirects != null) {
-                this._allowRedirects = requestOptions.allowRedirects;
+                this.allowRedirects = requestOptions.allowRedirects;
             }
 
             if (requestOptions.maxRedirects != null) {
-                this._maxRedirects = Math.max(requestOptions.maxRedirects, 0);
+                this.maxRedirects = Math.max(requestOptions.maxRedirects, 0);
             }
 
             if (requestOptions.keepAlive != null) {
-                this._keepAlive = requestOptions.keepAlive;
+                this.keepAlive = requestOptions.keepAlive;
             }
         }
     }
@@ -180,19 +189,19 @@ export class HttpClient {
      * Prefer get, del, post and patch
      */
     public async request(verb: string, requestUrl: string, data: string | NodeJS.ReadableStream, headers: ifm.IHeaders): Promise<HttpClientResponse> {
-        if (this._disposed) {
-            throw new Error("Client has already been disposed");
+        if (this.disposed) {
+            throw new Error('Client has already been disposed');
         }
 
         let info: RequestInfo = this._prepareRequest(verb, requestUrl, headers);
         let response: HttpClientResponse = await this._requestRaw(info, data);
 
-        let redirectsRemaining: number = this._maxRedirects;
+        let redirectsRemaining: number = this.maxRedirects;
         while (HttpRedirectCodes.indexOf(response.message.statusCode) != -1
-               && this._allowRedirects
+               && this.allowRedirects
                && redirectsRemaining > 0) {
 
-            const redirectUrl: any = response.message.headers["location"];
+            const redirectUrl: any = response.message.headers['location'];
             if (!redirectUrl) {
                 // if there's no location to redirect to, we won't
                 break;
@@ -215,15 +224,15 @@ export class HttpClient {
      * Needs to be called if keepAlive is set to true in request options.
      */
     public dispose() {
-        if (this._agent) {
-            this._agent.destroy();
+        if (this.agent) {
+            this.agent.destroy();
         }
 
-        if (this._proxyAgent) {
-            this._proxyAgent.destroy();
+        if (this.proxyAgent) {
+            this.proxyAgent.destroy();
         }
 
-        this._disposed = true;
+        this.disposed = true;
     }
 
     private _requestRaw(info: RequestInfo, data: string | NodeJS.ReadableStream): Promise<HttpClientResponse> {
@@ -233,7 +242,7 @@ export class HttpClient {
             let isDataString = typeof (data) === 'string';
 
             if (typeof (data) === 'string') {
-                info.options.headers["Content-Length"] = Buffer.byteLength(data, 'utf8');
+                info.options.headers[Headers.ContentLength] = Buffer.byteLength(data, 'utf8');
             }
 
             let req: http.ClientRequest = info.httpModule.request(info.options, (msg: http.IncomingMessage) => {
@@ -246,11 +255,11 @@ export class HttpClient {
             });
 
             // If we ever get disconnected, we want the socket to timeout eventually
-            req.setTimeout(this._socketTimeout || 3 * 60000, () => {
+            req.setTimeout(this.socketTimeout || 3 * 60000, () => {
                 if (socket) {
                     socket.end();
                 }
-                reject(new Error('Request timeout: ' + info.options.path));
+                reject(new Error(`Request timeout: ${info.options.path}`));
             });
 
             req.on('error', function (err) {
@@ -269,8 +278,7 @@ export class HttpClient {
                 });
 
                 data.pipe(req);
-            }
-            else {
+            } else {
                 req.end();
             }
         });
@@ -289,7 +297,7 @@ export class HttpClient {
         info.options.path = (info.parsedUrl.pathname || '') + (info.parsedUrl.search || '');
         info.options.method = method;
         info.options.headers = headers || {};
-        info.options.headers["User-Agent"] = this.userAgent;
+        info.options.headers['User-Agent'] = this.userAgent;
         info.options.agent = this._getAgent(requestUrl);
 
         // gives handlers an opportunity to participate
@@ -305,14 +313,14 @@ export class HttpClient {
     private _getAgent(requestUrl: string) {
         let agent;
         let proxy = this._getProxy(requestUrl);
-        let useProxy = proxy.proxyUrl && proxy.proxyUrl.hostname && !this._isBypassProxy(requestUrl);
+        let useProxy: boolean = proxy.proxyUrl && proxy.proxyUrl.hostname && !this._isBypassProxy(requestUrl);
 
-        if (this._keepAlive && useProxy) {
-            agent = this._proxyAgent;
+        if (this.keepAlive && useProxy) {
+            agent = this.proxyAgent;
         }
 
-        if (this._keepAlive && !useProxy) {
-            agent = this._agent;
+        if (this.keepAlive && !useProxy) {
+            agent = this.agent;
         }
 
         // if agent is already assigned use that agent.
@@ -320,22 +328,22 @@ export class HttpClient {
             return agent;
         }
 
-        var parsedUrl = url.parse(requestUrl);
-        let usingSsl = parsedUrl.protocol === 'https:';
-        let maxSockets = 100;
+        var parsedUrl: url.Url = url.parse(requestUrl);
+        let usingSsl: boolean = parsedUrl.protocol === 'https:';
+        let maxSockets: number = 100;
         if (!!this.requestOptions) {
-            maxSockets = this.requestOptions.maxSockets || http.globalAgent.maxSockets
+            maxSockets = this.requestOptions.maxSockets || http.globalAgent.maxSockets;
         }
 
         if (useProxy) {
             var agentOptions: tunnel.TunnelOptions = {
                 maxSockets: maxSockets,
-                keepAlive: this._keepAlive,
+                keepAlive: this.keepAlive,
                 proxy: {
                     proxyAuth: proxy.proxyAuth,
                     host: proxy.proxyUrl.hostname,
                     port: proxy.proxyUrl.port
-                },
+                }
             };
 
             var tunnelAgent: Function;
@@ -347,52 +355,52 @@ export class HttpClient {
             }
 
             agent = tunnelAgent(agentOptions);
-            this._proxyAgent = agent;
+            this.proxyAgent = agent;
         }
 
         // if reusing agent across request and tunneling agent isn't assigned create a new agent
-        if (this._keepAlive && !agent) {
-            var options = { keepAlive: this._keepAlive, maxSockets: maxSockets };
+        if (this.keepAlive && !agent) {
+            var options = { keepAlive: this.keepAlive, maxSockets: maxSockets };
             agent = usingSsl ? new https.Agent(options) : new http.Agent(options);
-            this._agent = agent;
+            this.agent = agent;
         }
-        
+
         // if not using private agent and tunnel agent isn't setup then use global agent
         if(!agent) {
             agent = usingSsl ? https.globalAgent : http.globalAgent;
         }
 
-        if (usingSsl && this._ignoreSslError) {
+        if (usingSsl && this.ignoreSslError) {
             // we don't want to set NODE_TLS_REJECT_UNAUTHORIZED=0 since that will affect request for entire process
             // http.RequestOptions doesn't expose a way to modify RequestOptions.agent.options
             // we have to cast it to any and change it directly
             agent.options = Object.assign(agent.options || {}, { rejectUnauthorized: false });
         }
 
-        if (usingSsl && this._certConfig) {
-            agent.options = Object.assign(agent.options || {}, { ca: this._ca, cert: this._cert, key: this._key, passphrase: this._certConfig.passphrase });
+        if (usingSsl && this.certConfig) {
+            agent.options = Object.assign(agent.options || {}, { ca: this.ca, cert: this.cert, key: this.key, passphrase: this.certConfig.passphrase });
         }
 
         return agent;
     }
 
     private _getProxy(requestUrl) {
-        var parsedUrl = url.parse(requestUrl);
-        let usingSsl = parsedUrl.protocol === 'https:';
-        let proxyConfig: ifm.IProxyConfiguration = this._httpProxy;
+        var parsedUrl: url.Url = url.parse(requestUrl);
+        let usingSsl: boolean = parsedUrl.protocol === 'https:';
+        let proxyConfig: ifm.IProxyConfiguration = this.httpProxy;
 
         // fallback to http_proxy and https_proxy env
-        let https_proxy: string = process.env[EnvironmentVariables.HTTPS_PROXY];
-        let http_proxy: string = process.env[EnvironmentVariables.HTTP_PROXY];
+        let httpsProxy: string = process.env[EnvironmentVariables.HTTPS_PROXY];
+        const httpProxy: string = process.env[EnvironmentVariables.HTTP_PROXY];
 
         if (!proxyConfig) {
-            if (https_proxy && usingSsl) {
+            if (httpsProxy && usingSsl) {
                 proxyConfig = {
-                    proxyUrl: https_proxy
+                    proxyUrl: httpsProxy
                 };
-            } else if (http_proxy) {
+            } else if (httpProxy) {
                 proxyConfig = {
-                    proxyUrl: http_proxy
+                    proxyUrl: httpProxy
                 };
             }
         }
@@ -405,7 +413,7 @@ export class HttpClient {
             }
 
             if (proxyConfig.proxyUsername || proxyConfig.proxyPassword) {
-                proxyAuth = proxyConfig.proxyUsername + ":" + encodeURIComponent(proxyConfig.proxyPassword);
+                proxyAuth = `${proxyConfig.proxyUsername}:${encodeURIComponent(proxyConfig.proxyPassword)}`;
             }
         }
 
@@ -413,12 +421,12 @@ export class HttpClient {
     }
 
     private _isBypassProxy(requestUrl: string): Boolean {
-        if (!this._httpProxyBypassHosts) {
+        if (!this.httpProxyBypassHosts) {
             return false;
         }
 
         let bypass: boolean = false;
-        this._httpProxyBypassHosts.forEach(bypassHost => {
+        this.httpProxyBypassHosts.forEach(bypassHost => {
             if (bypassHost.test(requestUrl)) {
                 bypass = true;
             }

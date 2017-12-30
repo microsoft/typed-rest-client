@@ -1,4 +1,11 @@
-export interface IHeaders { [key: string]: any };
+/**
+ * Copyright (c) Microsoft. All rights reserved.
+ * Licensed under the MIT license. See LICENSE file in the project root for full license information.
+ */
+
+export interface IHeaders { 
+    [key: string]: any;
+}
 
 export interface IBasicCredentials {
     username: string;
@@ -17,14 +24,14 @@ export interface IHttpResponse {
 }
 
 export interface IRequestOptions {
-    socketTimeout?: number,
-    ignoreSslError?: boolean,
-    proxy?: IProxyConfiguration,
-    cert?: ICertConfiguration,
-    allowRedirects?: boolean, 
-    maxRedirects?: number,
-    maxSockets?: number,
-    keepAlive?: boolean
+    socketTimeout?: number;
+    ignoreSslError?: boolean;
+    proxy?: IProxyConfiguration;
+    cert?: ICertConfiguration;
+    allowRedirects?: boolean;
+    maxRedirects?: number;
+    maxSockets?: number;
+    keepAlive?: boolean;
 }
 
 export interface IProxyConfiguration {

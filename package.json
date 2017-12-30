@@ -4,10 +4,11 @@
   "description": "Node Rest and Http Clients for use with TypeScript",
   "main": "./RestClient.js",
   "scripts": {
-    "build": "node make.js build",
-    "test": "node make.js test",
     "bt": "node make.js buildtest",
+    "build": "node make.js build",
+    "clean": "node make.js clean",
     "samples": "node make.js samples",
+    "test": "node make.js test",
     "validate": "node make.js validate"
   },
   "repository": {
@@ -15,11 +16,11 @@
     "url": "git+https://github.com/Microsoft/typed-rest-client.git"
   },
   "keywords": [
-    "rest",
-    "http",
     "client",
-    "typescript",
-    "node"
+    "http",
+    "node",
+    "rest",
+    "typescript"
   ],
   "author": "Microsoft Corporation",
   "license": "MIT",
@@ -33,8 +34,10 @@
     "@types/shelljs": "0.7.4",
     "mocha": "^3.5.3",
     "shelljs": "0.7.6",
-    "semver": "4.3.3",
-    "typescript": "2.4.2"
+    "typescript": "2.4.2",
+    "tslint": "5.1.0",
+    "tslint-microsoft-contrib": "5.0.1",
+    "semver": "4.3.3"
   },
   "dependencies": {
     "tunnel": "0.0.4",
