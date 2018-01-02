@@ -405,7 +405,7 @@ export class HttpClient {
             }
 
             if (proxyConfig.proxyUsername || proxyConfig.proxyPassword) {
-                proxyAuth = proxyConfig.proxyUsername + ":" + encodeURIComponent(proxyConfig.proxyPassword);
+                proxyAuth = proxyConfig.proxyUsername + ":" + proxyConfig.proxyPassword;
             }
         }
 
