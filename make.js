@@ -79,21 +79,18 @@ target.testall = function() {
     // make sure we have nvm
     var nvmList = runCommand('nvm');
     if (nvmList.indexOf('Running version') === -1) {
-        // nvm isn't installed
         fail('requires nvm to be installed');
     }
     
-    // ensure all versions of node are installed
     var versionsToTest = ['8.9.1', '6.12.0', '4.8.6'];
 
     // store the current version of node so we can switch back to it later
     var nodeVersionAtStart;
-    
     var versionList = runCommand('nvm list').split('\n');
     var sanitizedVersionList = [];
 
     // sanitize values
-    versionListArray.forEach(function (version) {
+    versionList.forEach(function (version) {
         var cleaned = version.trim();
 
         // e.g. - 6.12.0 (Currently using 64-bit executable)
@@ -137,12 +134,13 @@ target.testall = function() {
         console.log('running tests with node version ' + nodeVersion);
 
         run('nvm use ' + nodeVersion);
+        run('tsc -p ./test');
         run('mocha test');
     });
 
     // switch back to version being used before we ran
     if (nodeVersionAtStart) {
-        runCommand('nvm use ' + nodeVersionAtStart);
+        run('nvm use ' + nodeVersionAtStart);
     }
 
     console.log('Test all versions complete.');
