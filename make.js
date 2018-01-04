@@ -17,17 +17,6 @@ var runCommand = function (command) {
     return ncp.execSync(command, { encoding: 'utf-8' });
 }
 
-var getCurrentNodeVersionFromNvm = function () {
-    var nvmList = runCommand('nvm list');
-
-    // find the row that starts with *, that is the current version
-
-    // it may say "(Currently using 64-bit executable)", strip that out
-
-
-    return '';
-}
-
 var buildPath = path.join(__dirname, '_build');
 var testPath = path.join(__dirname, 'test');
 
@@ -86,6 +75,7 @@ target.test = function() {
     run('mocha test');
 }
 
+// TODO: Add notes to documentation that this needs to run as admin. And how to use it.
 target.testall = function() {
     // make sure we have nvm
     var nvmList = runCommand('nvm');
@@ -133,7 +123,7 @@ target.testall = function() {
     // }
 
     // test all versions of node are installed
-    // TODO: O(n^2), fix it
+    // TODO: O(n^2), fix it?
     for (i = 0; i < versionsToTest.length; i++) {
         var versionIsInstalled = false;
         for (j = 0; j < sanitizedList.length; j++) {
@@ -154,12 +144,13 @@ target.testall = function() {
         console.log('running tests with node version ' + nodeVersion);
 
         // TODO: BUG.... we need to set this in the same place we run the tests... not a new child process each time.
-        runCommand('nvm use ' + nodeVersion);
+        //runCommand('nvm use ' + nodeVersion);
+        run('nvm use ' + nodeVersion);
 
-        
-
-        // run the test
-        target.test();
+        // run the test, TODO: this isnt running the tests...
+        //target.test();
+        //run('tsc -p ./test');
+        run('mocha test');
     });
 
     // switch back to version being used before we ran
