@@ -75,7 +75,6 @@ target.test = function() {
     run('mocha test');
 }
 
-// TODO: Add notes to documentation that this needs to run as admin. And how to use it.
 target.testall = function() {
     // make sure we have nvm
     var nvmList = runCommand('nvm');
@@ -89,45 +88,40 @@ target.testall = function() {
 
     // store the current version of node so we can switch back to it later
     var nodeVersionAtStart;
-
     
-    var versionList = runCommand('nvm list');
-    var versionListArray = versionList.split('\n');
-    var sanitizedList = [];
+    var versionList = runCommand('nvm list').split('\n');
+    var sanitizedVersionList = [];
 
     // sanitize values
     versionListArray.forEach(function (version) {
         var cleaned = version.trim();
 
-        // 6.12.0 (Currently using 64-bit executable)
+        // e.g. - 6.12.0 (Currently using 64-bit executable)
         var openIndex = cleaned.indexOf('(');
         if (openIndex !== -1) {
             cleaned = cleaned.substring(0, openIndex - 1);
         }
 
-        // * 6.12.0
+        // e.g. - * 6.12.0
         var starIndex = cleaned.indexOf('*');
         if (starIndex !== -1) {
             cleaned = cleaned.substring(2);
+
+            // set that this is the version currently being used so we can revert when done
             nodeVersionAtStart = cleaned;
         }
 
         if (cleaned) {
-            sanitizedList.push(cleaned);
+            sanitizedVersionList.push(cleaned);
         }
     });
 
-    // console.log('LENGTH ' + sanitizedList.length);
-    // for (i = 0; i < sanitizedList.length; i++) {
-    //     console.log('|' + sanitizedList[i] + '|');
-    // }
-
-    // test all versions of node are installed
-    // TODO: O(n^2), fix it?
+    // ensure all versions of node are installed
+    // O(n^2), fix it?
     for (i = 0; i < versionsToTest.length; i++) {
         var versionIsInstalled = false;
-        for (j = 0; j < sanitizedList.length; j++) {
-            if (versionsToTest[i] === sanitizedList[j]) {
+        for (j = 0; j < sanitizedVersionList.length; j++) {
+            if (versionsToTest[i] === sanitizedVersionList[j]) {
                 versionIsInstalled = true;
                 break;
             }
@@ -139,17 +133,10 @@ target.testall = function() {
     }
 
     // test each version
-    sanitizedList.forEach(function(nodeVersion) {
-        // switch to the version we want to test
+    sanitizedVersionList.forEach(function(nodeVersion) {
         console.log('running tests with node version ' + nodeVersion);
 
-        // TODO: BUG.... we need to set this in the same place we run the tests... not a new child process each time.
-        //runCommand('nvm use ' + nodeVersion);
         run('nvm use ' + nodeVersion);
-
-        // run the test, TODO: this isnt running the tests...
-        //target.test();
-        //run('tsc -p ./test');
         run('mocha test');
     });
 

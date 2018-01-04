@@ -18,6 +18,16 @@ You should test with node 4.x, 6.x and 8.x LTS.  We recommend using [nvm](https:
 npm test
 ```
 
+Alternatively, you can run tests for all supported versions of Node.
+
+In order to do this, run an elevated prompt and type:
+
+```
+npm run testall
+```
+
+This will require nvm to be installed as well as the supported versions of Node to test against.
+
 ## Convenience
 
 Build and test
