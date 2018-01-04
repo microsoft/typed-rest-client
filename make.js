@@ -77,8 +77,8 @@ target.test = function() {
 
 target.testall = function() {
     // make sure we have nvm
-    var nvmList = runCommand('nvm');
-    if (nvmList.indexOf('Running version') === -1) {
+    var nvmCommand = runCommand('nvm');
+    if (nvmCommand.indexOf('Running version') === -1) {
         fail('requires nvm to be installed');
     }
     
@@ -93,13 +93,13 @@ target.testall = function() {
     versionList.forEach(function (version) {
         var cleaned = version.trim();
 
-        // e.g. - 6.12.0 (Currently using 64-bit executable)
+        // e.g. - "6.12.0 (Currently using 64-bit executable)"
         var openIndex = cleaned.indexOf('(');
         if (openIndex !== -1) {
             cleaned = cleaned.substring(0, openIndex - 1);
         }
 
-        // e.g. - * 6.12.0
+        // e.g. - "* 6.12.0"
         var starIndex = cleaned.indexOf('*');
         if (starIndex !== -1) {
             cleaned = cleaned.substring(2);
