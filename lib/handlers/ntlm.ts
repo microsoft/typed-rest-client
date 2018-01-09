@@ -80,11 +80,10 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
                     domain: this._ntlmOptions.domain,
                     workstation: this._ntlmOptions.workstation
                 });
-                var keepaliveAgent;
                 if (httpClient.isSsl === true) {
-                    keepaliveAgent = new https.Agent({});
+                    requestInfo.options.agent = new https.Agent({});
                 } else {
-                    keepaliveAgent = new http.Agent({ keepAlive: true });
+                    requestInfo.options.agent = new http.Agent({ keepAlive: true });
                 }
                 let self = this;
                 // The following pattern of sending the type1 message following immediately (in a setImmediate) is
