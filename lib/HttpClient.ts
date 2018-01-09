@@ -320,7 +320,7 @@ export class HttpClient implements ifm.IHttpClient {
         });
     }
 
-    public requestWithCallback(info: ifm.IRequestInfo, data: string | NodeJS.ReadableStream, onResult: (err: any, res: http.ClientResponse, contents: string) => void): void {
+    public requestWithCallback(info: ifm.IRequestInfo, data: string | NodeJS.ReadableStream, onResult: (err: any, res: ifm.IHttpClientResponse, contents: string) => void): void {
         var reqData;
         var socket;
 
@@ -329,14 +329,14 @@ export class HttpClient implements ifm.IHttpClient {
         }
 
         var callbackCalled: boolean = false;
-        var handleResult = (err: any, res: http.ClientResponse, contents: string) => {
+        var handleResult = (err: any, res: ifm.IHttpClientResponse, contents: string) => {
             if (!callbackCalled) {
                 callbackCalled = true;
                 onResult(err, res, contents);
             }
         };
 
-        var req = protocol.request(options, function (res) {
+        var req = info.httpModule.request(info.options, function (res) {
             var buffer = [];
             var output = '';
 
@@ -373,7 +373,7 @@ export class HttpClient implements ifm.IHttpClient {
             if (socket) {
                 socket.end();
             }
-            handleResult(new Error('Request timeout: ' + options.path), null, null);
+            handleResult(new Error('Request timeout: ' + info.options.path), null, null);
         });
 
         req.on('error', function (err) {
