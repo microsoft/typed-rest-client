@@ -6,6 +6,7 @@ import http = require("http");
 import https = require("https");
 import { setImmediate } from 'timers';
 import { resolve } from 'url';
+import { request } from 'http';
 var _ = require("underscore");
 var ntlm = require("../opensource/node-http-ntlm/ntlm");
 
@@ -71,13 +72,13 @@ export class NtlmCredentialHandlerWithCallbacks implements ifm.IRequestHandler {
         });
     }
 
-    handleAuthenticationPrivate(httpClient: ifm.IHttpClient, requestInfo: ifm.IRequestInfo, objs, finalCallback): void {
+    handleAuthenticationPrivate(httpClient: any, requestInfo: ifm.IRequestInfo, objs, finalCallback): void {
                 // Set up the headers for NTLM authentication
-                var ntlmOptions = _.extend(options, {
+                requestInfo.options = _.extend(requestInfo.options, {
                     username: this._ntlmOptions.username,
                     password: this._ntlmOptions.password,
-                    domain: this._ntlmOptions.domain || '',
-                    workstation: this._ntlmOptions.workstation || ''
+                    domain: this._ntlmOptions.domain,
+                    workstation: this._ntlmOptions.workstation
                 });
                 var keepaliveAgent;
                 if (httpClient.isSsl === true) {
@@ -89,55 +90,100 @@ export class NtlmCredentialHandlerWithCallbacks implements ifm.IRequestHandler {
                 // The following pattern of sending the type1 message following immediately (in a setImmediate) is
                 // critical for the NTLM exchange to happen.  If we removed setImmediate (or call in a different manner)
                 // the NTLM exchange will always fail with a 401.
-                this.sendType1Message(httpClient, protocol, ntlmOptions, objs, keepaliveAgent, function (err, res) {
+                this.sendType1Message(httpClient, requestInfo, objs, function (err, res) {
                     if (err) {
                         return finalCallback(err, null, null);
                     }
                     setImmediate(function () {
-                        self.sendType3Message(httpClient, protocol, ntlmOptions, objs, keepaliveAgent, res, finalCallback);
+                        self.sendType3Message(httpClient, requestInfo, objs, res, finalCallback);
                     });
                 });
             }
         
             // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
-            private sendType1Message(httpClient, protocol, options, objs, keepaliveAgent, callback): void {
-                var type1msg = ntlm.createType1Message(options);
-                var type1options = {
+            private sendType1Message(httpClient: ifm.IHttpClient, requestInfo: ifm.IRequestInfo, objs, finalCallback): void {
+                // var type1msg = ntlm.createType1Message(options);
+                // var type1options = {
+                //     headers: {
+                //         'Connection': 'keep-alive',
+                //         'Authorization': type1msg
+                //     },
+                //     timeout: options.timeout || 0,
+                //     agent: keepaliveAgent,
+                //      // don't redirect because http could change to https which means we need to change the keepaliveAgent
+                //     allowRedirects: false
+                // };
+                // type1options = _.extend(type1options, _.omit(options, 'headers'));
+                // httpClient.requestWithCallback(requestInfo, objs, finalCallback);
+
+
+                const type1msg = ntlm.createType1Message(this._ntlmOptions);
+                
+                const type1options: http.RequestOptions = {
                     headers: {
                         'Connection': 'keep-alive',
                         'Authorization': type1msg
                     },
-                    timeout: options.timeout || 0,
-                    agent: keepaliveAgent,
-                     // don't redirect because http could change to https which means we need to change the keepaliveAgent
-                    allowRedirects: false
+                    timeout: requestInfo.options.timeout || 0,
+                    agent: requestInfo.httpModule, // TODO: Is this the keepalive agent? It should be.
+                    // don't redirect because http could change to https which means we need to change the keepaliveAgent
+                    //allowRedirects: false
                 };
-                type1options = _.extend(type1options, _.omit(options, 'headers'));
-                httpClient.requestWithCallback(protocol, type1options, objs, callback);
+        
+                const type1info = <ifm.IRequestInfo>{};
+                type1info.httpModule = requestInfo.httpModule;
+                type1info.parsedUrl = requestInfo.parsedUrl;
+                type1info.options = _.extend(type1options, _.omit(requestInfo.options, 'headers'));
+        
+                return httpClient.requestWithCallback(type1info, objs, finalCallback);
             }
         
             // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
-            private sendType3Message(httpClient, protocol, options, objs, keepaliveAgent, res, callback): void {
-                if (!res.headers['www-authenticate']) {
-                    return callback(new Error('www-authenticate not found on response of second request'));
+            private sendType3Message(httpClient, requestInfo, objs, res, callback): void {
+                // if (!res.headers['www-authenticate']) {
+                //     return callback(new Error('www-authenticate not found on response of second request'));
+                // }
+                // // parse type2 message from server:
+                // var type2msg = ntlm.parseType2Message(res.headers['www-authenticate']);
+                // // create type3 message:
+                // var type3msg = ntlm.createType3Message(type2msg, options);
+                // // build type3 request:
+                // var type3options = {
+                //     headers: {
+                //         'Authorization': type3msg
+                //     },
+                //     allowRedirects: false,
+                //     agent: requestInfo.httpModule, // TODO: Is this the keepalive agent? It should be.
+                // };
+                // // pass along other options:
+                // type3options.headers = _.extend(type3options.headers, options.headers);
+                // type3options = _.extend(type3options, _.omit(options, 'headers'));
+                // // send type3 message to server:
+                // httpClient.requestWithCallback(requestInfo, objs, finalCallback);
+                if (!res.message.headers && !res.message.headers['www-authenticate']) {
+                    throw new Error('www-authenticate not found on response of second request');
                 }
-                // parse type2 message from server:
-                var type2msg = ntlm.parseType2Message(res.headers['www-authenticate']);
-                // create type3 message:
-                var type3msg = ntlm.createType3Message(type2msg, options);
-                // build type3 request:
-                var type3options = {
+
+                const type2msg = ntlm.parseType2Message(res.message.headers['www-authenticate']);
+                const type3msg = ntlm.createType3Message(type2msg, this._ntlmOptions);
+
+                const type3options: http.RequestOptions = {
                     headers: {
-                        'Authorization': type3msg
+                        'Authorization': type3msg,
+                        //'Connection': 'Close'
                     },
-                    allowRedirects: false,
-                    agent: keepaliveAgent
+                    //allowRedirects: false,
+                    agent: requestInfo.httpModule, // TODO: Is this the keepalive agent? It should be.
                 };
-                // pass along other options:
-                type3options.headers = _.extend(type3options.headers, options.headers);
-                type3options = _.extend(type3options, _.omit(options, 'headers'));
+
+                const type3info = <ifm.IRequestInfo>{};
+                type3info.httpModule = requestInfo.httpModule;
+                type3info.parsedUrl = requestInfo.parsedUrl;
+                type3options.headers = _.extend(type3options.headers, requestInfo.options.headers);
+                type3info.options = _.extend(type3options, _.omit(requestInfo.options, 'headers'));
+
                 // send type3 message to server:
-                httpClient.requestWithCallback(protocol, type3options, objs, callback);
+                return httpClient.requestWithCallback(type3info, objs, callback);
             }
 }
 
