@@ -50,7 +50,7 @@ export async function run() {
 
     // These handlers would then be passed to the constructors of the http or rest modules
 
-    let httpc: httpm.HttpClient = new httpm.HttpClient('vsts-node-api', [nh], { /*proxy: { proxyUrl: proxyUrl },*/ keepAlive: true, maxSockets: 1 });
+    let httpc: httpm.HttpClient = new httpm.HttpClient('vsts-node-api', [nh], { /*proxy: { proxyUrl: proxyUrl },*/ keepAlive: true/*, keepAliveMsecs: 10000*/ });
     let res: httpm.HttpClientResponse = await httpc.get(url);
     console.log("response code: " + res.message.statusCode);
 }

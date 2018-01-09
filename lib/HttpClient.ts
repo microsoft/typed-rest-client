@@ -320,6 +320,75 @@ export class HttpClient implements ifm.IHttpClient {
         });
     }
 
+    public requestWithCallback(info: ifm.IRequestInfo, data: string | NodeJS.ReadableStream, onResult: (err: any, res: http.ClientResponse, contents: string) => void): void {
+        var reqData;
+        var socket;
+
+        if (data) {
+            reqData = data;
+        }
+
+        var callbackCalled: boolean = false;
+        var handleResult = (err: any, res: http.ClientResponse, contents: string) => {
+            if (!callbackCalled) {
+                callbackCalled = true;
+                onResult(err, res, contents);
+            }
+        };
+
+        var req = protocol.request(options, function (res) {
+            var buffer = [];
+            var output = '';
+
+            // If we're handling gzip compression, don't set the encoding to utf8
+            if (res.headers["content-encoding"] && res.headers["content-encoding"] === "gzip") {
+                // var gunzip = zlib.createGunzip();
+                // res.pipe(gunzip);
+
+                // gunzip.on('data', function(data) {
+                //     buffer.push(data.toString());
+                // }).on('end', function() {
+                //     handleResult(null, res, buffer.join(""));
+                // }).on('error', function(err) {
+                //     handleResult(err, null, null);
+                // });
+            } else {
+                res.setEncoding('utf8'); //Do this only if we expect we're getting a string back
+                res.on('data', function (chunk) {
+                    output += chunk;
+                });
+                res.on('end', function () {
+                    // res has statusCode and headers
+                    handleResult(null, res, output);
+                });
+            }
+        });
+
+        req.on('socket', function(sock) {
+            socket = sock;
+        });
+
+        // If we ever get disconnected, we want the socket to timeout eventually
+        req.setTimeout(this._socketTimeout || 3 * 60000, function() {
+            if (socket) {
+                socket.end();
+            }
+            handleResult(new Error('Request timeout: ' + options.path), null, null);
+        });
+
+        req.on('error', function (err) {
+            // err has statusCode property
+            // res should have headers
+            handleResult(err, null, null);
+        });
+
+        if (reqData) {
+            req.write(reqData, 'utf8');
+        }
+
+        req.end();
+    }
+
     private _prepareRequest(method: string, requestUrl: string, headers: any): ifm.IRequestInfo {
         let info: ifm.IRequestInfo = <ifm.IRequestInfo>{};
 
