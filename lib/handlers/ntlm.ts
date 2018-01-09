@@ -17,7 +17,7 @@ interface INtlmOptions {
     workstation: string
 }
 
-export class NtlmCredentialHandlerWithCallbacks implements ifm.IRequestHandler {
+export class NtlmCredentialHandler implements ifm.IRequestHandler {
     private _ntlmOptions: INtlmOptions;
     
     constructor(username: string, password: string,  workstation?: string, domain?: string) {
@@ -187,7 +187,7 @@ export class NtlmCredentialHandlerWithCallbacks implements ifm.IRequestHandler {
             }
 }
 
-export class NtlmCredentialHandler implements ifm.IRequestHandler {
+export class NtlmCredentialHandlerOLD implements ifm.IRequestHandler {
     private _ntlmOptions: INtlmOptions;
 
     constructor(username: string, password: string,  workstation?: string, domain?: string) {

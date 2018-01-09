@@ -46,9 +46,7 @@ export async function run() {
     
     let bh: hm.BasicCredentialHandler = new hm.BasicCredentialHandler('johndoe', 'password');
     let ph: hm.PersonalAccessTokenCredentialHandler = new hm.PersonalAccessTokenCredentialHandler('scbfb44vxzku5l4xgc3qfazn3lpk4awflfryc76esaiq7aypcbhs');
-    //let nh: hm.NtlmCredentialHandler = new hm.NtlmCredentialHandler(username, password, workstation, domain);
-    //
-    let nh: hm.NtlmCredentialHandlerWithCallbacks = new hm.NtlmCredentialHandlerWithCallbacks(username, password, workstation, domain);
+    let nh: hm.NtlmCredentialHandler = new hm.NtlmCredentialHandler(username, password, workstation, domain);
 
     // These handlers would then be passed to the constructors of the http or rest modules
 
