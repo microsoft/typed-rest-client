@@ -205,13 +205,6 @@ export class HttpClient implements ifm.IHttpClient {
                 // We have received an unauthorized response but have no handlers to handle it
                 return response;
             }
-
-            // TODO: Don't we have to make another request? What does the handshake look like.
-            // Does anything need to be changed on the parameters now that auth is done?
-            // Maybe the data is changed inside handleAuthentication so that we now have it? I don't think this is the case though.
-            //return await this.request(verb, requestUrl, data, headers);
-            // Or maybe request raw?
-            //return await this.requestRaw(info, data);
         }
 
         let redirectsRemaining: number = this._maxRedirects;
@@ -331,8 +324,6 @@ export class HttpClient implements ifm.IHttpClient {
                 callbackCalled = true;
 
                 let parsedResponse = new HttpClientResponse(res);
-                //console.log('http request callback');
-                //console.log('response headers: ' + JSON.stringify(res.headers));
                 parsedResponse.readBody().then((x) => {
                     //console.log('body: ' + x.substring(1,300));
                 });
@@ -343,22 +334,11 @@ export class HttpClient implements ifm.IHttpClient {
         };
 
         var req = info.httpModule.request(info.options, function (msg: http.IncomingMessage) {
-            //console.log('request headers: ' + JSON.stringify(info.options.headers));
             handleResult(null, msg);
         });
 
         req.on('socket', function(sock) {
             socket = sock;
-
-        //     sock.on('connect', function(connection) {
-        //         console.log('connected-within NTLM');
-        //         return;
-        //     });
-
-        //     sock.on('close', function(data) {
-        //         console.log('closed-within NTLM');
-        //         return;
-        //     });
         });
 
         // If we ever get disconnected, we want the socket to timeout eventually
@@ -366,15 +346,10 @@ export class HttpClient implements ifm.IHttpClient {
             if (socket) {
                 socket.end();
             }
-            // console.log('Request timeout host: ' + JSON.stringify(info.options.host));
-            // console.log('Request timeout path: ' + JSON.stringify(info.options.path));
-            // console.log('Request timeout headers: ' + JSON.stringify(info.options.headers));
             handleResult(new Error('Request timeout: ' + info.options.path), null);
         });
 
         req.on('error', function (err) {
-            // err has statusCode property
-            // res should have headers
             handleResult(err, null);
         });
 
