@@ -37,7 +37,7 @@ export enum HttpCodes {
     GatewayTimeout = 504,
 }
 
-const HttpRedirectCodes: number[] = [ HttpCodes.MovedPermanently, HttpCodes.ResourceMoved, HttpCodes.TemporaryRedirect, HttpCodes.PermanentRedirect ];
+const HttpRedirectCodes: number[] = [HttpCodes.MovedPermanently, HttpCodes.ResourceMoved, HttpCodes.TemporaryRedirect, HttpCodes.PermanentRedirect];
 
 export class HttpClientResponse implements ifm.IHttpClientResponse {
     constructor(message: http.IncomingMessage) {
@@ -72,7 +72,7 @@ export function isHttps(requestUrl: string) {
 }
 
 enum EnvironmentVariables {
-    HTTP_PROXY = "HTTP_PROXY", 
+    HTTP_PROXY = "HTTP_PROXY",
     HTTPS_PROXY = "HTTPS_PROXY",
 }
 
@@ -209,8 +209,8 @@ export class HttpClient implements ifm.IHttpClient {
 
         let redirectsRemaining: number = this._maxRedirects;
         while (HttpRedirectCodes.indexOf(response.message.statusCode) != -1
-               && this._allowRedirects
-               && redirectsRemaining > 0) {
+            && this._allowRedirects
+            && redirectsRemaining > 0) {
 
             const redirectUrl: any = response.message.headers["location"];
             if (!redirectUrl) {
@@ -247,11 +247,19 @@ export class HttpClient implements ifm.IHttpClient {
     }
 
     /**
-     * Internal raw request method. Do not use.
+     * Lower level raw request.
      * @param info 
      * @param data 
      */
     public requestRaw(info: ifm.IRequestInfo, data: string | NodeJS.ReadableStream): Promise<HttpClientResponse/* TODO: Make return type interface? */> {
+        // return new Promise<ifm.IHttpClientResponse>((resolve, reject) => {
+        //     var callbackForResult = function (err: any, res: ifm.IHttpClientResponse) {
+        //         resolve(res);
+        //     };
+
+        //     this.handleAuthenticationPrivate(httpClient, requestInfo, objs, callbackForResult);
+        // });
+
         return new Promise<HttpClientResponse>((resolve, reject) => {
             let socket;
 
@@ -268,15 +276,6 @@ export class HttpClient implements ifm.IHttpClient {
 
             req.on('socket', (sock) => {
                 socket = sock;
-                sock.on('connect', function(connection) {
-                    console.log('connected-initial request');
-                    return;
-                });
-
-                sock.on('close', function(data) {
-                    console.log('closed-initial request');
-                    return;
-                });
             });
 
             // If we ever get disconnected, we want the socket to timeout eventually
@@ -327,7 +326,7 @@ export class HttpClient implements ifm.IHttpClient {
                 parsedResponse.readBody().then((x) => {
                     //console.log('body: ' + x.substring(1,300));
                 });
-                
+
                 // Here we convert the incoming message to an HttpClientResponse
                 onResult(err, parsedResponse);
             }
@@ -337,12 +336,12 @@ export class HttpClient implements ifm.IHttpClient {
             handleResult(null, msg);
         });
 
-        req.on('socket', function(sock) {
+        req.on('socket', function (sock) {
             socket = sock;
         });
 
         // If we ever get disconnected, we want the socket to timeout eventually
-        req.setTimeout(this._socketTimeout || /*3 * 60000*/10000, function() {
+        req.setTimeout(this._socketTimeout || /*3 * 60000*/10000, function () {
             if (socket) {
                 socket.end();
             }
@@ -440,9 +439,9 @@ export class HttpClient implements ifm.IHttpClient {
             agent = usingSsl ? new https.Agent(options) : new http.Agent(options);
             this._agent = agent;
         }
-        
+
         // if not using private agent and tunnel agent isn't setup then use global agent
-        if(!agent) {
+        if (!agent) {
             agent = usingSsl ? https.globalAgent : http.globalAgent;
         }
 
