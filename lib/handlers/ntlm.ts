@@ -119,6 +119,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
         type1info.parsedUrl = requestInfo.parsedUrl;
         type1info.options = _.extend(type1options, _.omit(requestInfo.options, 'headers'));
 
+        console.log("sending type 1");
         return httpClient.requestWithCallback(type1info, objs, finalCallback);
     }
 
@@ -147,6 +148,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
         type3info.options = _.extend(type3options, _.omit(requestInfo.options, 'headers'));
 
         // send type3 message to server:
+        console.log("sending type 3");
         return httpClient.requestWithCallback(type3info, objs, callback);
     }
 }

@@ -7,8 +7,6 @@ var httpntlm = require('httpntlm');
 export async function run() {
     cm.banner('Handler Samples');
 
-    var proxyUrl = "http://127.0.0.1:8888";
-
     /* HOME */
     // var username = "stephen";
     // var password = process.env["PW"];
@@ -21,10 +19,8 @@ export async function run() {
     var password = process.env["PW"];
     var workstation = "STEPHENMICHAELF";
     var domain = "NORTHAMERICA";
-    var url = "http://stephenmichaelf:8080/tfs/DefaultCollection/ExperimentalProject/_build/index?context=mine&path=%5C&definitionId=1&_a=completed";
+    var url = "http://stephenmichaelf:8080/tfs/DefaultCollection/_projects?_a=new";
 
-    //process.env["http_proxy"] = "http://127.0.0.1:8888";
-    // console.log("FROM ROOT " + process.env["PW"]);
     // httpntlm.get({
     //     url: url,
     //     username: username,
@@ -41,8 +37,8 @@ export async function run() {
     // });
     // console.log("END FROM ROOT");
 
-    process.env["NODE_DEBUG"] = "http";
-    console.log(process.env["NODE_DEBUG"]);
+    // process.env["NODE_DEBUG"] = "http";
+    // console.log(process.env["NODE_DEBUG"]);
     
     let bh: hm.BasicCredentialHandler = new hm.BasicCredentialHandler('johndoe', 'password');
     let ph: hm.PersonalAccessTokenCredentialHandler = new hm.PersonalAccessTokenCredentialHandler('scbfb44vxzku5l4xgc3qfazn3lpk4awflfryc76esaiq7aypcbhs');
@@ -50,7 +46,7 @@ export async function run() {
 
     // These handlers would then be passed to the constructors of the http or rest modules
 
-    let httpc: httpm.HttpClient = new httpm.HttpClient('vsts-node-api', [nh], { /*proxy: { proxyUrl: proxyUrl },*/ keepAlive: true/*, keepAliveMsecs: 10000*/ });
+    let httpc: httpm.HttpClient = new httpm.HttpClient('vsts-node-api', [nh], { keepAlive: true });
     let res: httpm.HttpClientResponse = await httpc.get(url);
     console.log("response code: " + res.message.statusCode);
 }

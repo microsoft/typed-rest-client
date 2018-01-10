@@ -276,12 +276,12 @@ export class HttpClient implements ifm.IHttpClient {
             req.on('socket', (sock) => {
                 socket = sock;
                 sock.on('connect', function(connection) {
-                    console.log('connected');
+                    console.log('connected-initial request');
                     return;
                 });
 
                 sock.on('close', function(data) {
-                    console.log('CLOSED: ');
+                    console.log('closed-initial request');
                     return;
                 });
             });
@@ -330,12 +330,20 @@ export class HttpClient implements ifm.IHttpClient {
             if (!callbackCalled) {
                 callbackCalled = true;
 
+                let parsedResponse = new HttpClientResponse(res);
+                console.log('http request callback');
+                console.log('response headers: ' + JSON.stringify(res.headers));
+                parsedResponse.readBody().then((x) => {
+                    console.log('body: ' + x.substring(1,300));
+                });
+                
                 // Here we convert the incoming message to an HttpClientResponse
-                onResult(err, new HttpClientResponse(res));
+                onResult(err, parsedResponse);
             }
         };
 
         var req = info.httpModule.request(info.options, function (msg: http.IncomingMessage) {
+            console.log('request headers: ' + JSON.stringify(info.options.headers));
             handleResult(null, msg);
         });
 
@@ -343,21 +351,24 @@ export class HttpClient implements ifm.IHttpClient {
             socket = sock;
 
             sock.on('connect', function(connection) {
-                console.log('connected');
+                console.log('connected-within NTLM');
                 return;
             });
 
             sock.on('close', function(data) {
-                console.log('CLOSED: ');
+                console.log('closed-within NTLM');
                 return;
             });
         });
 
         // If we ever get disconnected, we want the socket to timeout eventually
-        req.setTimeout(this._socketTimeout || 3 * 60000, function() {
+        req.setTimeout(this._socketTimeout || /*3 * 60000*/10000, function() {
             if (socket) {
                 socket.end();
             }
+            console.log('Request timeout host: ' + JSON.stringify(info.options.host));
+            console.log('Request timeout path: ' + JSON.stringify(info.options.path));
+            console.log('Request timeout headers: ' + JSON.stringify(info.options.headers));
             handleResult(new Error('Request timeout: ' + info.options.path), null);
         });
 
