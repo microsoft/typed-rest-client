@@ -34,14 +34,15 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
         }
     }
 
-    prepareRequest(options: http.RequestOptions): void {
+    public prepareRequest(options: http.RequestOptions): void {
         // No headers or options need to be set.  We keep the credentials on the handler itself.
         // If a (proxy) agent is set, remove it as we don't support proxy for NTLM at this time
         if (options.agent) {
             delete options.agent;
         }
     }
-    canHandleAuthentication(response: ifm.IHttpClientResponse): boolean {
+
+    public canHandleAuthentication(response: ifm.IHttpClientResponse): boolean {
         if (response && response.message.statusCode === 401) {
             // Ensure that we're talking NTLM here
             // Once we have the www-authenticate header, split it so we can ensure we can talk NTLM
@@ -62,7 +63,8 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
 
         return false;
     }
-    handleAuthentication(httpClient: ifm.IHttpClient, requestInfo: ifm.IRequestInfo, objs): Promise<ifm.IHttpClientResponse> {
+
+    public handleAuthentication(httpClient: ifm.IHttpClient, requestInfo: ifm.IRequestInfo, objs): Promise<ifm.IHttpClientResponse> {
         return new Promise<ifm.IHttpClientResponse>((resolve, reject) => {
             var callbackForResult = function (err: any, res: ifm.IHttpClientResponse) {
                 resolve(res);
@@ -72,7 +74,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
         });
     }
 
-    handleAuthenticationPrivate(httpClient: any, requestInfo: ifm.IRequestInfo, objs, finalCallback): void {
+    private handleAuthenticationPrivate(httpClient: any, requestInfo: ifm.IRequestInfo, objs, finalCallback): void {
         // Set up the headers for NTLM authentication
         requestInfo.options = _.extend(requestInfo.options, {
             username: this._ntlmOptions.username,
@@ -80,12 +82,15 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
             domain: this._ntlmOptions.domain,
             workstation: this._ntlmOptions.workstation
         });
+
         if (httpClient.isSsl === true) {
             requestInfo.options.agent = new https.Agent({ keepAlive: true });
         } else {
             requestInfo.options.agent = new http.Agent({ keepAlive: true });
         }
+
         let self = this;
+
         // The following pattern of sending the type1 message following immediately (in a setImmediate) is
         // critical for the NTLM exchange to happen.  If we removed setImmediate (or call in a different manner)
         // the NTLM exchange will always fail with a 401.
@@ -100,7 +105,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
     }
 
     // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
-    private sendType1Message(httpClient: ifm.IHttpClient, requestInfo: ifm.IRequestInfo, objs, finalCallback): void {
+    private sendType1Message(httpClient: ifm.IHttpClient, requestInfo: ifm.IRequestInfo, objs: any, finalCallback): void {
         const type1msg = ntlm.createType1Message(this._ntlmOptions);
 
         const type1options: http.RequestOptions = {
@@ -119,12 +124,11 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
         type1info.parsedUrl = requestInfo.parsedUrl;
         type1info.options = _.extend(type1options, _.omit(requestInfo.options, 'headers'));
 
-        console.log("sending type 1");
         return httpClient.requestWithCallback(type1info, objs, finalCallback);
     }
 
     // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
-    private sendType3Message(httpClient, requestInfo, objs, res, callback): void {
+    private sendType3Message(httpClient: ifm.IHttpClient, requestInfo: ifm.IRequestInfo, objs: any, res, callback): void {
         if (!res.message.headers && !res.message.headers['www-authenticate']) {
             throw new Error('www-authenticate not found on response of second request');
         }
@@ -147,8 +151,6 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
         type3options.headers = _.extend(type3options.headers, requestInfo.options.headers);
         type3info.options = _.extend(type3options, _.omit(requestInfo.options, 'headers'));
 
-        // send type3 message to server:
-        console.log("sending type 3");
         return httpClient.requestWithCallback(type3info, objs, callback);
     }
 }
