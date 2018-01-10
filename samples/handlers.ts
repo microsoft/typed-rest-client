@@ -10,18 +10,18 @@ export async function run() {
     var proxyUrl = "http://127.0.0.1:8888";
 
     /* HOME */
-    var username = "stephen";
-    var password = process.env["PW"];
-    var workstation = "DESKTOP-0J7UTAA";
-    var domain = "WORKGROUP";
-    var url = "http://localhost/";
+    // var username = "stephen";
+    // var password = process.env["PW"];
+    // var workstation = "DESKTOP-0J7UTAA";
+    // var domain = "WORKGROUP";
+    // var url = "http://localhost/";
 
     /* WORK */
-    // var username = "stfrance"
-    // var password = process.env["PW"];
-    // var workstation = "STEPHENMICHAELF";
-    // var domain = "NORTHAMERICA";
-    // var url = "http://stephenmichaelf:8080/tfs/DefaultCollection/ExperimentalProject/_build/index?context=mine&path=%5C&definitionId=1&_a=completed";
+    var username = "stfrance"
+    var password = process.env["PW"];
+    var workstation = "STEPHENMICHAELF";
+    var domain = "NORTHAMERICA";
+    var url = "http://stephenmichaelf:8080/tfs/DefaultCollection/ExperimentalProject/_build/index?context=mine&path=%5C&definitionId=1&_a=completed";
 
     //process.env["http_proxy"] = "http://127.0.0.1:8888";
     // console.log("FROM ROOT " + process.env["PW"]);

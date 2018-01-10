@@ -81,7 +81,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
                     workstation: this._ntlmOptions.workstation
                 });
                 if (httpClient.isSsl === true) {
-                    requestInfo.options.agent = new https.Agent({});
+                    requestInfo.options.agent = new https.Agent({ keepAlive: true });
                 } else {
                     requestInfo.options.agent = new http.Agent({ keepAlive: true });
                 }
@@ -94,6 +94,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
                         return finalCallback(err, null, null);
                     }
                     setImmediate(function () {
+                        console.log('res headers inside setImmediate: ' + JSON.stringify(res.headers));
                         self.sendType3Message(httpClient, requestInfo, objs, res, finalCallback);
                     });
                 });
@@ -139,26 +140,6 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
         
             // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
             private sendType3Message(httpClient, requestInfo, objs, res, callback): void {
-                // if (!res.headers['www-authenticate']) {
-                //     return callback(new Error('www-authenticate not found on response of second request'));
-                // }
-                // // parse type2 message from server:
-                // var type2msg = ntlm.parseType2Message(res.headers['www-authenticate']);
-                // // create type3 message:
-                // var type3msg = ntlm.createType3Message(type2msg, options);
-                // // build type3 request:
-                // var type3options = {
-                //     headers: {
-                //         'Authorization': type3msg
-                //     },
-                //     allowRedirects: false,
-                //     agent: requestInfo.httpModule, // TODO: Is this the keepalive agent? It should be.
-                // };
-                // // pass along other options:
-                // type3options.headers = _.extend(type3options.headers, options.headers);
-                // type3options = _.extend(type3options, _.omit(options, 'headers'));
-                // // send type3 message to server:
-                // httpClient.requestWithCallback(requestInfo, objs, finalCallback);
                 if (!res.message.headers && !res.message.headers['www-authenticate']) {
                     throw new Error('www-authenticate not found on response of second request');
                 }

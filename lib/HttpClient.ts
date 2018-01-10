@@ -320,7 +320,7 @@ export class HttpClient implements ifm.IHttpClient {
         });
     }
 
-    public requestWithCallback(info: ifm.IRequestInfo, data: string | NodeJS.ReadableStream, onResult: (err: any, res: ifm.IHttpClientResponse, contents: string) => void): void {
+    public requestWithCallback(info: ifm.IRequestInfo, data: string | NodeJS.ReadableStream, onResult: (err: any, res: ifm.IHttpClientResponse) => void): void {
         var reqData;
         var socket;
 
@@ -329,39 +329,17 @@ export class HttpClient implements ifm.IHttpClient {
         }
 
         var callbackCalled: boolean = false;
-        var handleResult = (err: any, res: ifm.IHttpClientResponse, contents: string) => {
+        var handleResult = (err: any, res: http.IncomingMessage) => {
             if (!callbackCalled) {
                 callbackCalled = true;
-                onResult(err, res, contents);
+
+                // Here we convert the incoming message to an HttpClientResponse
+                onResult(err, new HttpClientResponse(res));
             }
         };
 
-        var req = info.httpModule.request(info.options, function (res) {
-            var buffer = [];
-            var output = '';
-
-            // If we're handling gzip compression, don't set the encoding to utf8
-            if (res.headers["content-encoding"] && res.headers["content-encoding"] === "gzip") {
-                // var gunzip = zlib.createGunzip();
-                // res.pipe(gunzip);
-
-                // gunzip.on('data', function(data) {
-                //     buffer.push(data.toString());
-                // }).on('end', function() {
-                //     handleResult(null, res, buffer.join(""));
-                // }).on('error', function(err) {
-                //     handleResult(err, null, null);
-                // });
-            } else {
-                res.setEncoding('utf8'); //Do this only if we expect we're getting a string back
-                res.on('data', function (chunk) {
-                    output += chunk;
-                });
-                res.on('end', function () {
-                    // res has statusCode and headers
-                    handleResult(null, res, output);
-                });
-            }
+        var req = info.httpModule.request(info.options, function (msg: http.IncomingMessage) {
+            handleResult(null, msg);
         });
 
         req.on('socket', function(sock) {
@@ -373,13 +351,13 @@ export class HttpClient implements ifm.IHttpClient {
             if (socket) {
                 socket.end();
             }
-            handleResult(new Error('Request timeout: ' + info.options.path), null, null);
+            handleResult(new Error('Request timeout: ' + info.options.path), null);
         });
 
         req.on('error', function (err) {
             // err has statusCode property
             // res should have headers
-            handleResult(err, null, null);
+            handleResult(err, null);
         });
 
         if (reqData) {
