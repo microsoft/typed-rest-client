@@ -205,13 +205,6 @@ export class HttpClient implements ifm.IHttpClient {
                 // We have received an unauthorized response but have no handlers to handle it
                 return response;
             }
-
-            // TODO: Don't we have to make another request? What does the handshake look like.
-            // Does anything need to be changed on the parameters now that auth is done?
-            // Maybe the data is changed inside handleAuthentication so that we now have it? I don't think this is the case though.
-            //return await this.request(verb, requestUrl, data, headers);
-            // Or maybe request raw?
-            //return await this.requestRaw(info, data);
         }
 
         let redirectsRemaining: number = this._maxRedirects;
@@ -276,15 +269,12 @@ export class HttpClient implements ifm.IHttpClient {
             req.on('socket', (sock) => {
                 socket = sock;
                 sock.on('connect', function(connection) {
-                    console.log('connected');
-                //     util.puts('req.on socket event called');
-                //     util.puts(util.inspect(sock.address()));
-                //     util.puts('Remote address: ' + sock.remoteAddress + ':' + sock.remotePort);
+                    console.log('connected-initial request');
                     return;
                 });
 
                 sock.on('close', function(data) {
-                    console.log('CLOSED: ');
+                    console.log('closed-initial request');
                     return;
                 });
             });
@@ -318,6 +308,56 @@ export class HttpClient implements ifm.IHttpClient {
                 req.end();
             }
         });
+    }
+
+    public requestWithCallback(info: ifm.IRequestInfo, data: string | NodeJS.ReadableStream, onResult: (err: any, res: ifm.IHttpClientResponse) => void): void {
+        var reqData;
+        var socket;
+
+        if (data) {
+            reqData = data;
+        }
+
+        var callbackCalled: boolean = false;
+        var handleResult = (err: any, res: http.IncomingMessage) => {
+            if (!callbackCalled) {
+                callbackCalled = true;
+
+                let parsedResponse = new HttpClientResponse(res);
+                parsedResponse.readBody().then((x) => {
+                    //console.log('body: ' + x.substring(1,300));
+                });
+                
+                // Here we convert the incoming message to an HttpClientResponse
+                onResult(err, parsedResponse);
+            }
+        };
+
+        var req = info.httpModule.request(info.options, function (msg: http.IncomingMessage) {
+            handleResult(null, msg);
+        });
+
+        req.on('socket', function(sock) {
+            socket = sock;
+        });
+
+        // If we ever get disconnected, we want the socket to timeout eventually
+        req.setTimeout(this._socketTimeout || /*3 * 60000*/10000, function() {
+            if (socket) {
+                socket.end();
+            }
+            handleResult(new Error('Request timeout: ' + info.options.path), null);
+        });
+
+        req.on('error', function (err) {
+            handleResult(err, null);
+        });
+
+        if (reqData) {
+            req.write(reqData, 'utf8');
+        }
+
+        req.end();
     }
 
     private _prepareRequest(method: string, requestUrl: string, headers: any): ifm.IRequestInfo {

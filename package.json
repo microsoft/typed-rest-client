@@ -38,7 +38,6 @@
   },
   "dependencies": {
     "tunnel": "0.0.4",
-    "underscore": "1.8.3",
-    "httpntlm": "1.7.5"
+    "underscore": "1.8.3"
   }
 }
