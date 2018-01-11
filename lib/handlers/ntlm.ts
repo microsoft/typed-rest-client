@@ -60,7 +60,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
                 }
             }
         }
-
+        
         return false;
     }
 
