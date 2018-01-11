@@ -67,7 +67,11 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
     public handleAuthentication(httpClient: ifm.IHttpClient, requestInfo: ifm.IRequestInfo, objs): Promise<ifm.IHttpClientResponse> {
         return new Promise<ifm.IHttpClientResponse>((resolve, reject) => {
             var callbackForResult = function (err: any, res: ifm.IHttpClientResponse) {
-                resolve(res);
+                res.readBody().then(() => { 
+                    resolve(res);
+                });
+
+                //resolve(res);
             };
 
             this.handleAuthenticationPrivate(httpClient, requestInfo, objs, callbackForResult);
@@ -98,8 +102,16 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
             if (err) {
                 return finalCallback(err, null, null);
             }
-            setImmediate(function () {
-                self.sendType3Message(httpClient, requestInfo, objs, res, finalCallback);
+            //old
+            // setImmediate(function () {
+            //     self.sendType3Message(httpClient, requestInfo, objs, res, finalCallback);
+            // });
+
+            // new below
+            res.readBody().then(() => { 
+                setImmediate(function () {
+                    self.sendType3Message(httpClient, requestInfo, objs, res, finalCallback);
+                });
             });
         });
     }
