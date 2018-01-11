@@ -310,38 +310,37 @@ export class HttpClient implements ifm.IHttpClient {
     }
 
     public requestWithCallback(info: ifm.IRequestInfo, data: string | NodeJS.ReadableStream, onResult: (err: any, res: ifm.IHttpClientResponse) => void): void {
-        var reqData;
-        var socket;
-
-        if (data) {
-            reqData = data;
+        let socket;
+        
+        let isDataString = typeof (data) === 'string';
+        if (typeof (data) === 'string') {
+            info.options.headers["Content-Length"] = Buffer.byteLength(data, 'utf8');
         }
 
         var callbackCalled: boolean = false;
-        var handleResult = (err: any, res: http.IncomingMessage) => {
+        var handleResult = (err: any, res: HttpClientResponse) => {
             if (!callbackCalled) {
                 callbackCalled = true;
 
-                let parsedResponse = new HttpClientResponse(res);
-                parsedResponse.readBody().then((x) => {
-                    //console.log('body: ' + x.substring(1,300));
-                });
+                // This line is very important, we get a 401 in NTLM without it... same as what we need to do in the request method above...
+                res.readBody().then(() => {  });
 
                 // Here we convert the incoming message to an HttpClientResponse
-                onResult(err, parsedResponse);
+                onResult(err, res);
             }
         };
 
-        var req = info.httpModule.request(info.options, function (msg: http.IncomingMessage) {
-            handleResult(null, msg);
+        let req: http.ClientRequest = info.httpModule.request(info.options, (msg: http.IncomingMessage) => {
+            let res: HttpClientResponse = new HttpClientResponse(msg);
+            handleResult(null, res);
         });
 
-        req.on('socket', function (sock) {
+        req.on('socket', (sock) => {
             socket = sock;
         });
 
         // If we ever get disconnected, we want the socket to timeout eventually
-        req.setTimeout(this._socketTimeout || /*3 * 60000*/10000, function () {
+        req.setTimeout(this._socketTimeout || 3 * 60000, () => {
             if (socket) {
                 socket.end();
             }
@@ -349,14 +348,25 @@ export class HttpClient implements ifm.IHttpClient {
         });
 
         req.on('error', function (err) {
+            // err has statusCode property
+            // res should have headers
             handleResult(err, null);
         });
 
-        if (reqData) {
-            req.write(reqData, 'utf8');
+        if (data && typeof (data) === 'string') {
+            req.write(data, 'utf8');
         }
 
-        req.end();
+        if (data && typeof (data) !== 'string') {
+            data.on('close', function () {
+                req.end();
+            });
+
+            data.pipe(req);
+        }
+        else {
+            req.end();
+        }
     }
 
     private _prepareRequest(method: string, requestUrl: string, headers: any): ifm.IRequestInfo {
