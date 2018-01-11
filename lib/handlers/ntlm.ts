@@ -4,9 +4,9 @@
 import ifm = require('../Interfaces');
 import http = require("http");
 import https = require("https");
-import { setImmediate } from 'timers';
-import { resolve } from 'url';
-import { request } from 'http';
+// import timers = require('timers');
+// import url = require('url');
+
 var _ = require("underscore");
 var ntlm = require("../opensource/node-http-ntlm/ntlm");
 
@@ -43,7 +43,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
     }
 
     public canHandleAuthentication(response: ifm.IHttpClientResponse): boolean {
-        if (response && response.message.statusCode === 401) {
+        if (response && response.message && response.message.statusCode === 401) {
             // Ensure that we're talking NTLM here
             // Once we have the www-authenticate header, split it so we can ensure we can talk NTLM
             const wwwAuthenticate = response.message.headers['www-authenticate'];
@@ -67,11 +67,10 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
     public handleAuthentication(httpClient: ifm.IHttpClient, requestInfo: ifm.IRequestInfo, objs): Promise<ifm.IHttpClientResponse> {
         return new Promise<ifm.IHttpClientResponse>((resolve, reject) => {
             var callbackForResult = function (err: any, res: ifm.IHttpClientResponse) {
+                // We have to readbody on the response before continuing otherwise there is a hang.
                 res.readBody().then(() => { 
                     resolve(res);
                 });
-
-                //resolve(res);
             };
 
             this.handleAuthenticationPrivate(httpClient, requestInfo, objs, callbackForResult);
@@ -102,12 +101,8 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
             if (err) {
                 return finalCallback(err, null, null);
             }
-            //old
-            // setImmediate(function () {
-            //     self.sendType3Message(httpClient, requestInfo, objs, res, finalCallback);
-            // });
 
-            // new below
+            /// We have to readbody on the response before continuing otherwise there is a hang.
             res.readBody().then(() => { 
                 setImmediate(function () {
                     self.sendType3Message(httpClient, requestInfo, objs, res, finalCallback);

@@ -23,7 +23,6 @@ export class BearerCredentialHandler implements ifm.IRequestHandler {
     }
 
     handleAuthentication(httpClient: ifm.IHttpClient, requestInfo: ifm.IRequestInfo, objs): Promise<ifm.IHttpClientResponse> {
-        // TODO: Throw?
         return null;
     }
 }
