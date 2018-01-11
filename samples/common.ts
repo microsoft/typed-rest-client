@@ -34,28 +34,11 @@ export async function outputHttpBinResponse(body: string, message?: http.Incomin
     }
 
     if (body) {
-        console.log("body: " + body.toString());
         let obj = JSON.parse(body.toString());
         console.log('response from ' + obj.url);
         if (obj.data) {
             console.log('data:', obj.data);
         }
-    }
-}
-
-export async function outputWebpageResponse(body: string, message?: http.IncomingMessage) {
-    if (message) {
-        if (message.statusCode) {
-            console.log('status', message.statusCode);
-        }
-
-        if (message.rawHeaders) {
-            console.log('headers:' + JSON.stringify(message.rawHeaders));
-        }
-    }
-
-    if (body) {
-        console.log("body: " + body.toString());
     }
 }
 
