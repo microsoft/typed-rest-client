@@ -146,7 +146,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
         const type3options: http.RequestOptions = {
             headers: {
                 'Authorization': type3msg,
-                //'Connection': 'Close'
+                'Connection': 'Close'
             },
             //allowRedirects: false,
             agent: requestInfo.httpModule, // TODO: Is this the keepalive agent? It should be.
