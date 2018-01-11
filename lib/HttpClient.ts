@@ -7,7 +7,7 @@ import https = require("https");
 import tunnel = require("tunnel");
 import ifm = require('./Interfaces');
 import fs = require('fs');
-var _ = require("underscore");
+// var _ = require("underscore");
 
 export enum HttpCodes {
     OK = 200,
@@ -143,35 +143,35 @@ export class HttpClient implements ifm.IHttpClient {
         }
     }
 
-    public options(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<HttpClientResponse> {
+    public options(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
         return this.request('OPTIONS', requestUrl, null, additionalHeaders || {});
     }
 
-    public get(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<HttpClientResponse> {
+    public get(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
         return this.request('GET', requestUrl, null, additionalHeaders || {});
     }
 
-    public del(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<HttpClientResponse> {
+    public del(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
         return this.request('DELETE', requestUrl, null, additionalHeaders || {});
     }
 
-    public post(requestUrl: string, data: string, additionalHeaders?: ifm.IHeaders): Promise<HttpClientResponse> {
+    public post(requestUrl: string, data: string, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
         return this.request('POST', requestUrl, data, additionalHeaders || {});
     }
 
-    public patch(requestUrl: string, data: string, additionalHeaders?: ifm.IHeaders): Promise<HttpClientResponse> {
+    public patch(requestUrl: string, data: string, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
         return this.request('PATCH', requestUrl, data, additionalHeaders || {});
     }
 
-    public put(requestUrl: string, data: string, additionalHeaders?: ifm.IHeaders): Promise<HttpClientResponse> {
+    public put(requestUrl: string, data: string, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
         return this.request('PUT', requestUrl, data, additionalHeaders || {});
     }
 
-    public head(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<HttpClientResponse> {
+    public head(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
         return this.request('HEAD', requestUrl, null, additionalHeaders || {});
     }
 
-    public sendStream(verb: string, requestUrl: string, stream: NodeJS.ReadableStream, additionalHeaders?: ifm.IHeaders): Promise<HttpClientResponse> {
+    public sendStream(verb: string, requestUrl: string, stream: NodeJS.ReadableStream, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
         return this.request(verb, requestUrl, stream, additionalHeaders);
     }
 
@@ -180,7 +180,7 @@ export class HttpClient implements ifm.IHttpClient {
      * All other methods such as get, post, patch, and request ultimately call this.
      * Prefer get, del, post and patch
      */
-    public async request(verb: string, requestUrl: string, data: string | NodeJS.ReadableStream, headers: ifm.IHeaders): Promise<HttpClientResponse/* TODO: Make return type interface? */> {
+    public async request(verb: string, requestUrl: string, data: string | NodeJS.ReadableStream, headers: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
         if (this._disposed) {
             throw new Error("Client has already been disposed.");
         }
@@ -189,7 +189,7 @@ export class HttpClient implements ifm.IHttpClient {
         let response: HttpClientResponse = await this.requestRaw(info, data);
 
         // Check if it's an authentication challenge
-        if (response && response.message.statusCode === HttpCodes.Unauthorized) {
+        if (response && response.message && response.message.statusCode === HttpCodes.Unauthorized) {
             let authenticationHandler: ifm.IRequestHandler;
 
             for (let i = 0; i < this.handlers.length; i++) {
@@ -201,16 +201,18 @@ export class HttpClient implements ifm.IHttpClient {
 
             if (authenticationHandler) {
                 return authenticationHandler.handleAuthentication(this, info, data);
-            } else {
-                // We have received an unauthorized response but have no handlers to handle it
+            }  
+            else {
+                // We have received an unauthorized response but have no handlers to handle it.
+                // Let the response return to the caller.
                 return response;
             }
         }
 
         let redirectsRemaining: number = this._maxRedirects;
         while (HttpRedirectCodes.indexOf(response.message.statusCode) != -1
-            && this._allowRedirects
-            && redirectsRemaining > 0) {
+               && this._allowRedirects
+               && redirectsRemaining > 0) {
 
             const redirectUrl: any = response.message.headers["location"];
             if (!redirectUrl) {
@@ -251,7 +253,7 @@ export class HttpClient implements ifm.IHttpClient {
      * @param info 
      * @param data 
      */
-    public requestRaw(info: ifm.IRequestInfo, data: string | NodeJS.ReadableStream): Promise<HttpClientResponse/* TODO: Make return type interface? */> {
+    public requestRaw(info: ifm.IRequestInfo, data: string | NodeJS.ReadableStream): Promise<ifm.IHttpClientResponse> {
         return new Promise<ifm.IHttpClientResponse>((resolve, reject) => {
             var callbackForResult = function (err: any, res: ifm.IHttpClientResponse) {
                 if (err) {
@@ -327,12 +329,12 @@ export class HttpClient implements ifm.IHttpClient {
     }
 
     private _prepareRequest(method: string, requestUrl: string, headers: any): ifm.IRequestInfo {
-        let info: ifm.IRequestInfo = <ifm.IRequestInfo>{};
+        const info: ifm.IRequestInfo = <ifm.IRequestInfo>{};
 
         info.parsedUrl = url.parse(requestUrl);
-        let usingSsl = info.parsedUrl.protocol === 'https:';
+        const usingSsl: boolean = info.parsedUrl.protocol === 'https:';
         info.httpModule = usingSsl ? https : http;
-        var defaultPort: number = usingSsl ? 443 : 80;
+        const defaultPort: number = usingSsl ? 443 : 80;
         info.options = <http.RequestOptions>{};
         info.options.host = info.parsedUrl.hostname;
         info.options.port = info.parsedUrl.port ? parseInt(info.parsedUrl.port) : defaultPort;
