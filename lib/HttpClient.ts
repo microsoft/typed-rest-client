@@ -247,7 +247,7 @@ export class HttpClient implements ifm.IHttpClient {
     }
 
     /**
-     * Lower level raw request.
+     * Raw request.
      * @param info 
      * @param data 
      */
@@ -261,59 +261,17 @@ export class HttpClient implements ifm.IHttpClient {
                 resolve(res);
             };
 
-            this.requestWithCallback(info, data, callbackForResult);
+            this.requestRawWithCallback(info, data, callbackForResult);
         });
-
-        // return new Promise<HttpClientResponse>((resolve, reject) => {
-        //     let socket;
-
-        //     let isDataString = typeof (data) === 'string';
-        //     if (typeof (data) === 'string') {
-        //         info.options.headers["Content-Length"] = Buffer.byteLength(data, 'utf8');
-        //     }
-
-        //     // info.options.agent, this is the keep alive agent but we arent using it...
-        //     let req: http.ClientRequest = info.httpModule.request(info.options, (msg: http.IncomingMessage) => {
-        //         let res: HttpClientResponse = new HttpClientResponse(msg);
-        //         resolve(res);
-        //     });
-
-        //     req.on('socket', (sock) => {
-        //         socket = sock;
-        //     });
-
-        //     // If we ever get disconnected, we want the socket to timeout eventually
-        //     req.setTimeout(this._socketTimeout || 3 * 60000, () => {
-        //         if (socket) {
-        //             socket.end();
-        //         }
-        //         reject(new Error('Request timeout: ' + info.options.path));
-        //     });
-
-        //     req.on('error', function (err) {
-        //         // err has statusCode property
-        //         // res should have headers
-        //         reject(err);
-        //     });
-
-        //     if (data && typeof (data) === 'string') {
-        //         req.write(data, 'utf8');
-        //     }
-
-        //     if (data && typeof (data) !== 'string') {
-        //         data.on('close', function () {
-        //             req.end();
-        //         });
-
-        //         data.pipe(req);
-        //     }
-        //     else {
-        //         req.end();
-        //     }
-        // });
     }
 
-    public requestWithCallback(info: ifm.IRequestInfo, data: string | NodeJS.ReadableStream, onResult: (err: any, res: ifm.IHttpClientResponse) => void): void {
+    /**
+     * Raw request with callback.
+     * @param info 
+     * @param data 
+     * @param onResult 
+     */
+    public requestRawWithCallback(info: ifm.IRequestInfo, data: string | NodeJS.ReadableStream, onResult: (err: any, res: ifm.IHttpClientResponse) => void): void {
         let socket;
         
         let isDataString = typeof (data) === 'string';
@@ -325,11 +283,6 @@ export class HttpClient implements ifm.IHttpClient {
         var handleResult = (err: any, res: HttpClientResponse) => {
             if (!callbackCalled) {
                 callbackCalled = true;
-
-                // This line is very important, we get a 401 in NTLM without it... same as what we need to do in the request method above...
-                //res.readBody().then(() => {  });
-
-                // Here we convert the incoming message to an HttpClientResponse
                 onResult(err, res);
             }
         };

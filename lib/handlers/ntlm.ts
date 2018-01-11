@@ -136,7 +136,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
         type1info.parsedUrl = requestInfo.parsedUrl;
         type1info.options = _.extend(type1options, _.omit(requestInfo.options, 'headers'));
 
-        return httpClient.requestWithCallback(type1info, objs, finalCallback);
+        return httpClient.requestRawWithCallback(type1info, objs, finalCallback);
     }
 
     // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
@@ -163,6 +163,6 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
         type3options.headers = _.extend(type3options.headers, requestInfo.options.headers);
         type3info.options = _.extend(type3options, _.omit(requestInfo.options, 'headers'));
 
-        return httpClient.requestWithCallback(type3info, objs, callback);
+        return httpClient.requestRawWithCallback(type3info, objs, callback);
     }
 }
