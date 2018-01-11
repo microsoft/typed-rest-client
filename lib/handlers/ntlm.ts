@@ -119,7 +119,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
                 'Authorization': type1msg
             },
             timeout: requestInfo.options.timeout || 0,
-            agent: requestInfo.httpModule, // TODO: Is this the keepalive agent? It should be.
+            agent: requestInfo.httpModule,
             // don't redirect because http could change to https which means we need to change the keepaliveAgent
             //allowRedirects: false
         };
@@ -147,7 +147,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
                 'Connection': 'Close'
             },
             //allowRedirects: false,
-            agent: requestInfo.httpModule, // TODO: Is this the keepalive agent? It should be.
+            agent: requestInfo.httpModule,
         };
 
         const type3info = <ifm.IRequestInfo>{};
