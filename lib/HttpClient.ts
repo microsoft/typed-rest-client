@@ -252,44 +252,96 @@ export class HttpClient implements ifm.IHttpClient {
      * @param data 
      */
     public requestRaw(info: ifm.IRequestInfo, data: string | NodeJS.ReadableStream): Promise<HttpClientResponse/* TODO: Make return type interface? */> {
-        // TODO: probably get rid of this and make the method below be requestRaw, makes sense for it to be a callback
-        return new Promise<ifm.IHttpClientResponse>((resolve, reject) => {
-            var callbackForResult = function (err: any, res: ifm.IHttpClientResponse) {
-                resolve(res);
-            };
+        // return new Promise<ifm.IHttpClientResponse>((resolve, reject) => {
+        //     var callbackForResult = function (err: any, res: ifm.IHttpClientResponse) {
+        //         resolve(res);
+        //     };
 
-            this.requestWithCallback(info, data, callbackForResult);
+        //     this.handleAuthenticationPrivate(httpClient, requestInfo, objs, callbackForResult);
+        // });
+
+        return new Promise<HttpClientResponse>((resolve, reject) => {
+            let socket;
+
+            let isDataString = typeof (data) === 'string';
+            if (typeof (data) === 'string') {
+                info.options.headers["Content-Length"] = Buffer.byteLength(data, 'utf8');
+            }
+
+            // info.options.agent, this is the keep alive agent but we arent using it...
+            let req: http.ClientRequest = info.httpModule.request(info.options, (msg: http.IncomingMessage) => {
+                let res: HttpClientResponse = new HttpClientResponse(msg);
+                resolve(res);
+            });
+
+            req.on('socket', (sock) => {
+                socket = sock;
+            });
+
+            // If we ever get disconnected, we want the socket to timeout eventually
+            req.setTimeout(this._socketTimeout || 3 * 60000, () => {
+                if (socket) {
+                    socket.end();
+                }
+                reject(new Error('Request timeout: ' + info.options.path));
+            });
+
+            req.on('error', function (err) {
+                // err has statusCode property
+                // res should have headers
+                reject(err);
+            });
+
+            if (data && typeof (data) === 'string') {
+                req.write(data, 'utf8');
+            }
+
+            if (data && typeof (data) !== 'string') {
+                data.on('close', function () {
+                    req.end();
+                });
+
+                data.pipe(req);
+            }
+            else {
+                req.end();
+            }
         });
     }
 
     public requestWithCallback(info: ifm.IRequestInfo, data: string | NodeJS.ReadableStream, onResult: (err: any, res: ifm.IHttpClientResponse) => void): void {
-        let socket;
-        
-        let isDataString = typeof (data) === 'string';
-        if (typeof (data) === 'string') {
-            info.options.headers["Content-Length"] = Buffer.byteLength(data, 'utf8');
+        var reqData;
+        var socket;
+
+        if (data) {
+            reqData = data;
         }
 
         var callbackCalled: boolean = false;
-        var handleResult = (err: any, res: ifm.IHttpClientResponse) => {
+        var handleResult = (err: any, res: http.IncomingMessage) => {
             if (!callbackCalled) {
                 callbackCalled = true;
-                onResult(err, res);
+
+                let parsedResponse = new HttpClientResponse(res);
+                parsedResponse.readBody().then((x) => {
+                    //console.log('body: ' + x.substring(1,300));
+                });
+
+                // Here we convert the incoming message to an HttpClientResponse
+                onResult(err, parsedResponse);
             }
         };
 
-        // info.options.agent, this is the keep alive agent but we arent using it...
-        let req: http.ClientRequest = info.httpModule.request(info.options, (msg: http.IncomingMessage) => {
-            let res: HttpClientResponse = new HttpClientResponse(msg);
-            handleResult(null, res);
+        var req = info.httpModule.request(info.options, function (msg: http.IncomingMessage) {
+            handleResult(null, msg);
         });
-        
-        req.on('socket', (sock) => {
+
+        req.on('socket', function (sock) {
             socket = sock;
         });
 
         // If we ever get disconnected, we want the socket to timeout eventually
-        req.setTimeout(this._socketTimeout || /*3 * 60000*/10000, () => {
+        req.setTimeout(this._socketTimeout || /*3 * 60000*/10000, function () {
             if (socket) {
                 socket.end();
             }
@@ -297,76 +349,15 @@ export class HttpClient implements ifm.IHttpClient {
         });
 
         req.on('error', function (err) {
-            // err has statusCode property
-            // res should have headers
             handleResult(err, null);
         });
 
-        if (data && typeof (data) === 'string') {
-            req.write(data, 'utf8');
+        if (reqData) {
+            req.write(reqData, 'utf8');
         }
 
-        if (data && typeof (data) !== 'string') {
-            data.on('close', function () {
-                req.end();
-            });
-
-            data.pipe(req);
-        }
-        else {
-            req.end();
-        }
+        req.end();
     }
-
-    // public requestWithCallback(info: ifm.IRequestInfo, data: string | NodeJS.ReadableStream, onResult: (err: any, res: ifm.IHttpClientResponse) => void): void {
-    //     var reqData;
-    //     var socket;
-
-    //     if (data) {
-    //         reqData = data;
-    //     }
-
-    //     var callbackCalled: boolean = false;
-    //     var handleResult = (err: any, res: http.IncomingMessage) => {
-    //         if (!callbackCalled) {
-    //             callbackCalled = true;
-
-    //             let parsedResponse = new HttpClientResponse(res);
-    //             parsedResponse.readBody().then((x) => {
-    //                 //console.log('body: ' + x.substring(1,300));
-    //             });
-
-    //             // Here we convert the incoming message to an HttpClientResponse
-    //             onResult(err, parsedResponse);
-    //         }
-    //     };
-
-    //     var req = info.httpModule.request(info.options, function (msg: http.IncomingMessage) {
-    //         handleResult(null, msg);
-    //     });
-
-    //     req.on('socket', function (sock) {
-    //         socket = sock;
-    //     });
-
-    //     // If we ever get disconnected, we want the socket to timeout eventually
-    //     req.setTimeout(this._socketTimeout || /*3 * 60000*/10000, function () {
-    //         if (socket) {
-    //             socket.end();
-    //         }
-    //         handleResult(new Error('Request timeout: ' + info.options.path), null);
-    //     });
-
-    //     req.on('error', function (err) {
-    //         handleResult(err, null);
-    //     });
-
-    //     if (reqData) {
-    //         req.write(reqData, 'utf8');
-    //     }
-
-    //     req.end();
-    // }
 
     private _prepareRequest(method: string, requestUrl: string, headers: any): ifm.IRequestInfo {
         let info: ifm.IRequestInfo = <ifm.IRequestInfo>{};
