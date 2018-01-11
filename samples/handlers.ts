@@ -5,11 +5,11 @@ import * as httpm from 'typed-rest-client/HttpClient';
 export async function run() {
     cm.banner('Handler Samples');
 
-    var username = "stfrance"
-    var password = process.env["PW"];
-    var workstation = "STEPHENMICHAELF";
-    var domain = "NORTHAMERICA";
-    var url = "http://stephenmichaelf:8080/tfs/DefaultCollection/_projects?_a=new";
+    var username = "";
+    var password = "";
+    var workstation = "";
+    var domain = "";
+    var url = "";
     
     const basicHandler: hm.BasicCredentialHandler = new hm.BasicCredentialHandler(username, password);
     const patHandler: hm.PersonalAccessTokenCredentialHandler = new hm.PersonalAccessTokenCredentialHandler('scbfb44vxzku5l4xgc3qfazn3lpk4awflfryc76esaiq7aypcbhs');
@@ -17,7 +17,7 @@ export async function run() {
 
     // These handlers would then be passed to the constructors of the http or rest modules
 
-    const httpClient: httpm.HttpClient = new httpm.HttpClient('vsts-node-api', [ntlmHandler]);
-    const response: httpm.HttpClientResponse = await httpClient.get(url);
-    console.log("response code: " + response.message.statusCode);
+    // const httpClient: httpm.HttpClient = new httpm.HttpClient('vsts-node-api', [ntlmHandler]);
+    // const response: httpm.HttpClientResponse = await httpClient.get(url);
+    // console.log("response code: " + response.message.statusCode);
 }

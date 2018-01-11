@@ -4,8 +4,6 @@
 import ifm = require('../Interfaces');
 import http = require("http");
 import https = require("https");
-// import timers = require('timers');
-// import url = require('url');
 
 var _ = require("underscore");
 var ntlm = require("../opensource/node-http-ntlm/ntlm");

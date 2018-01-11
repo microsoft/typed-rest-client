@@ -252,6 +252,7 @@ describe('Rest Tests', function () {
 
     it('maintains the path from the base url where request has query parameters', async() => {
         // Arrange
+        this.timeout(3000);
         let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything/multiple');
 
         // Act

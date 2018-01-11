@@ -7,7 +7,6 @@ import https = require("https");
 import tunnel = require("tunnel");
 import ifm = require('./Interfaces');
 import fs = require('fs');
-// var _ = require("underscore");
 
 export enum HttpCodes {
     OK = 200,
