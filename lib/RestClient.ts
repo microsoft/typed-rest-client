@@ -174,9 +174,12 @@ export class RestClient {
 
     private async _processResponse<T>(res: httpm.HttpClientResponse, options: IRequestOptions): Promise<IRestResponse<T>> {
         return new Promise<IRestResponse<T>>(async (resolve, reject) => {
-            let rres: IRestResponse<T> = <IRestResponse<T>>{};
-            let statusCode: number = res.message.statusCode;
-            rres.statusCode = statusCode;
+            const statusCode: number = res.message.statusCode;
+
+            const rres: IRestResponse<T> = {
+                statusCode: statusCode,
+                result: null,
+            };
 
             // not found leads to null obj returned
             if (statusCode == httpm.HttpCodes.NotFound) {

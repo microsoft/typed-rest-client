@@ -130,7 +130,7 @@ describe('Rest Tests', function () {
             let restRes: restm.IRestResponse<HttpBinData> = await _rest.get<HttpBinData>('https://httpbin.org/status/404');
             
             assert(restRes.statusCode == 404, "statusCode should be 404");
-            assert(restRes.result == null, "object should be null");
+            assert(restRes.result === null, "object should be null");
         }
         catch(err) {
             assert(false, "should not throw");
