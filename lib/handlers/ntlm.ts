@@ -50,11 +50,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
                 const mechanisms = wwwAuthenticate.split(', ');
                 const index = mechanisms.indexOf("NTLM");
                 if (index >= 0) {
-                    // Check specifically for 'NTLM' since www-authenticate header can also contain
-                    // the Authorization value to use in the form of 'NTLM TlRMTVNT....AAAADw=='
-                    if (mechanisms[index].length == 4) {
-                        return true;
-                    }
+                    return true;
                 }
             }
         }
@@ -65,6 +61,9 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
     public handleAuthentication(httpClient: ifm.IHttpClient, requestInfo: ifm.IRequestInfo, objs): Promise<ifm.IHttpClientResponse> {
         return new Promise<ifm.IHttpClientResponse>((resolve, reject) => {
             var callbackForResult = function (err: any, res: ifm.IHttpClientResponse) {
+                if(err) {
+                    reject(err);
+                }
                 // We have to readbody on the response before continuing otherwise there is a hang.
                 res.readBody().then(() => { 
                     resolve(res);
@@ -102,6 +101,11 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
 
             /// We have to readbody on the response before continuing otherwise there is a hang.
             res.readBody().then(() => { 
+                // It is critical that we have setImmediate here due to how connection requests are queued.
+                // If setImmediate is removed then the NTLM handshake will not work.
+                // setImmediate allows us to queue a second request on the same connection. If this second 
+                // request is not queued on the connection when the first request finishes then node closes
+                // the connection. NTLM requires both requests to be on the same connection so we need this.
                 setImmediate(function () {
                     self.sendType3Message(httpClient, requestInfo, objs, res, finalCallback);
                 });
@@ -120,8 +124,6 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
             },
             timeout: requestInfo.options.timeout || 0,
             agent: requestInfo.httpModule,
-            // don't redirect because http could change to https which means we need to change the keepaliveAgent
-            //allowRedirects: false
         };
 
         const type1info = <ifm.IRequestInfo>{};
@@ -146,7 +148,6 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
                 'Authorization': type3msg,
                 'Connection': 'Close'
             },
-            //allowRedirects: false,
             agent: requestInfo.httpModule,
         };
 

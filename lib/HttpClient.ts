@@ -254,7 +254,7 @@ export class HttpClient implements ifm.IHttpClient {
      */
     public requestRaw(info: ifm.IRequestInfo, data: string | NodeJS.ReadableStream): Promise<ifm.IHttpClientResponse> {
         return new Promise<ifm.IHttpClientResponse>((resolve, reject) => {
-            var callbackForResult = function (err: any, res: ifm.IHttpClientResponse) {
+            let callbackForResult = function (err: any, res: ifm.IHttpClientResponse) {
                 if (err) {
                     reject(err);
                 }
@@ -280,8 +280,8 @@ export class HttpClient implements ifm.IHttpClient {
             info.options.headers["Content-Length"] = Buffer.byteLength(data, 'utf8');
         }
 
-        var callbackCalled: boolean = false;
-        var handleResult = (err: any, res: HttpClientResponse) => {
+        let callbackCalled: boolean = false;
+        let handleResult = (err: any, res: HttpClientResponse) => {
             if (!callbackCalled) {
                 callbackCalled = true;
                 onResult(err, res);
@@ -371,15 +371,15 @@ export class HttpClient implements ifm.IHttpClient {
             return agent;
         }
 
-        var parsedUrl = url.parse(requestUrl);
-        let usingSsl = parsedUrl.protocol === 'https:';
+        let parsedUrl = url.parse(requestUrl);
+        const usingSsl = parsedUrl.protocol === 'https:';
         let maxSockets = 100;
         if (!!this.requestOptions) {
             maxSockets = this.requestOptions.maxSockets || http.globalAgent.maxSockets
         }
 
         if (useProxy) {
-            var agentOptions: tunnel.TunnelOptions = {
+            const agentOptions: tunnel.TunnelOptions = {
                 maxSockets: maxSockets,
                 keepAlive: this._keepAlive,
                 proxy: {
@@ -389,8 +389,8 @@ export class HttpClient implements ifm.IHttpClient {
                 },
             };
 
-            var tunnelAgent: Function;
-            var overHttps = proxy.proxyUrl.protocol === 'https:';
+            let tunnelAgent: Function;
+            const overHttps = proxy.proxyUrl.protocol === 'https:';
             if (usingSsl) {
                 tunnelAgent = overHttps ? tunnel.httpsOverHttps : tunnel.httpsOverHttp;
             } else {
@@ -403,7 +403,7 @@ export class HttpClient implements ifm.IHttpClient {
 
         // if reusing agent across request and tunneling agent isn't assigned create a new agent
         if (this._keepAlive && !agent) {
-            var options = { keepAlive: this._keepAlive, maxSockets: maxSockets };
+            const options = { keepAlive: this._keepAlive, maxSockets: maxSockets };
             agent = usingSsl ? new https.Agent(options) : new http.Agent(options);
             this._agent = agent;
         }
@@ -428,7 +428,7 @@ export class HttpClient implements ifm.IHttpClient {
     }
 
     private _getProxy(requestUrl) {
-        var parsedUrl = url.parse(requestUrl);
+        const parsedUrl = url.parse(requestUrl);
         let usingSsl = parsedUrl.protocol === 'https:';
         let proxyConfig: ifm.IProxyConfiguration = this._httpProxy;
 
