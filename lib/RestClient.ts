@@ -9,7 +9,7 @@ import util = require("./Util");
 
 export interface IRestResponse<T> {
     statusCode: number,
-    result: T
+    result: T | null
 }
 
 export interface IRequestOptions {
