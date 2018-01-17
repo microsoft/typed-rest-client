@@ -36,9 +36,9 @@ export enum HttpCodes {
     GatewayTimeout = 504,
 }
 
-const HttpRedirectCodes: number[] = [ HttpCodes.MovedPermanently, HttpCodes.ResourceMoved, HttpCodes.TemporaryRedirect, HttpCodes.PermanentRedirect ];
+const HttpRedirectCodes: number[] = [HttpCodes.MovedPermanently, HttpCodes.ResourceMoved, HttpCodes.TemporaryRedirect, HttpCodes.PermanentRedirect];
 
-export class HttpClientResponse {
+export class HttpClientResponse implements ifm.IHttpClientResponse {
     constructor(message: http.IncomingMessage) {
         this.message = message;
     }
@@ -71,11 +71,11 @@ export function isHttps(requestUrl: string) {
 }
 
 enum EnvironmentVariables {
-    HTTP_PROXY = "HTTP_PROXY", 
+    HTTP_PROXY = "HTTP_PROXY",
     HTTPS_PROXY = "HTTPS_PROXY",
 }
 
-export class HttpClient {
+export class HttpClient implements ifm.IHttpClient {
     userAgent: string;
     handlers: ifm.IRequestHandler[];
     requestOptions: ifm.IRequestOptions;
@@ -97,7 +97,7 @@ export class HttpClient {
 
     constructor(userAgent: string, handlers?: ifm.IRequestHandler[], requestOptions?: ifm.IRequestOptions) {
         this.userAgent = userAgent;
-        this.handlers = handlers;
+        this.handlers = handlers || [];
         this.requestOptions = requestOptions;
         if (requestOptions) {
             if (requestOptions.ignoreSslError != null) {
@@ -142,35 +142,35 @@ export class HttpClient {
         }
     }
 
-    public options(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<HttpClientResponse> {
+    public options(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
         return this.request('OPTIONS', requestUrl, null, additionalHeaders || {});
     }
 
-    public get(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<HttpClientResponse> {
+    public get(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
         return this.request('GET', requestUrl, null, additionalHeaders || {});
     }
 
-    public del(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<HttpClientResponse> {
+    public del(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
         return this.request('DELETE', requestUrl, null, additionalHeaders || {});
     }
 
-    public post(requestUrl: string, data: string, additionalHeaders?: ifm.IHeaders): Promise<HttpClientResponse> {
+    public post(requestUrl: string, data: string, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
         return this.request('POST', requestUrl, data, additionalHeaders || {});
     }
 
-    public patch(requestUrl: string, data: string, additionalHeaders?: ifm.IHeaders): Promise<HttpClientResponse> {
+    public patch(requestUrl: string, data: string, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
         return this.request('PATCH', requestUrl, data, additionalHeaders || {});
     }
 
-    public put(requestUrl: string, data: string, additionalHeaders?: ifm.IHeaders): Promise<HttpClientResponse> {
+    public put(requestUrl: string, data: string, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
         return this.request('PUT', requestUrl, data, additionalHeaders || {});
     }
 
-    public head(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<HttpClientResponse> {
+    public head(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
         return this.request('HEAD', requestUrl, null, additionalHeaders || {});
     }
 
-    public sendStream(verb: string, requestUrl: string, stream: NodeJS.ReadableStream, additionalHeaders?: ifm.IHeaders): Promise<HttpClientResponse> {
+    public sendStream(verb: string, requestUrl: string, stream: NodeJS.ReadableStream, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
         return this.request(verb, requestUrl, stream, additionalHeaders);
     }
 
@@ -179,13 +179,34 @@ export class HttpClient {
      * All other methods such as get, post, patch, and request ultimately call this.
      * Prefer get, del, post and patch
      */
-    public async request(verb: string, requestUrl: string, data: string | NodeJS.ReadableStream, headers: ifm.IHeaders): Promise<HttpClientResponse> {
+    public async request(verb: string, requestUrl: string, data: string | NodeJS.ReadableStream, headers: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
         if (this._disposed) {
-            throw new Error("Client has already been disposed");
+            throw new Error("Client has already been disposed.");
         }
 
         let info: RequestInfo = this._prepareRequest(verb, requestUrl, headers);
-        let response: HttpClientResponse = await this._requestRaw(info, data);
+        let response: HttpClientResponse = await this.requestRaw(info, data);
+
+        // Check if it's an authentication challenge
+        if (response && response.message && response.message.statusCode === HttpCodes.Unauthorized) {
+            let authenticationHandler: ifm.IRequestHandler;
+
+            for (let i = 0; i < this.handlers.length; i++) {
+                if (this.handlers[i].canHandleAuthentication(response)) {
+                    authenticationHandler = this.handlers[i];
+                    break;
+                }
+            }
+
+            if (authenticationHandler) {
+                return authenticationHandler.handleAuthentication(this, info, data);
+            }  
+            else {
+                // We have received an unauthorized response but have no handlers to handle it.
+                // Let the response return to the caller.
+                return response;
+            }
+        }
 
         let redirectsRemaining: number = this._maxRedirects;
         while (HttpRedirectCodes.indexOf(response.message.statusCode) != -1
@@ -204,7 +225,7 @@ export class HttpClient {
 
             // let's make the request with the new redirectUrl
             info = this._prepareRequest(verb, redirectUrl, headers);
-            response = await this._requestRaw(info, data);
+            response = await this.requestRaw(info, data);
             redirectsRemaining--;
         }
 
@@ -226,63 +247,93 @@ export class HttpClient {
         this._disposed = true;
     }
 
-    private _requestRaw(info: RequestInfo, data: string | NodeJS.ReadableStream): Promise<HttpClientResponse> {
-        return new Promise<HttpClientResponse>((resolve, reject) => {
-            let socket;
-
-            let isDataString = typeof (data) === 'string';
-
-            if (typeof (data) === 'string') {
-                info.options.headers["Content-Length"] = Buffer.byteLength(data, 'utf8');
-            }
-
-            let req: http.ClientRequest = info.httpModule.request(info.options, (msg: http.IncomingMessage) => {
-                let res: HttpClientResponse = new HttpClientResponse(msg);
-                resolve(res);
-            });
-
-            req.on('socket', (sock) => {
-                socket = sock;
-            });
-
-            // If we ever get disconnected, we want the socket to timeout eventually
-            req.setTimeout(this._socketTimeout || 3 * 60000, () => {
-                if (socket) {
-                    socket.end();
+    /**
+     * Raw request.
+     * @param info 
+     * @param data 
+     */
+    public requestRaw(info: ifm.IRequestInfo, data: string | NodeJS.ReadableStream): Promise<ifm.IHttpClientResponse> {
+        return new Promise<ifm.IHttpClientResponse>((resolve, reject) => {
+            let callbackForResult = function (err: any, res: ifm.IHttpClientResponse) {
+                if (err) {
+                    reject(err);
                 }
-                reject(new Error('Request timeout: ' + info.options.path));
-            });
 
-            req.on('error', function (err) {
-                // err has statusCode property
-                // res should have headers
-                reject(err);
-            });
+                resolve(res);
+            };
 
-            if (data && typeof (data) === 'string') {
-                req.write(data, 'utf8');
-            }
-
-            if (data && typeof (data) !== 'string') {
-                data.on('close', function () {
-                    req.end();
-                });
-
-                data.pipe(req);
-            }
-            else {
-                req.end();
-            }
+            this.requestRawWithCallback(info, data, callbackForResult);
         });
     }
 
-    private _prepareRequest(method: string, requestUrl: string, headers: any): RequestInfo {
-        let info: RequestInfo = <RequestInfo>{};
+    /**
+     * Raw request with callback.
+     * @param info 
+     * @param data 
+     * @param onResult 
+     */
+    public requestRawWithCallback(info: ifm.IRequestInfo, data: string | NodeJS.ReadableStream, onResult: (err: any, res: ifm.IHttpClientResponse) => void): void {
+        let socket;
+        
+        let isDataString = typeof (data) === 'string';
+        if (typeof (data) === 'string') {
+            info.options.headers["Content-Length"] = Buffer.byteLength(data, 'utf8');
+        }
+
+        let callbackCalled: boolean = false;
+        let handleResult = (err: any, res: HttpClientResponse) => {
+            if (!callbackCalled) {
+                callbackCalled = true;
+                onResult(err, res);
+            }
+        };
+
+        let req: http.ClientRequest = info.httpModule.request(info.options, (msg: http.IncomingMessage) => {
+            let res: HttpClientResponse = new HttpClientResponse(msg);
+            handleResult(null, res);
+        });
+
+        req.on('socket', (sock) => {
+            socket = sock;
+        });
+
+        // If we ever get disconnected, we want the socket to timeout eventually
+        req.setTimeout(this._socketTimeout || 3 * 60000, () => {
+            if (socket) {
+                socket.end();
+            }
+            handleResult(new Error('Request timeout: ' + info.options.path), null);
+        });
+
+        req.on('error', function (err) {
+            // err has statusCode property
+            // res should have headers
+            handleResult(err, null);
+        });
+
+        if (data && typeof (data) === 'string') {
+            req.write(data, 'utf8');
+        }
+
+        if (data && typeof (data) !== 'string') {
+            data.on('close', function () {
+                req.end();
+            });
+
+            data.pipe(req);
+        }
+        else {
+            req.end();
+        }
+    }
+
+    private _prepareRequest(method: string, requestUrl: string, headers: any): ifm.IRequestInfo {
+        const info: ifm.IRequestInfo = <ifm.IRequestInfo>{};
 
         info.parsedUrl = url.parse(requestUrl);
-        let usingSsl = info.parsedUrl.protocol === 'https:';
+        const usingSsl: boolean = info.parsedUrl.protocol === 'https:';
         info.httpModule = usingSsl ? https : http;
-        var defaultPort: number = usingSsl ? 443 : 80;
+        const defaultPort: number = usingSsl ? 443 : 80;
         info.options = <http.RequestOptions>{};
         info.options.host = info.parsedUrl.hostname;
         info.options.port = info.parsedUrl.port ? parseInt(info.parsedUrl.port) : defaultPort;
@@ -320,15 +371,15 @@ export class HttpClient {
             return agent;
         }
 
-        var parsedUrl = url.parse(requestUrl);
-        let usingSsl = parsedUrl.protocol === 'https:';
+        let parsedUrl = url.parse(requestUrl);
+        const usingSsl = parsedUrl.protocol === 'https:';
         let maxSockets = 100;
         if (!!this.requestOptions) {
             maxSockets = this.requestOptions.maxSockets || http.globalAgent.maxSockets
         }
 
         if (useProxy) {
-            var agentOptions: tunnel.TunnelOptions = {
+            const agentOptions: tunnel.TunnelOptions = {
                 maxSockets: maxSockets,
                 keepAlive: this._keepAlive,
                 proxy: {
@@ -338,8 +389,8 @@ export class HttpClient {
                 },
             };
 
-            var tunnelAgent: Function;
-            var overHttps = proxy.proxyUrl.protocol === 'https:';
+            let tunnelAgent: Function;
+            const overHttps = proxy.proxyUrl.protocol === 'https:';
             if (usingSsl) {
                 tunnelAgent = overHttps ? tunnel.httpsOverHttps : tunnel.httpsOverHttp;
             } else {
@@ -352,13 +403,13 @@ export class HttpClient {
 
         // if reusing agent across request and tunneling agent isn't assigned create a new agent
         if (this._keepAlive && !agent) {
-            var options = { keepAlive: this._keepAlive, maxSockets: maxSockets };
+            const options = { keepAlive: this._keepAlive, maxSockets: maxSockets };
             agent = usingSsl ? new https.Agent(options) : new http.Agent(options);
             this._agent = agent;
         }
-        
+
         // if not using private agent and tunnel agent isn't setup then use global agent
-        if(!agent) {
+        if (!agent) {
             agent = usingSsl ? https.globalAgent : http.globalAgent;
         }
 
@@ -377,7 +428,7 @@ export class HttpClient {
     }
 
     private _getProxy(requestUrl) {
-        var parsedUrl = url.parse(requestUrl);
+        const parsedUrl = url.parse(requestUrl);
         let usingSsl = parsedUrl.protocol === 'https:';
         let proxyConfig: ifm.IProxyConfiguration = this._httpProxy;
 

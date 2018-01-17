@@ -64,6 +64,8 @@ describe('Rest Tests', function () {
     }); 
     
     it('replaces a resource', async() => {
+        this.timeout(3000);
+
         let res: any = { name: 'foo' };
         let restRes: restm.IRestResponse<HttpBinData> = await _rest.replace<HttpBinData>('https://httpbin.org/put', res);
         assert(restRes.statusCode == 200, "statusCode should be 200");
@@ -126,6 +128,8 @@ describe('Rest Tests', function () {
     // should return a null resource, 404 status, and should not throw
     //
     it('gets a non-existant resource (404)', async() => {
+        this.timeout(3000);
+
         try {
             let restRes: restm.IRestResponse<HttpBinData> = await _rest.get<HttpBinData>('https://httpbin.org/status/404');
             
@@ -248,6 +252,7 @@ describe('Rest Tests', function () {
 
     it('maintains the path from the base url where request has query parameters', async() => {
         // Arrange
+        this.timeout(3000);
         let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything/multiple');
 
         // Act

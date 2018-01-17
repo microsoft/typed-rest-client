@@ -18,10 +18,11 @@ export class PersonalAccessTokenCredentialHandler implements ifm.IRequestHandler
     }
 
     // This handler cannot handle 401
-    canHandleAuthentication(res: ifm.IHttpResponse): boolean {
+    canHandleAuthentication(response: ifm.IHttpClientResponse): boolean {
         return false;
     }
 
-    handleAuthentication(httpClient, protocol, options, objs, finalCallback): void {
+    handleAuthentication(httpClient: ifm.IHttpClient, requestInfo: ifm.IRequestInfo, objs): Promise<ifm.IHttpClientResponse> {
+        return null;
     }
 }
