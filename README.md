@@ -2,15 +2,11 @@
 
 A lightweight Rest and Http Client optimized for use with TypeScript with generics and async await.
 
-## Status
-
-Stable version 0.15.6 and 1.0 is in preview (npm install typed-rest-client@preview).  We expect to release 1.0 very soon.
-
 ## Features
 
   - Rest and Http Client with typescript generics and async/await/Promises
   - Typings included so no need to acquire separately (great for intellisense and no versioning drift)
-  - Basic, Bearer and NTLM Support out of the box
+  - Basic, Bearer and NTLM Support out of the box.  Extensible handlers for others.
   - Proxy support
   - Certificate support (Self-signed server and client cert)
   - Redirects supported
