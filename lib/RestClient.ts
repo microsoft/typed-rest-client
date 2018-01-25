@@ -176,14 +176,14 @@ export class RestClient {
         return new Promise<IRestResponse<T>>(async (resolve, reject) => {
             const statusCode: number = res.message.statusCode;
 
-            const rres: IRestResponse<T> = {
+            const response: IRestResponse<T> = {
                 statusCode: statusCode,
                 result: null,
             };
 
             // not found leads to null obj returned
             if (statusCode == httpm.HttpCodes.NotFound) {
-                resolve(rres);
+                resolve(response);
             }
 
             let obj: any;
@@ -194,10 +194,10 @@ export class RestClient {
                 if (contents && contents.length > 0) {
                     obj = JSON.parse(contents);
                     if (options && options.responseProcessor) {
-                        rres.result = options.responseProcessor(obj);
+                        response.result = options.responseProcessor(obj);
                     }
                     else {
-                        rres.result = obj;
+                        response.result = obj;
                     }
                 }
             }
@@ -220,13 +220,13 @@ export class RestClient {
 
                 // attach statusCode and body obj (if available) to the error object
                 err['statusCode'] = statusCode;
-                if (rres.result) {
-                    err['result'] = rres.result;
+                if (response.result) {
+                    err['result'] = response.result;
                 }
 
                 reject(err);
             } else {
-                resolve(rres);
+                resolve(response);
             }
         });
     }
