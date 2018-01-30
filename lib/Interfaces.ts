@@ -17,7 +17,7 @@ export interface IHttpClient {
     del(requestUrl: string, additionalHeaders?: IHeaders): Promise<IHttpClientResponse>;
     post(requestUrl: string, data: string, additionalHeaders?: IHeaders): Promise<IHttpClientResponse>;
     patch(requestUrl: string, data: string, additionalHeaders?: IHeaders): Promise<IHttpClientResponse>;
-    put(requestUrl: string, data: string, additionalHeaders?: IHeaders): Promise<IHttpClientResponse>;        
+    put(requestUrl: string, data: string, additionalHeaders?: IHeaders): Promise<IHttpClientResponse>;
     sendStream(verb: string, requestUrl: string, stream: NodeJS.ReadableStream, additionalHeaders?: IHeaders): Promise<IHttpClientResponse>;
     request(verb: string, requestUrl: string, data: string | NodeJS.ReadableStream, headers: IHeaders): Promise<IHttpClientResponse>;
     requestRaw(info: IRequestInfo, data: string | NodeJS.ReadableStream): Promise<IHttpClientResponse>;
@@ -25,7 +25,7 @@ export interface IHttpClient {
 }
 
 export interface IRequestHandler {
-    prepareRequest(options: http.RequestOptions): void;
+    prepareRequest(options: http.RequestOptions, data?: string | NodeJS.ReadableStream): void;
     canHandleAuthentication(response: IHttpClientResponse): boolean;
     handleAuthentication(httpClient: IHttpClient, requestInfo: IRequestInfo, objs): Promise<IHttpClientResponse>;
 }
@@ -47,7 +47,7 @@ export interface IRequestOptions {
     ignoreSslError?: boolean,
     proxy?: IProxyConfiguration,
     cert?: ICertConfiguration,
-    allowRedirects?: boolean, 
+    allowRedirects?: boolean,
     maxRedirects?: number,
     maxSockets?: number,
     keepAlive?: boolean

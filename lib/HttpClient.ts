@@ -184,7 +184,7 @@ export class HttpClient implements ifm.IHttpClient {
             throw new Error("Client has already been disposed.");
         }
 
-        let info: RequestInfo = this._prepareRequest(verb, requestUrl, headers);
+        let info: RequestInfo = this._prepareRequest(verb, requestUrl, headers, data);
         let response: HttpClientResponse = await this.requestRaw(info, data);
 
         // Check if it's an authentication challenge
@@ -224,7 +224,7 @@ export class HttpClient implements ifm.IHttpClient {
             await response.readBody();
 
             // let's make the request with the new redirectUrl
-            info = this._prepareRequest(verb, redirectUrl, headers);
+            info = this._prepareRequest(verb, redirectUrl, headers, data);
             response = await this.requestRaw(info, data);
             redirectsRemaining--;
         }
@@ -323,7 +323,7 @@ export class HttpClient implements ifm.IHttpClient {
         }
     }
 
-    private _prepareRequest(method: string, requestUrl: string, headers: any): ifm.IRequestInfo {
+    private _prepareRequest(method: string, requestUrl: string, headers: any, data: string | NodeJS.ReadableStream): ifm.IRequestInfo {
         const info: ifm.IRequestInfo = <ifm.IRequestInfo>{};
 
         info.parsedUrl = url.parse(requestUrl);
@@ -342,7 +342,7 @@ export class HttpClient implements ifm.IHttpClient {
         // gives handlers an opportunity to participate
         if (this.handlers) {
             this.handlers.forEach((handler) => {
-                handler.prepareRequest(info.options);
+                handler.prepareRequest(info.options, data);
             });
         }
 
