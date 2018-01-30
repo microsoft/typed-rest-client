@@ -239,11 +239,7 @@ export class HttpClient implements ifm.IHttpClient {
         if (this._agent) {
             this._agent.destroy();
         }
-
-        if (this._proxyAgent) {
-            this._proxyAgent.destroy();
-        }
-
+        
         this._disposed = true;
     }
 
