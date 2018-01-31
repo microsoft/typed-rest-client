@@ -49,6 +49,10 @@ Other 4xx and 5xx errors will throw.  The status code will be attached to the er
 
 See [rest tests](./test/resttests.ts) for detailed examples.
 
+## Node Support
+
+The typed-rest-client is built using the latest LTS version of Node 8. We also support the latest LTS for Node 4 and Node 6.
+
 ## Contributing
 
 To contribute to this repository, see the [contribution guide](./CONTRIBUTING.md)
