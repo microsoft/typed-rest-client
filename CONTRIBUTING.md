@@ -7,12 +7,13 @@ To build and test you need LTS Node >= 6.12.0 and Npm 5.5.1 (we use lock files).
 ## Build
  
 ```
+$ npm install
 $ npm run build
 ```
 
 ## Test
 
-You should test with node 4.x, 6.x and 8.x LTS.  We recommend using [nvm](https://github.com/creationix/nvm)
+You should test with node 4.x, 6.x and 8.x LTS.  We recommend using nvm ([linux](https://github.com/creationix/nvm) / [windows](https://github.com/coreybutler/nvm-windows))
 
 ```
 npm test
