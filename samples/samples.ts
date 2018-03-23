@@ -5,8 +5,8 @@ import * as handlerSamples from './handlers';
 async function run() {
     try {
         await httpSamples.run();
-        await restSamples.run();
-        await handlerSamples.run();
+        // await restSamples.run();
+        // await handlerSamples.run();
     }
     catch (err) {
         console.error('Failed');

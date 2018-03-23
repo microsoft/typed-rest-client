@@ -286,6 +286,7 @@ export class HttpClient implements ifm.IHttpClient {
 
         let req: http.ClientRequest = info.httpModule.request(info.options, (msg: http.IncomingMessage) => {
             let res: HttpClientResponse = new HttpClientResponse(msg);
+            console.log('about to return');
             handleResult(null, res);
         });
 
@@ -302,16 +303,21 @@ export class HttpClient implements ifm.IHttpClient {
         });
 
         req.on('error', function (err) {
+            console.log('error');
             // err has statusCode property
             // res should have headers
             handleResult(err, null);
         });
 
         if (data && typeof (data) === 'string') {
+            console.log('string data');
+
             req.write(data, 'utf8');
         }
 
         if (data && typeof (data) !== 'string') {
+            console.log('non string data');
+
             data.on('close', function () {
                 req.end();
             });
@@ -319,8 +325,11 @@ export class HttpClient implements ifm.IHttpClient {
             data.pipe(req);
         }
         else {
+            console.log('why here');
             req.end();
         }
+
+        console.log('end of spot');
     }
 
     private _prepareRequest(method: string, requestUrl: string, headers: any): ifm.IRequestInfo {
