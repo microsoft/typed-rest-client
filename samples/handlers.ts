@@ -14,6 +14,7 @@ export async function run() {
     const basicHandler: hm.BasicCredentialHandler = new hm.BasicCredentialHandler(username, password);
     const patHandler: hm.PersonalAccessTokenCredentialHandler = new hm.PersonalAccessTokenCredentialHandler('scbfb44vxzku5l4xgc3qfazn3lpk4awflfryc76esaiq7aypcbhs');
     const ntlmHandler: hm.NtlmCredentialHandler = new hm.NtlmCredentialHandler(username, password, workstation, domain);
+    const xsignatureHandler: hm.HMACSHA256SignatureHandler = new hm.HMACSHA256SignatureHandler('scbfb44vxzku5l4xgc3qfazn3lpk4awf','X-Signature', 'X-Timestamp');
 
     // These handlers would then be passed to the constructors of the http or rest modules
 

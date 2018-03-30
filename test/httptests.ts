@@ -82,6 +82,19 @@ describe('Http Tests', function () {
         assert(obj.url === "http://httpbin.org/get");
     });
 
+    it('does basic http get request with HMAC-SHA256 Signature', async() => {
+        let secret: string = 'scbfb44vxzku5l4xgc3qfazn3lpk';
+        let ph: hm.HMACSHA256SignatureHandler =
+            new hm.HMACSHA256SignatureHandler(secret, 'X-Signature','X-Timestamp');
+        let http: httpm.HttpClient = new httpm.HttpClient('typed-rest-client-tests', [ph]);
+        let res: httpm.HttpClientResponse = await http.get('http://httpbin.org/get');
+        assert(res.message.statusCode == 200, "status code should be 200");
+        let body: string = await res.readBody();
+        let obj:any = JSON.parse(body);
+        let signature: string = obj.headers['X-Signature'];
+        assert(!!signature, "should be the X-Signature");
+    });
+
     it('pipes a get request', () => {
         return new Promise<string>(async (resolve, reject) => {
             let file: NodeJS.WritableStream = fs.createWriteStream(sampleFilePath);
