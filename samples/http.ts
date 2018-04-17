@@ -2,10 +2,15 @@ import * as httpm from 'typed-rest-client/HttpClient';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as cm from './common';
+import * as ifm from '../_build/Interfaces';
 
 let sampleFilePath: string = path.join(process.cwd(), 'httpClientStreamSample.txt');
 
-let httpc: httpm.HttpClient = new httpm.HttpClient('vsts-node-api');
+let requestOptions = {
+    // ignoreSslError: true,
+    proxy: { proxyUrl: "http://127.0.0.1:8888" }
+} as ifm.IRequestOptions;
+let httpc: httpm.HttpClient = new httpm.HttpClient('vsts-node-api', null, requestOptions);
 
 export async function run() {
     try {
@@ -17,7 +22,7 @@ export async function run() {
         // an awaitable readBody() which reads the stream to end
         //
         cm.heading('get request output body');
-        let res: httpm.HttpClientResponse = await httpc.get('https://httpbin.org/get');
+        let res: ifm.IHttpClientResponse = await httpc.get('http://httpbin.org/get');
         let body: string = await res.readBody();
         cm.outputHttpBinResponse(body, res.message);
 

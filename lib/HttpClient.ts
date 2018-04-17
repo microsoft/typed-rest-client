@@ -41,11 +41,18 @@ const HttpRedirectCodes: number[] = [HttpCodes.MovedPermanently, HttpCodes.Resou
 export class HttpClientResponse implements ifm.IHttpClientResponse {
     constructor(message: http.IncomingMessage) {
         this.message = message;
+        this.body = '';
     }
 
     public message: http.IncomingMessage;
+    private body: string;
     readBody(): Promise<string> {
         return new Promise<string>(async (resolve, reject) => {
+            console.log('start read body'); // TODO: Add tests. bump version.
+            if (this.body) {
+                resolve(this.body);
+            }
+
             let output: string = '';
 
             this.message.on('data', (chunk: string) => {
@@ -53,6 +60,8 @@ export class HttpClientResponse implements ifm.IHttpClientResponse {
             });
 
             this.message.on('end', () => {
+                console.log('output: ' + output);
+                this.body = output;
                 resolve(output);
             });
         });
@@ -185,7 +194,7 @@ export class HttpClient implements ifm.IHttpClient {
         }
 
         let info: RequestInfo = this._prepareRequest(verb, requestUrl, headers);
-        let response: HttpClientResponse = await this.requestRaw(info, data);
+        let response: ifm.IHttpClientResponse = await this.requestRaw(info, data);
 
         // Check if it's an authentication challenge
         if (response && response.message && response.message.statusCode === HttpCodes.Unauthorized) {

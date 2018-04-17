@@ -56,7 +56,7 @@ export class RestClient {
         options?: IRequestOptions): Promise<IRestResponse<T>> {
 
         let url: string = util.getUrl(requestUrl, this._baseUrl);
-        let res: httpm.HttpClientResponse = await this.client.options(url,
+        let res: ifm.IHttpClientResponse = await this.client.options(url,
             this._headersFromOptions(options));
         return this._processResponse<T>(res, options);
     }
@@ -71,7 +71,7 @@ export class RestClient {
         options?: IRequestOptions): Promise<IRestResponse<T>> {
 
         let url: string = util.getUrl(resource, this._baseUrl);
-        let res: httpm.HttpClientResponse = await this.client.get(url,
+        let res: ifm.IHttpClientResponse = await this.client.get(url,
             this._headersFromOptions(options));
         return this._processResponse<T>(res, options);
     }
@@ -86,7 +86,7 @@ export class RestClient {
         options?: IRequestOptions): Promise<IRestResponse<T>> {
 
         let url: string = util.getUrl(resource, this._baseUrl);
-        let res: httpm.HttpClientResponse = await this.client.del(url,
+        let res: ifm.IHttpClientResponse = await this.client.del(url,
             this._headersFromOptions(options));
         return this._processResponse<T>(res, options);
     }
@@ -106,7 +106,7 @@ export class RestClient {
         let headers: ifm.IHeaders = this._headersFromOptions(options, true);
 
         let data: string = JSON.stringify(resources, null, 2);
-        let res: httpm.HttpClientResponse = await this.client.post(url, data, headers);
+        let res: ifm.IHttpClientResponse = await this.client.post(url, data, headers);
         return this._processResponse<T>(res, options);
     }
 
@@ -125,7 +125,7 @@ export class RestClient {
         let headers: ifm.IHeaders = this._headersFromOptions(options, true);
 
         let data: string = JSON.stringify(resources, null, 2);
-        let res: httpm.HttpClientResponse = await this.client.patch(url, data, headers);
+        let res: ifm.IHttpClientResponse = await this.client.patch(url, data, headers);
         return this._processResponse<T>(res, options);
     }
 
@@ -144,7 +144,7 @@ export class RestClient {
         let headers: ifm.IHeaders = this._headersFromOptions(options, true);
 
         let data: string = JSON.stringify(resources, null, 2);
-        let res: httpm.HttpClientResponse = await this.client.put(url, data, headers);
+        let res: ifm.IHttpClientResponse = await this.client.put(url, data, headers);
         return this._processResponse<T>(res, options);
     }
 
@@ -156,7 +156,7 @@ export class RestClient {
         let url: string = util.getUrl(requestUrl, this._baseUrl);
         let headers: ifm.IHeaders = this._headersFromOptions(options, true);
 
-        let res: httpm.HttpClientResponse = await this.client.sendStream(verb, url, stream, headers);
+        let res: ifm.IHttpClientResponse = await this.client.sendStream(verb, url, stream, headers);
         return this._processResponse<T>(res, options);
     }
 
@@ -172,7 +172,7 @@ export class RestClient {
         return headers;
     }
 
-    private async _processResponse<T>(res: httpm.HttpClientResponse, options: IRequestOptions): Promise<IRestResponse<T>> {
+    private async _processResponse<T>(res: ifm.IHttpClientResponse, options: IRequestOptions): Promise<IRestResponse<T>> {
         return new Promise<IRestResponse<T>>(async (resolve, reject) => {
             const statusCode: number = res.message.statusCode;
 

@@ -32,6 +32,7 @@ export interface IRequestHandler {
 
 export interface IHttpClientResponse {
     message: http.IncomingMessage;
+    //body: string;
     readBody(): Promise<string>;
 }
 
