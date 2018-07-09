@@ -154,7 +154,6 @@ describe('Http Tests', function () {
     });
 
     it('sends headers with http requests', async() => {
-        this.timeout(5000);
         // calls to /headers returns something like the following (in the body)
         // {"headers":{"Accept":"application/json","Connection":"close","Host":"httpbin.org","User-Agent":"typed-rest-client-tests"}}
 
@@ -165,14 +164,14 @@ describe('Http Tests', function () {
         
         // set the headers in the constructor
         let http2: httpm.HttpClient = new httpm.HttpClient('typed-rest-client-tests', null, { headers: { 'Accept': 'application/json'} });
-        let res2: httpm.HttpClientResponse = await _http.get('http://httpbin.org/headers');
-        let body2: any = JSON.parse(await res.readBody());
+        let res2: httpm.HttpClientResponse = await http2.get('http://httpbin.org/headers');
+        let body2: any = JSON.parse(await res2.readBody());
         assert(body2.headers.Accept === 'application/json');
 
         // set the headers in both, method call should supersede
         let http3: httpm.HttpClient = new httpm.HttpClient('typed-rest-client-tests', null, { headers: { 'Accept': 'application/json1'} });
-        let res3: httpm.HttpClientResponse = await _http.get('http://httpbin.org/headers', { 'Accept': 'application/json2'});
-        let body3: any = JSON.parse(await res.readBody());
+        let res3: httpm.HttpClientResponse = await http3.get('http://httpbin.org/headers', { 'Accept': 'application/json2'});
+        let body3: any = JSON.parse(await res3.readBody());
         assert(body3.headers.Accept === 'application/json2');
     });
 });
