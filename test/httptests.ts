@@ -14,7 +14,7 @@ describe('Http Tests', function () {
     let _httpbin: httpm.HttpClient;
 
     before(() => {
-        _http = new httpm.HttpClient('typed-test-client-tests');
+        _http = new httpm.HttpClient('typed-rest-client-tests'/*, null, {proxy: { proxyUrl: "http://127.0.0.1:8888" } }*/);
     });
 
     after(() => {
@@ -23,7 +23,7 @@ describe('Http Tests', function () {
     it('constructs', () => {
         this.timeout(1000);
 
-        let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests');
+        let http: httpm.HttpClient = new httpm.HttpClient('typed-rest-client-tests');
         assert(http, 'http client should not be null');
     });
 
@@ -33,7 +33,7 @@ describe('Http Tests', function () {
     //     "headers": {
     //       "Connection": "close", 
     //       "Host": "httpbin.org", 
-    //       "User-Agent": "typed-test-client-tests"
+    //       "User-Agent": "typed-rest-client-tests"
     //     }, 
     //     "origin": "173.95.152.44", 
     //     "url": "https://httpbin.org/get"
@@ -151,6 +151,28 @@ describe('Http Tests', function () {
         let res: httpm.HttpClientResponse = await _http.get('http://httpbin.org/status/404');
         assert(res.message.statusCode == 404, "status code should be 404");
         let body: string = await res.readBody();
+    });
+
+    it('sends headers with http requests', async() => {
+        // calls to /headers returns something like the following (in the body)
+        // {"headers":{"Accept":"application/json","Connection":"close","Host":"httpbin.org","User-Agent":"typed-rest-client-tests"}}
+
+        // set the headers in the method call
+        let res: httpm.HttpClientResponse = await _http.get('http://httpbin.org/headers', { 'Accept': 'application/json'});
+        let body: any = JSON.parse(await res.readBody());
+        assert(body.headers.Accept === 'application/json');
+        
+        // set the headers in the constructor
+        let http2: httpm.HttpClient = new httpm.HttpClient('typed-rest-client-tests', null, { headers: { 'Accept': 'application/json'} });
+        let res2: httpm.HttpClientResponse = await _http.get('http://httpbin.org/headers');
+        let body2: any = JSON.parse(await res.readBody());
+        assert(body2.headers.Accept === 'application/json');
+
+        // set the headers in both, method call should supersede
+        let http3: httpm.HttpClient = new httpm.HttpClient('typed-rest-client-tests', null, { headers: { 'Accept': 'application/json1'} });
+        let res3: httpm.HttpClientResponse = await _http.get('http://httpbin.org/headers', { 'Accept': 'application/json2'});
+        let body3: any = JSON.parse(await res.readBody());
+        assert(body3.headers.Accept === 'application/json2');
     });
 });
 
