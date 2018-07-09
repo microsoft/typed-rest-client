@@ -94,6 +94,7 @@ export class HttpClient implements ifm.IHttpClient {
     private _ca: string;
     private _cert: string;
     private _key: string;
+    private _headers: ifm.IHeaders; 
 
     constructor(userAgent: string, handlers?: ifm.IRequestHandler[], requestOptions?: ifm.IRequestOptions) {
         this.userAgent = userAgent;
@@ -139,35 +140,39 @@ export class HttpClient implements ifm.IHttpClient {
             if (requestOptions.keepAlive != null) {
                 this._keepAlive = requestOptions.keepAlive;
             }
+
+            if (requestOptions.headers != null) {
+                this._headers = requestOptions.headers;
+            }
         }
     }
 
     public options(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
-        return this.request('OPTIONS', requestUrl, null, additionalHeaders || {});
+        return this.request('OPTIONS', requestUrl, null, additionalHeaders);
     }
 
     public get(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
-        return this.request('GET', requestUrl, null, additionalHeaders || {});
+        return this.request('GET', requestUrl, null, additionalHeaders);
     }
 
     public del(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
-        return this.request('DELETE', requestUrl, null, additionalHeaders || {});
+        return this.request('DELETE', requestUrl, null, additionalHeaders);
     }
 
     public post(requestUrl: string, data: string, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
-        return this.request('POST', requestUrl, data, additionalHeaders || {});
+        return this.request('POST', requestUrl, data, additionalHeaders);
     }
 
     public patch(requestUrl: string, data: string, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
-        return this.request('PATCH', requestUrl, data, additionalHeaders || {});
+        return this.request('PATCH', requestUrl, data, additionalHeaders);
     }
 
     public put(requestUrl: string, data: string, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
-        return this.request('PUT', requestUrl, data, additionalHeaders || {});
+        return this.request('PUT', requestUrl, data, additionalHeaders);
     }
 
     public head(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
-        return this.request('HEAD', requestUrl, null, additionalHeaders || {});
+        return this.request('HEAD', requestUrl, null, additionalHeaders);
     }
 
     public sendStream(verb: string, requestUrl: string, stream: NodeJS.ReadableStream, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
@@ -179,12 +184,12 @@ export class HttpClient implements ifm.IHttpClient {
      * All other methods such as get, post, patch, and request ultimately call this.
      * Prefer get, del, post and patch
      */
-    public async request(verb: string, requestUrl: string, data: string | NodeJS.ReadableStream, headers: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
+    public async request(verb: string, requestUrl: string, data: string | NodeJS.ReadableStream, headers?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
         if (this._disposed) {
             throw new Error("Client has already been disposed.");
         }
 
-        let info: RequestInfo = this._prepareRequest(verb, requestUrl, headers);
+        let info: RequestInfo = this._prepareRequest(verb, requestUrl, headers || this._headers || {});
         let response: HttpClientResponse = await this.requestRaw(info, data);
 
         // Check if it's an authentication challenge
@@ -323,7 +328,7 @@ export class HttpClient implements ifm.IHttpClient {
         }
     }
 
-    private _prepareRequest(method: string, requestUrl: string, headers: any): ifm.IRequestInfo {
+    private _prepareRequest(method: string, requestUrl: string, headers: ifm.IHeaders): ifm.IRequestInfo {
         const info: ifm.IRequestInfo = <ifm.IRequestInfo>{};
 
         info.parsedUrl = url.parse(requestUrl);
