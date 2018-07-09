@@ -154,6 +154,7 @@ describe('Http Tests', function () {
     });
 
     it('sends headers with http requests', async() => {
+        this.timeout(5000);
         // calls to /headers returns something like the following (in the body)
         // {"headers":{"Accept":"application/json","Connection":"close","Host":"httpbin.org","User-Agent":"typed-rest-client-tests"}}
 
