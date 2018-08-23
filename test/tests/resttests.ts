@@ -264,4 +264,9 @@ describe('Rest Tests', function () {
         assert(restRes.result && restRes.result.args.foo === 'bar');
         assert(restRes.result && restRes.result.args.baz === 'top');
     });
+
+    it('preserves trailing slashes in URLs', async () => {
+        const res = util.getUrl('get/foo/', 'http://httpbin.org/bar');
+        assert.equal(res, 'http://httpbin.org/bar/get/foo/');
+    });
 });
