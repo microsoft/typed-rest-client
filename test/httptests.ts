@@ -101,6 +101,14 @@ describe('Http Tests', function () {
         let obj:any = JSON.parse(body);
         assert(obj.url === "https://httpbin.org/get");
     });
+
+    it('does basic get request with redirects (303)', async() => {
+        let res: httpm.HttpClientResponse = await _http.get("https://httpbin.org/redirect-to?url=" + encodeURIComponent("https://httpbin.org/get") + '&status_code=303')
+        assert(res.message.statusCode == 200, "status code should be 200");
+        let body: string = await res.readBody();
+        let obj:any = JSON.parse(body);
+        assert(obj.url === "https://httpbin.org/get");
+    });
     
     it('does not follow redirects if disabled', async() => {
         let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests', null, { allowRedirects: false });
@@ -108,7 +116,7 @@ describe('Http Tests', function () {
         assert(res.message.statusCode == 302, "status code should be 302");
         let body: string = await res.readBody();
     });
-    
+
     it('does basic head request', async() => {
         let res: httpm.HttpClientResponse = await _http.head('http://httpbin.org/get');
         assert(res.message.statusCode == 200, "status code should be 200");

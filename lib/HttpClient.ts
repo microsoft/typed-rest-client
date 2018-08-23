@@ -13,6 +13,7 @@ export enum HttpCodes {
     MultipleChoices = 300,
     MovedPermanently = 301,
     ResourceMoved = 302,
+    SeeOther = 303,
     NotModified = 304,
     UseProxy = 305,
     SwitchProxy = 306,
@@ -36,7 +37,7 @@ export enum HttpCodes {
     GatewayTimeout = 504,
 }
 
-const HttpRedirectCodes: number[] = [HttpCodes.MovedPermanently, HttpCodes.ResourceMoved, HttpCodes.TemporaryRedirect, HttpCodes.PermanentRedirect];
+const HttpRedirectCodes: number[] = [HttpCodes.MovedPermanently, HttpCodes.ResourceMoved, HttpCodes.SeeOther, HttpCodes.TemporaryRedirect, HttpCodes.PermanentRedirect];
 
 export class HttpClientResponse implements ifm.IHttpClientResponse {
     constructor(message: http.IncomingMessage) {
