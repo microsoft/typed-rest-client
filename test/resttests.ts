@@ -254,14 +254,14 @@ describe('Rest Tests', function () {
     it('gets and handles unauthorized (401)', async() => {
         nock('http://microsoft.com')
             .get('/status/401')
-            .replyWithError({'message': 'something awful happened', 'statusCode': 401});
+            .reply(401, {'message': 'something awful happened', 'statusCode': 401});
         try {
             let restRes: restm.IRestResponse<HttpData> = await _rest.get<HttpData>('http://microsoft.com/status/401');
             assert(false, "should throw");
         }
         catch(err) {
             assert(err['statusCode'] == 401, "statusCode should be 401");
-            assert(err.message && err.message.length > 0, "should have error message");
+            assert(err.result && err.result['message'] === 'something awful happened', "should have error message with the response");
         }
     });
 
@@ -273,14 +273,14 @@ describe('Rest Tests', function () {
     it('gets and handles a server error (500)', async() => {
         nock('http://microsoft.com')
             .get('/status/500')
-            .replyWithError({'message': 'something awful happened', 'statusCode': 500});
+            .reply(500, {'message': 'something awful happened', 'statusCode': 500});
         try {
             let restRes: restm.IRestResponse<HttpData> = await _rest.get<HttpData>('http://microsoft.com/status/500');
             assert(false, "should throw");
         }
         catch(err) {
             assert(err['statusCode'] == 500, "statusCode should be 500");
-            assert(err.message && err.message.length > 0, "should have error message");
+            assert(err.result && err.result['message'] === 'something awful happened', "should have error message with the response");
         }
     });
 
