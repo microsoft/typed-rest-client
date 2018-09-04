@@ -2,12 +2,11 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 import assert = require('assert');
+import nock = require('nock');
 import * as restm from 'typed-rest-client/RestClient';
 import * as util from 'typed-rest-client/Util';
-import * as fs from 'fs';
-import * as path from 'path';
 
-export interface HttpBinData {
+export interface HttpData {
     url: string;
     data: any;
     json: any;
@@ -17,14 +16,20 @@ export interface HttpBinData {
 describe('Rest Tests', function () {
     let _rest: restm.RestClient;
     let _restBin: restm.RestClient;
+    let _restMic: restm.RestClient;
 
     before(() => {
         _rest = new restm.RestClient('typed-rest-client-tests');
         _restBin = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org');
+        _restMic = new restm.RestClient('typed-rest-client-tests', 'http://microsoft.com');
     });
 
     after(() => {
     });
+
+    afterEach(() => {
+        nock.cleanAll();
+    })
 
     it('constructs', () => {
         this.timeout(1000);
@@ -34,88 +39,186 @@ describe('Rest Tests', function () {
     })
 
     it('gets a resource', async() => {
-        this.timeout(3000);
-
-        let restRes: restm.IRestResponse<HttpBinData> = await _rest.get<HttpBinData>('https://httpbin.org/get');
+        nock('http://microsoft.com')
+            .get('/')
+            .reply(200, {
+                url: 'http://microsoft.com',
+                data: null,
+                json: null
+            });
+        let restRes: restm.IRestResponse<HttpData> = await _rest.get<HttpData>('http://microsoft.com');
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result && restRes.result.url === 'https://httpbin.org/get');
+        assert(restRes.result && restRes.result.url === 'http://microsoft.com');
     });
 
     it('gets a resource with baseUrl', async() => {
-        let restRes: restm.IRestResponse<HttpBinData> = await _restBin.get<HttpBinData>('get');
+        nock('http://microsoft.com')
+            .get('/')
+            .reply(200, {
+                url: 'http://microsoft.com',
+                data: null,
+                json: null
+            });
+        let restRes: restm.IRestResponse<HttpData> = await _restMic.get<HttpData>('');
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result && restRes.result.url === 'https://httpbin.org/get');
+        assert(restRes.result && restRes.result.url === 'http://microsoft.com');
     });
 
     it('creates a resource', async() => {
+        nock('http://microsoft.com')
+            .post('/')
+            .reply(200, function(uri, requestBody) {
+                let body = JSON.parse(requestBody);
+                return {
+                    url: 'http://microsoft.com/post',
+                    data: null,
+                    json: body.name
+                };
+            });
         let res: any = { name: 'foo' };
-        let restRes: restm.IRestResponse<HttpBinData> = await _rest.create<HttpBinData>('https://httpbin.org/post', res);
+        let restRes: restm.IRestResponse<HttpData> = await _rest.create<HttpData>('http://microsoft.com', res);
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result && restRes.result.url === 'https://httpbin.org/post');
-        assert(restRes.result && restRes.result.json.name === 'foo');
+        assert(restRes.result && restRes.result.url === 'http://microsoft.com/post');
+        assert(restRes.result && restRes.result.json === 'foo');
     });
 
     it('creates a resource with a baseUrl', async() => {
+        nock('http://microsoft.com')
+            .post('/')
+            .reply(200, function(uri, requestBody) {
+                let body = JSON.parse(requestBody);
+                return {
+                    url: 'http://microsoft.com/post',
+                    data: null,
+                    json: body.name
+                };
+            });
         let res: any = { name: 'foo' };
-        let restRes: restm.IRestResponse<HttpBinData> = await _restBin.create<HttpBinData>('post', res);
+        let restRes: restm.IRestResponse<HttpData> = await _restMic.create<HttpData>('', res);
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result && restRes.result.url === 'https://httpbin.org/post');
-        assert(restRes.result && restRes.result.json.name === 'foo');
+        assert(restRes.result && restRes.result.url === 'http://microsoft.com/post');
+        assert(restRes.result && restRes.result.json === 'foo');
     });
 
     it('replaces a resource', async() => {
-        this.timeout(3000);
-
+        nock('http://microsoft.com')
+            .put('/')
+            .reply(200, function(uri, requestBody) {
+                let body = JSON.parse(requestBody);
+                return {
+                    url: 'http://microsoft.com/put',
+                    data: null,
+                    json: body.name
+                };
+            });
         let res: any = { name: 'foo' };
-        let restRes: restm.IRestResponse<HttpBinData> = await _rest.replace<HttpBinData>('https://httpbin.org/put', res);
+        let restRes: restm.IRestResponse<HttpData> = await _rest.replace<HttpData>('http://microsoft.com', res);
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result && restRes.result.url === 'https://httpbin.org/put');
-        assert(restRes.result && restRes.result.json.name === 'foo');
+        assert(restRes.result && restRes.result.url === 'http://microsoft.com/put');
+        assert(restRes.result && restRes.result.json === 'foo');
     });
 
     it('replaces a resource with a baseUrl', async() => {
+        nock('http://microsoft.com')
+            .put('/')
+            .reply(200, function(uri, requestBody) {
+                let body = JSON.parse(requestBody);
+                return {
+                    url: 'http://microsoft.com/put',
+                    data: null,
+                    json: body.name
+                };
+            });
         let res: any = { name: 'foo' };
-        let restRes: restm.IRestResponse<HttpBinData> = await _restBin.replace<HttpBinData>('put', res);
+        let restRes: restm.IRestResponse<HttpData> = await _restMic.replace<HttpData>('', res);
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result && restRes.result.url === 'https://httpbin.org/put');
-        assert(restRes.result && restRes.result.json.name === 'foo');
+        assert(restRes.result && restRes.result.url === 'http://microsoft.com/put');
+        assert(restRes.result && restRes.result.json === 'foo');
     });
 
     it('updates a resource', async() => {
+        nock('http://microsoft.com')
+            .put('/')
+            .reply(200, function(uri, requestBody) {
+                let body = JSON.parse(requestBody);
+                return {
+                    url: 'http://microsoft.com/put',
+                    data: null,
+                    json: body.name
+                };
+            });
         let res: any = { name: 'foo' };
-        let restRes: restm.IRestResponse<HttpBinData> = await _rest.update<HttpBinData>('https://httpbin.org/patch', res);
+        let restRes: restm.IRestResponse<HttpData> = await _rest.replace<HttpData>('http://microsoft.com', res);
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result && restRes.result.url === 'https://httpbin.org/patch');
-        assert(restRes.result && restRes.result.json.name === 'foo');
+        assert(restRes.result && restRes.result.url === 'http://microsoft.com/put');
+        assert(restRes.result && restRes.result.json === 'foo');
     });
 
     it('updates a resource with a baseUrl', async() => {
+        nock('http://microsoft.com')
+            .put('/')
+            .reply(200, function(uri, requestBody) {
+                let body = JSON.parse(requestBody);
+                return {
+                    url: 'http://microsoft.com/put',
+                    data: null,
+                    json: body.name
+                };
+            });
         let res: any = { name: 'foo' };
-        let restRes: restm.IRestResponse<HttpBinData> = await _restBin.update<HttpBinData>('patch', res);
+        let restRes: restm.IRestResponse<HttpData> = await _restMic.replace<HttpData>('', res);
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result && restRes.result.url === 'https://httpbin.org/patch');
-        assert(restRes.result && restRes.result.json.name === 'foo');
+        assert(restRes.result && restRes.result.url === 'http://microsoft.com/put');
+        assert(restRes.result && restRes.result.json === 'foo');
     });
 
     it('deletes a resource', async() => {
-        let restRes: restm.IRestResponse<HttpBinData> = await _rest.del<HttpBinData>('https://httpbin.org/delete');
+        nock('http://microsoft.com')
+            .delete('/')
+            .reply(200, {
+                url: 'http://microsoft.com/delete',
+                data: null,
+                json: null
+            });
+        let restRes: restm.IRestResponse<HttpData> = await _rest.del<HttpData>('http://microsoft.com');
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result && restRes.result.url === 'https://httpbin.org/delete');
+        assert(restRes.result && restRes.result.url === 'http://microsoft.com/delete');
     });
 
     it('deletes a resource with a baseUrl', async() => {
-        let restRes: restm.IRestResponse<HttpBinData> = await _restBin.del<HttpBinData>('delete');
+        nock('http://microsoft.com')
+            .delete('/')
+            .reply(200, {
+                url: 'http://microsoft.com/delete',
+                data: null,
+                json: null
+            });
+        let restRes: restm.IRestResponse<HttpData> = await _restMic.del<HttpData>('');
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result && restRes.result.url === 'https://httpbin.org/delete');
+        assert(restRes.result && restRes.result.url === 'http://microsoft.com/delete');
     });
 
     it('does an options request', async() => {
-        let restRes: restm.IRestResponse<HttpBinData> = await _rest.options<HttpBinData>('https://httpbin.org');
+        nock('http://microsoft.com')
+            .options('/')
+            .reply(200, {
+                url: 'http://microsoft.com/options',
+                data: null,
+                json: null
+            });
+        let restRes: restm.IRestResponse<HttpData> = await _rest.options<HttpData>('http://microsoft.com');
         assert(restRes.statusCode == 200, "statusCode should be 200");
     });
 
     it('does an options request with baseUrl', async() => {
-        let restRes: restm.IRestResponse<HttpBinData> = await _restBin.options<HttpBinData>('');
+        nock('http://microsoft.com')
+            .options('/')
+            .reply(200, {
+                url: 'http://microsoft.com/options',
+                data: null,
+                json: null
+            });
+        let restRes: restm.IRestResponse<HttpData> = await _restMic.options<HttpData>('');
         assert(restRes.statusCode == 200, "statusCode should be 200");
     });
 
@@ -128,17 +231,19 @@ describe('Rest Tests', function () {
     // should return a null resource, 404 status, and should not throw
     //
     it('gets a non-existant resource (404)', async() => {
-        this.timeout(3000);
-
+        nock('http://microsoft.com')
+            .get('/status/404')
+            .reply(404);
+        let restRes: restm.IRestResponse<HttpData>;
         try {
-            let restRes: restm.IRestResponse<HttpBinData> = await _rest.get<HttpBinData>('https://httpbin.org/status/404');
-
-            assert(restRes.statusCode == 404, "statusCode should be 404");
-            assert(restRes.result === null, "object should be null");
+            restRes= await _rest.get<HttpData>('http://microsoft.com/status/404');
         }
         catch(err) {
-            assert(false, "should not throw");
+            console.log(err);
+            assert(false, "Request should succeed, should not throw");
         }
+        assert(restRes.statusCode == 404, "statusCode should be 404");
+        assert(restRes.result === null, "object should be null");
     });
 
     //
@@ -147,8 +252,11 @@ describe('Rest Tests', function () {
     // err.message is message proerty of resourceful error object or if not supplied, a generic error message
     //
     it('gets and handles unauthorized (401)', async() => {
+        nock('http://microsoft.com')
+            .get('/status/401')
+            .replyWithError({'message': 'something awful happened', 'statusCode': 401});
         try {
-            let restRes: restm.IRestResponse<HttpBinData> = await _rest.get<HttpBinData>('https://httpbin.org/status/401');
+            let restRes: restm.IRestResponse<HttpData> = await _rest.get<HttpData>('http://microsoft.com/status/401');
             assert(false, "should throw");
         }
         catch(err) {
@@ -163,8 +271,11 @@ describe('Rest Tests', function () {
     // err.message is message proerty of resourceful error object or if not supplied, a generic error message
     //
     it('gets and handles a server error (500)', async() => {
+        nock('http://microsoft.com')
+            .get('/status/500')
+            .replyWithError({'message': 'something awful happened', 'statusCode': 500});
         try {
-            let restRes: restm.IRestResponse<HttpBinData> = await _rest.get<HttpBinData>('https://httpbin.org/status/500');
+            let restRes: restm.IRestResponse<HttpData> = await _rest.get<HttpData>('http://microsoft.com/status/500');
             assert(false, "should throw");
         }
         catch(err) {
@@ -176,91 +287,128 @@ describe('Rest Tests', function () {
     //--------------------------------------------------------
     // Path in baseUrl tests
     //--------------------------------------------------------
-    it('maintains the path from the base url', async() => {
-        this.timeout(3000);
-
-        // Arrange
-        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything');
-
-        // Act
-        let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('anythingextra');
-
-        // Assert
-        assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result && restRes.result.url === 'https://httpbin.org/anything/anythingextra');
-    });
-
     it('maintains the path from the base url with no slashes', async() => {
+        nock('http://microsoft.com')
+            .get('/anything/anythingextra')
+            .reply(200, {
+                url: 'http://microsoft.com/anything/anythingextra',
+                data: null,
+                json: null
+            });
+
         // Arrange
-        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything');
+        let rest = new restm.RestClient('typed-rest-client-tests', 'http://microsoft.com/anything');
 
         // Act
-        let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('anythingextra');
+        let restRes: restm.IRestResponse<HttpData> = await rest.get<HttpData>('anythingextra');
 
         // Assert
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result && restRes.result.url === 'https://httpbin.org/anything/anythingextra');
+        assert(restRes.result && restRes.result.url === 'http://microsoft.com/anything/anythingextra');
     });
 
     it('maintains the path from the base url with double slashes', async() => {
+        nock('http://microsoft.com')
+            .get('/anything/anythingextra')
+            .reply(200, {
+                url: 'http://microsoft.com/anything/anythingextra',
+                data: null,
+                json: null
+            });
+
         // Arrange
-        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything/');
+        let rest = new restm.RestClient('typed-rest-client-tests', 'http://microsoft.com/anything/');
 
         // Act
-        let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('anythingextra');
+        let restRes: restm.IRestResponse<HttpData> = await rest.get<HttpData>('anythingextra');
 
         // Assert
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result && restRes.result.url === 'https://httpbin.org/anything/anythingextra');
+        assert(restRes.result && restRes.result.url === 'http://microsoft.com/anything/anythingextra');
     });
 
     it('maintains the path from the base url with multiple parts', async() => {
+        nock('http://microsoft.com')
+            .get('/anything/extrapart/anythingextra')
+            .reply(200, {
+                url: 'http://microsoft.com/anything/extrapart/anythingextra',
+                data: null,
+                json: null
+            });
+        
         // Arrange
-        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything/extrapart');
+        let rest = new restm.RestClient('typed-rest-client-tests', 'http://microsoft.com/anything/extrapart');
 
         // Act
-        let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('anythingextra');
+        let restRes: restm.IRestResponse<HttpData> = await rest.get<HttpData>('anythingextra');
 
         // Assert
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result && restRes.result.url === 'https://httpbin.org/anything/extrapart/anythingextra');
+        assert(restRes.result && restRes.result.url === 'http://microsoft.com/anything/extrapart/anythingextra');
     });
 
     it('maintains the path from the base url where request has multiple parts', async() => {
+        nock('http://microsoft.com')
+            .get('/anything/anythingextra/moreparts')
+            .reply(200, {
+                url: 'http://microsoft.com/anything/anythingextra/moreparts',
+                data: null,
+                json: null
+            });
+        
         // Arrange
-        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything');
+        let rest = new restm.RestClient('typed-rest-client-tests', 'http://microsoft.com/anything');
 
         // Act
-        let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('anythingextra/moreparts');
+        let restRes: restm.IRestResponse<HttpData> = await rest.get<HttpData>('anythingextra/moreparts');
 
         // Assert
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result && restRes.result.url === 'https://httpbin.org/anything/anythingextra/moreparts');
+        assert(restRes.result && restRes.result.url === 'http://microsoft.com/anything/anythingextra/moreparts');
     });
 
     it('maintains the path from the base url where both have multiple parts', async() => {
+        nock('http://microsoft.com')
+            .get('/anything/multiple/anythingextra/moreparts')
+            .reply(200, {
+                url: 'http://microsoft.com/anything/multiple/anythingextra/moreparts',
+                data: null,
+                json: null
+            });
+        
         // Arrange
-        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything/multiple');
+        let rest = new restm.RestClient('typed-rest-client-tests', 'http://microsoft.com/anything/multiple');
 
         // Act
-        let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('anythingextra/moreparts');
+        let restRes: restm.IRestResponse<HttpData> = await rest.get<HttpData>('anythingextra/moreparts');
 
         // Assert
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result && restRes.result.url === 'https://httpbin.org/anything/multiple/anythingextra/moreparts');
+        assert(restRes.result && restRes.result.url === 'http://microsoft.com/anything/multiple/anythingextra/moreparts');
     });
 
     it('maintains the path from the base url where request has query parameters', async() => {
+        nock('http://microsoft.com')
+            .get('/anything/multiple/anythingextra/moreparts')
+            .query({
+                foo: 'bar',
+                baz: 'top'
+            })
+            .reply(200, {
+                url: 'http://microsoft.com/anything/multiple/anythingextra/moreparts?foo=bar&baz=top',
+                data: null,
+                json: null,
+                args: {foo: 'bar', baz: 'top'}
+            });
         // Arrange
-        this.timeout(3000);
-        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything/multiple');
+        let rest = new restm.RestClient('typed-rest-client-tests', 'http://microsoft.com/anything/multiple');
 
         // Act
-        let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('anythingextra/moreparts?foo=bar&baz=top');
+        let restRes: restm.IRestResponse<HttpData> = await rest.get<HttpData>('anythingextra/moreparts?foo=bar&baz=top');
 
         // Assert
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result && restRes.result.url === 'https://httpbin.org/anything/multiple/anythingextra/moreparts?foo=bar&baz=top');
+        assert(restRes.result && restRes.result.url === 'http://microsoft.com/anything/multiple/anythingextra/moreparts?foo=bar&baz=top');
         assert(restRes.result && restRes.result.args.foo === 'bar');
         assert(restRes.result && restRes.result.args.baz === 'top');
     });
@@ -269,42 +417,42 @@ describe('Rest Tests', function () {
     // getUrl path tests
     //
     it('resolves a just host resource and no baseUrl', async() => {
-        let res: string = util.getUrl('http://httpbin.org');
-        assert(res === 'http://httpbin.org', "should be http://httpbin.org");
+        let res: string = util.getUrl('http://microsoft.com');
+        assert(res === 'http://microsoft.com', "should be http://microsoft.com");
     });
 
     it('resolves a empty resource with baseUrl', async() => {
-        let res: string = util.getUrl('', 'http://httpbin.org');
-        assert(res === 'http://httpbin.org', "should be http://httpbin.org");
+        let res: string = util.getUrl('', 'http://microsoft.com');
+        assert(res === 'http://microsoft.com', "should be http://microsoft.com");
     });
 
     it('resolves a null resource with baseUrl', async() => {
-        let res: string = util.getUrl(null, 'http://httpbin.org');
-        assert(res === 'http://httpbin.org', "should be http://httpbin.org");
+        let res: string = util.getUrl(null, 'http://microsoft.com');
+        assert(res === 'http://microsoft.com', "should be http://microsoft.com");
     });
 
     it('resolves a full resource and no baseUrl', async() => {
-        let res: string = util.getUrl('http://httpbin.org/get?x=y&a=b');
-        assert(res === 'http://httpbin.org/get?x=y&a=b', `should be http://httpbin.org/get?x=y&a=b but is ${res}`);
+        let res: string = util.getUrl('http://microsoft.com/get?x=y&a=b');
+        assert(res === 'http://microsoft.com/get?x=y&a=b', `should be http://microsoft.com/get?x=y&a=b but is ${res}`);
     });
 
     it('resolves a rooted path resource with host baseUrl', async() => {
-        let res: string = util.getUrl('/get/foo', 'http://httpbin.org');
-        assert(res === 'http://httpbin.org/get/foo', `should be http://httpbin.org/get/foo but is ${res}`);
+        let res: string = util.getUrl('/get/foo', 'http://microsoft.com');
+        assert(res === 'http://microsoft.com/get/foo', `should be http://microsoft.com/get/foo but is ${res}`);
     });
 
     it('resolves a relative path resource with host baseUrl', async() => {
-        let res: string = util.getUrl('get/foo', 'http://httpbin.org');
-        assert(res === 'http://httpbin.org/get/foo', `should be http://httpbin.org/get/foo but is ${res}`);
+        let res: string = util.getUrl('get/foo', 'http://microsoft.com');
+        assert(res === 'http://microsoft.com/get/foo', `should be http://microsoft.com/get/foo but is ${res}`);
     });
 
     it('resolves a rooted path resource with pathed baseUrl', async() => {
-        let res: string = util.getUrl('/get/foo', 'http://httpbin.org/bar');
-        assert(res === 'http://httpbin.org/get/foo', "should be http://httpbin.org/get/foo");
+        let res: string = util.getUrl('/get/foo', 'http://microsoft.com/bar');
+        assert(res === 'http://microsoft.com/get/foo', "should be http://microsoft.com/get/foo");
     });
 
     it('resolves a relative path resource with pathed baseUrl', async() => {
-        let res: string = util.getUrl('get/foo', 'http://httpbin.org/bar');
-        assert(res === 'http://httpbin.org/bar/get/foo', `should be http://httpbin.org/bar/get/foo but is ${res}`);
+        let res: string = util.getUrl('get/foo', 'http://microsoft.com/bar');
+        assert(res === 'http://microsoft.com/bar/get/foo', `should be http://microsoft.com/bar/get/foo but is ${res}`);
     });
 });
