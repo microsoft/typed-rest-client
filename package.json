@@ -8,6 +8,7 @@
     "test": "node make.js test",
     "bt": "node make.js buildtest",
     "samples": "node make.js samples",
+    "units": "node make.js units",
     "validate": "node make.js validate"
   },
   "repository": {
@@ -37,6 +38,7 @@
     "typescript": "2.4.2"
   },
   "dependencies": {
+    "nock": "9.6.1",
     "tunnel": "0.0.4",
     "underscore": "1.8.3"
   }

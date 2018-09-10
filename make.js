@@ -65,14 +65,30 @@ target.build = function () {
     cp(rp('ThirdPartyNotice.txt'), buildPath);
 }
 
+target.units = function() {
+    // install the just built lib into the test proj
+    pushd('test')
+    run('npm install ../_build');
+    popd();
+
+    console.log("-------Unit Tests-------");
+    run('tsc -p ./test/units');
+    run('mocha test/units');
+}
+
 target.test = function() {
     // install the just built lib into the test proj
     pushd('test')
     run('npm install ../_build');
     popd();
 
-    run('tsc -p ./test');
-    run('mocha test');
+    console.log("-------Unit Tests-------");
+    run('tsc -p ./test/units');
+    run('mocha test/units');
+
+    console.log("-------Other Tests-------");
+    run('tsc -p ./test/tests');
+    run('mocha test/tests');
 }
 
 target.buildtest = function() {

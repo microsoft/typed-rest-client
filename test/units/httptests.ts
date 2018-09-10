@@ -164,7 +164,7 @@ describe('Http Tests', function () {
         .reply(301, undefined, {
             location:'http://badmicrosoft.com'
         });
-    nock('http://badmicrosoft.com')
+        nock('http://badmicrosoft.com')
         .get('/')
         .reply(404, {
             source: "nock"
