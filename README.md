@@ -25,6 +25,25 @@ latest preview:
 npm install typed-rest-client@preview --save
 ```
 
+# Build
+
+Build:  
+```bash
+$ npm run build
+```
+
+# Test
+
+To run all tests:
+```bash
+$ npm test
+```
+
+To just run unit tests:
+```bash
+$ npm run units
+```
+
 ## Samples
 
 See [samples](./samples) for complete coding examples
