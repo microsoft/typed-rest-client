@@ -172,6 +172,20 @@ export class RestClient {
         return headers;
     }
 
+    private static dateTimeReviver(key: any, value: any): any 
+    {
+        if (typeof value === 'string')
+        {
+            let a = new Date(value);
+            if (!isNaN(a.valueOf()))
+            {
+                return a;
+            }
+        }
+
+        return value;
+    }
+
     private async _processResponse<T>(res: httpm.HttpClientResponse, options: IRequestOptions): Promise<IRestResponse<T>> {
         return new Promise<IRestResponse<T>>(async (resolve, reject) => {
             const statusCode: number = res.message.statusCode;
@@ -192,7 +206,7 @@ export class RestClient {
             try {
                 let contents: string = await res.readBody();
                 if (contents && contents.length > 0) {
-                    obj = JSON.parse(contents);
+                    obj = JSON.parse(contents, RestClient.dateTimeReviver);
                     if (options && options.responseProcessor) {
                         response.result = options.responseProcessor(obj);
                     }
