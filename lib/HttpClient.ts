@@ -330,10 +330,9 @@ export class HttpClient implements ifm.IHttpClient {
         info.parsedUrl = url.parse(requestUrl);
         const usingSsl: boolean = info.parsedUrl.protocol === 'https:';
         info.httpModule = usingSsl ? https : http;
-        const defaultPort: number = usingSsl ? 443 : 80;
         info.options = <http.RequestOptions>{};
         info.options.host = info.parsedUrl.hostname;
-        info.options.port = info.parsedUrl.port ? parseInt(info.parsedUrl.port) : defaultPort;
+        info.options.port = info.parsedUrl.port ? parseInt(info.parsedUrl.port) : undefined;
         info.options.path = (info.parsedUrl.pathname || '') + (info.parsedUrl.search || '');
         info.options.method = method;
         info.options.headers = headers || {};
