@@ -7,6 +7,11 @@ export interface HttpBinData {
     data: any;
 }
 
+export function getEnv(name: string): string {
+    let val = process.env[name];
+    return val;
+}
+
 export function banner(title: string): void {
     console.log();
     console.log('=======================================');
