@@ -109,7 +109,7 @@ export class HttpClient implements ifm.IHttpClient {
             this._httpProxy = requestOptions.proxy;
             if (requestOptions.proxy && requestOptions.proxy.proxyBypassHosts) {
                 this._httpProxyBypassHosts = [];
-                requestOptions.proxy.proxyBypassHosts.forEach(bypass => {
+                requestOptions.proxy.proxyBypassHosts.forEach((bypass) => {
                     this._httpProxyBypassHosts.push(new RegExp(bypass, 'i'));
                 });
             }
@@ -192,9 +192,9 @@ export class HttpClient implements ifm.IHttpClient {
         if (response && response.message && response.message.statusCode === HttpCodes.Unauthorized) {
             let authenticationHandler: ifm.IRequestHandler;
 
-            for (let i = 0; i < this.handlers.length; i++) {
-                if (this.handlers[i].canHandleAuthentication(response)) {
-                    authenticationHandler = this.handlers[i];
+            for (let handler of this.handlers) {
+                if (handler.canHandleAuthentication(response)) {
+                    authenticationHandler = handler;
                     break;
                 }
             }
@@ -210,7 +210,7 @@ export class HttpClient implements ifm.IHttpClient {
         }
 
         let redirectsRemaining: number = this._maxRedirects;
-        while (HttpRedirectCodes.indexOf(response.message.statusCode) != -1
+        while (HttpRedirectCodes.indexOf(response.message.statusCode) !== -1
                && this._allowRedirects
                && redirectsRemaining > 0) {
 
@@ -227,7 +227,7 @@ export class HttpClient implements ifm.IHttpClient {
             // let's make the request with the new redirectUrl
             info = this._prepareRequest(verb, redirectUrl, headers);
             response = await this.requestRaw(info, data);
-            redirectsRemaining--;
+            redirectsRemaining-=1;
         }
 
         return response;
@@ -295,7 +295,8 @@ export class HttpClient implements ifm.IHttpClient {
         });
 
         // If we ever get disconnected, we want the socket to timeout eventually
-        req.setTimeout(this._socketTimeout || 3 * 60000, () => {
+        const timeout: number = this._socketTimeout || 3 * 60000;
+        req.setTimeout(timeout, () => {
             if (socket) {
                 socket.end();
             }
@@ -333,7 +334,7 @@ export class HttpClient implements ifm.IHttpClient {
         const defaultPort: number = usingSsl ? 443 : 80;
         info.options = <http.RequestOptions>{};
         info.options.host = info.parsedUrl.hostname;
-        info.options.port = info.parsedUrl.port ? parseInt(info.parsedUrl.port) : defaultPort;
+        info.options.port = info.parsedUrl.port ? parseInt(info.parsedUrl.port, 10) : defaultPort;
         info.options.path = (info.parsedUrl.pathname || '') + (info.parsedUrl.search || '');
         info.options.method = method;
         info.options.headers = headers || {};
@@ -466,7 +467,7 @@ export class HttpClient implements ifm.IHttpClient {
         }
 
         let bypass: boolean = false;
-        this._httpProxyBypassHosts.forEach(bypassHost => {
+        this._httpProxyBypassHosts.forEach((bypassHost) => {
             if (bypassHost.test(requestUrl)) {
                 bypass = true;
             }

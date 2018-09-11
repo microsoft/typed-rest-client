@@ -182,7 +182,7 @@ export class RestClient {
             };
 
             // not found leads to null obj returned
-            if (statusCode == httpm.HttpCodes.NotFound) {
+            if (statusCode === httpm.HttpCodes.NotFound) {
                 resolve(response);
             }
 
@@ -225,9 +225,8 @@ export class RestClient {
                 }
 
                 reject(err);
-            } else {
-                resolve(response);
             }
+            resolve(response);
         });
     }
 }

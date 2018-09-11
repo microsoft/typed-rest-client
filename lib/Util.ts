@@ -29,7 +29,5 @@ export function getUrl(resource: string, baseUrl?: string): string  {
 
     resultantUrl.pathname = path.posix.resolve(base.pathname, resultantUrl.pathname);
 
-    let res: string = url.format(resultantUrl);
-
-    return res;
+    return url.format(resultantUrl);
 }

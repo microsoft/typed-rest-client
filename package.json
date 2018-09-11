@@ -35,7 +35,9 @@
     "mocha": "^3.5.3",
     "shelljs": "0.7.6",
     "semver": "4.3.3",
-    "typescript": "2.4.2"
+    "typescript": "2.4.2",
+    "tslint": "5.11.0",
+    "tslint-microsoft-contrib": "5.0.1"
   },
   "dependencies": {
     "nock": "9.6.1",

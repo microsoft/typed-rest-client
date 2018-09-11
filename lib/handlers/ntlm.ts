@@ -5,8 +5,8 @@ import ifm = require('../Interfaces');
 import http = require("http");
 import https = require("https");
 
-var _ = require("underscore");
-var ntlm = require("../opensource/node-http-ntlm/ntlm");
+const _ = require("underscore");
+const ntlm = require("../opensource/node-http-ntlm/ntlm");
 
 interface INtlmOptions {
     username?: string,
@@ -60,7 +60,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
 
     public handleAuthentication(httpClient: ifm.IHttpClient, requestInfo: ifm.IRequestInfo, objs): Promise<ifm.IHttpClientResponse> {
         return new Promise<ifm.IHttpClientResponse>((resolve, reject) => {
-            var callbackForResult = function (err: any, res: ifm.IHttpClientResponse) {
+            let callbackForResult = function (err: any, res: ifm.IHttpClientResponse) {
                 if(err) {
                     reject(err);
                 }
