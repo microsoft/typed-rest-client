@@ -64,6 +64,14 @@ describe('Rest Tests', function () {
         assert(restRes.result && restRes.result.url === 'http://microsoft.com');
     });
 
+    it('does basic head request', async() => {
+        nock('http://microsoft.com')
+            .head('/')
+            .reply(200);
+        let restRes: restm.IRestResponse<HttpData> = await _restMic.head<HttpData>('');
+        assert(restRes.statusCode == 200, "statusCode should be 200");
+    });
+
     it('creates a resource', async() => {
         nock('http://microsoft.com')
             .post('/')

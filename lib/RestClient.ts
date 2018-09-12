@@ -77,6 +77,21 @@ export class RestClient {
     }
 
     /**
+     * Gets the headers that would be returned with a GET request
+     * Be aware that not found returns a null.  Other error conditions reject the promise
+     * @param {string} resource - fully qualified url or relative path
+     * @param {IRequestOptions} requestOptions - (optional) requestOptions object
+     */
+    public async head<T>(resource: string,
+        options?: IRequestOptions): Promise<IRestResponse<T>> {
+
+        let url: string = util.getUrl(resource, this._baseUrl);
+        let res: httpm.HttpClientResponse = await this.client.head(url,
+            this._headersFromOptions(options));
+        return this._processResponse<T>(res, options);
+    }
+
+    /**
      * Deletes a resource from an endpoint
      * Be aware that not found returns a null.  Other error conditions reject the promise
      * @param {string} resource - fully qualified or relative url
@@ -128,6 +143,8 @@ export class RestClient {
         let res: httpm.HttpClientResponse = await this.client.patch(url, data, headers);
         return this._processResponse<T>(res, options);
     }
+
+
 
     /**
      * Replaces resource(s) from an endpoint
