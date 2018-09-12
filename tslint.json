@@ -166,9 +166,9 @@
     "object-literal-sort-keys": false,
     "one-variable-per-declaration": true,
     "only-arrow-functions": false,
-    "ordered-imports": false,
+    "ordered-imports": true,
     "prefer-array-literal": true,
-    "prefer-const": false,
+    "prefer-const": true,
     "prefer-for-of": true,
     "prefer-method-signature": true,
     "prefer-template": false,
@@ -214,42 +214,42 @@
       "spaces"
     ],
     "linebreak-style": false,
-    "newline-before-return": false,
+    "newline-before-return": true,
     "no-consecutive-blank-lines": true,
-    "no-empty-line-after-opening-brace": false,
+    "no-empty-line-after-opening-brace": true,
     "no-single-line-block-comment": true,
-    "no-trailing-whitespace": false,
+    "no-trailing-whitespace": true,
     "no-unnecessary-semicolons": true,
     "object-literal-key-quotes": [
-      false,
+      true,
       "as-needed"
     ],
     "one-line": [
-      false,
+      true,
       "check-open-brace",
       "check-catch",
       "check-else",
       "check-whitespace"
     ],
     "quotemark": [
-      false,
+      true,
       "single"
     ],
     "react-tsx-curly-spacing": true,
     "semicolon": [
-      false,
+      true,
       "always"
     ],
     "trailing-comma": [
-      false,
+      true,
       {
         "singleline": "never",
         "multiline": "never"
       }
     ],
-    "typedef-whitespace": false,
+    "typedef-whitespace": true,
     "whitespace": [
-      false,
+      true,
       "check-branch",
       "check-decl",
       "check-operator",
@@ -259,7 +259,7 @@
     "ban": true,
     "ban-types": true,
     "cyclomatic-complexity": false,
-    "file-header": false,
+    "file-header": true,
     "import-blacklist": true,
     "interface-over-type-literal": true,
     "no-angle-bracket-type-assertion": false,
@@ -269,7 +269,7 @@
     "no-mergeable-namespace": true,
     "no-namespace": true,
     "no-reference": true,
-    "no-unexternalized-strings": false,
+    "no-unexternalized-strings": true,
     "object-literal-shorthand": false,
     "prefer-type-cast": true,
     "space-before-function-paren": false,

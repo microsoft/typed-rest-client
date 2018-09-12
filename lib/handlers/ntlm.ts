@@ -1,18 +1,18 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+import http = require('http');
+import https = require('https');
 import ifm = require('../Interfaces');
-import http = require("http");
-import https = require("https");
 
-const _ = require("underscore");
-const ntlm = require("../opensource/node-http-ntlm/ntlm");
+const _ = require('underscore');
+const ntlm = require('../opensource/node-http-ntlm/ntlm');
 
 interface INtlmOptions {
-    username?: string,
-    password?: string,
-    domain: string,
-    workstation: string
+    username?: string;
+    password?: string;
+    domain: string;
+    workstation: string;
 }
 
 export class NtlmCredentialHandler implements ifm.IRequestHandler {
@@ -48,7 +48,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
 
             if (wwwAuthenticate) {
                 const mechanisms = wwwAuthenticate.split(', ');
-                const index = mechanisms.indexOf("NTLM");
+                const index = mechanisms.indexOf('NTLM');
                 if (index >= 0) {
                     return true;
                 }
@@ -60,12 +60,12 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
 
     public handleAuthentication(httpClient: ifm.IHttpClient, requestInfo: ifm.IRequestInfo, objs): Promise<ifm.IHttpClientResponse> {
         return new Promise<ifm.IHttpClientResponse>((resolve, reject) => {
-            let callbackForResult = function (err: any, res: ifm.IHttpClientResponse) {
-                if(err) {
+            const callbackForResult = function (err: any, res: ifm.IHttpClientResponse) {
+                if (err) {
                     reject(err);
                 }
                 // We have to readbody on the response before continuing otherwise there is a hang.
-                res.readBody().then(() => { 
+                res.readBody().then(() => {
                     resolve(res);
                 });
             };
@@ -89,7 +89,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
             requestInfo.options.agent = new http.Agent({ keepAlive: true });
         }
 
-        let self = this;
+        const self = this;
 
         // The following pattern of sending the type1 message following immediately (in a setImmediate) is
         // critical for the NTLM exchange to happen.  If we removed setImmediate (or call in a different manner)
@@ -100,10 +100,10 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
             }
 
             /// We have to readbody on the response before continuing otherwise there is a hang.
-            res.readBody().then(() => { 
+            res.readBody().then(() => {
                 // It is critical that we have setImmediate here due to how connection requests are queued.
                 // If setImmediate is removed then the NTLM handshake will not work.
-                // setImmediate allows us to queue a second request on the same connection. If this second 
+                // setImmediate allows us to queue a second request on the same connection. If this second
                 // request is not queued on the connection when the first request finishes then node closes
                 // the connection. NTLM requires both requests to be on the same connection so we need this.
                 setImmediate(function () {
@@ -119,11 +119,11 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
 
         const type1options: http.RequestOptions = {
             headers: {
-                'Connection': 'keep-alive',
-                'Authorization': type1msg
+                Connection: 'keep-alive',
+                Authorization: type1msg
             },
             timeout: requestInfo.options.timeout || 0,
-            agent: requestInfo.httpModule,
+            agent: requestInfo.httpModule
         };
 
         const type1info = <ifm.IRequestInfo>{};
@@ -145,10 +145,10 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
 
         const type3options: http.RequestOptions = {
             headers: {
-                'Authorization': type3msg,
-                'Connection': 'Close'
+                Authorization: type3msg,
+                Connection: 'Close'
             },
-            agent: requestInfo.httpModule,
+            agent: requestInfo.httpModule
         };
 
         const type3info = <ifm.IRequestInfo>{};

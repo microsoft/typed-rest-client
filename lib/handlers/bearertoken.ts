@@ -12,7 +12,7 @@ export class BearerCredentialHandler implements ifm.IRequestHandler {
 
     // currently implements pre-authorization
     // TODO: support preAuth = false where it hooks on 401
-    prepareRequest(options:any): void {
+    prepareRequest(options: any): void {
         options.headers['Authorization'] = 'Bearer ' + this.token;
         options.headers['X-TFS-FedAuthRedirect'] = 'Suppress';
     }
