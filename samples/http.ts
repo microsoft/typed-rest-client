@@ -32,18 +32,18 @@ export async function run() {
         // Http get request using a proxy
         //
         cm.heading('get request using the proxy url set in the env variables');
-        let proxySettings = {
+        const proxySettings = {
             proxyUrl: cm.getEnv('PROXY_URL'),
             proxyUsername: cm.getEnv('PROXY_USERNAME'),
             proxyPassword: cm.getEnv('PROXY_PASSWORD'),
             proxyBypassHosts: cm.getEnv('PROXY_BYPASS_HOSTS') ? cm.getEnv('PROXY_BYPASS_HOSTS').split(', ') : null
         }
-        if (proxySettings.proxyUrl){
+        if (proxySettings.proxyUrl) {
             httpc = new httpm.HttpClient('vsts-node-api', null, { proxy: proxySettings });
             body = await (await httpc.get('https://httpbin.org/get')).readBody();
             cm.outputHttpBinResponse(body);
         }
-        else{
+        else {
             console.log("No proxy url set. To set a proxy url, set the PROXY_URL env variable (e.g. set PROXY_URL=proxy.com)");
         }
 
