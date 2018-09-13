@@ -34,7 +34,7 @@ describe('Rest Tests', function () {
     it('constructs', () => {
         this.timeout(1000);
 
-        let rest: restm.RestClient = new restm.RestClient('typed-test-client-tests');
+        let rest: restm.RestClient = new restm.RestClient('typed-rest-client-tests');
         assert(rest, 'rest client should not be null');
     })
 
@@ -62,6 +62,28 @@ describe('Rest Tests', function () {
         let restRes: restm.IRestResponse<HttpData> = await _restMic.get<HttpData>('');
         assert(restRes.statusCode == 200, "statusCode should be 200");
         assert(restRes.result && restRes.result.url === 'http://microsoft.com');
+    });
+
+    it('gets a resource and correctly revives its Date property', async() => {
+        const dateObject: Date = new Date();
+        nock('http://microsoft.com')
+            .get('/date')
+            .reply(200, {
+                json: {dateProperty: dateObject.toDateString()}
+            });
+        const restRes: restm.IRestResponse<HttpData> = await _rest.get<HttpData>('http://microsoft.com/date', {reviveDates: true});
+        assert(restRes.result && restRes.result.json.dateProperty.getTime != undefined);
+    });
+
+    it('gets a resource and doesn\'t revive its non-Date property', async() => {
+        const nonDateObject: string = "stringObject";
+        nock('http://microsoft.com')
+            .get('/date')
+            .reply(200, {
+                json: {nonDateProperty: nonDateObject}
+            });
+        const restRes: restm.IRestResponse<HttpData> = await _rest.get<HttpData>('http://microsoft.com/date', {reviveDates: true});
+        assert(restRes.result && typeof(restRes.result.json.nonDateProperty) == 'string' && restRes.result.json.nonDateProperty == "stringObject");
     });
 
     it('creates a resource', async() => {
