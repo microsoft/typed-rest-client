@@ -8,6 +8,8 @@ import https = require("https");
 var _ = require("underscore");
 var ntlm = require("../opensource/node-http-ntlm/ntlm");
 
+require('es6-promise').polyfill();
+
 interface INtlmOptions {
     username?: string,
     password?: string,

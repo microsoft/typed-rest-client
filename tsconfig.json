@@ -1,13 +1,14 @@
 {
-    "compilerOptions": {
-        "target": "es2015",
-        "module": "commonjs",
-        "moduleResolution": "node",
-        "typeRoots": [ "node_modules/@types" ], 
-        "declaration": true,
-        "outDir": "_build",
-        "forceConsistentCasingInFileNames": true
-    },
+  "compilerOptions": {
+    "target": "es5",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "typeRoots": [ "node_modules/@types" ],
+    "declaration": true,
+    "outDir": "_build",
+    "forceConsistentCasingInFileNames": true,
+    "lib": ["es2015"]
+  },
     "files": [
         "lib/Index.ts",
         "lib/Handlers.ts"

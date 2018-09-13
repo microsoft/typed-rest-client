@@ -7,6 +7,8 @@ import httpm = require('./HttpClient');
 import ifm = require("./Interfaces");
 import util = require("./Util");
 
+require('es6-promise').polyfill();
+
 export interface IRestResponse<T> {
     statusCode: number,
     result: T | null

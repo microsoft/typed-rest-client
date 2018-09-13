@@ -4,9 +4,12 @@
 import url = require("url");
 import http = require("http");
 import https = require("https");
+import objectAssign = require('object-assign');
 import tunnel = require("tunnel");
 import ifm = require('./Interfaces');
 import fs = require('fs');
+
+//require('es6-promise').polyfill();
 
 export enum HttpCodes {
     OK = 200,
@@ -414,11 +417,11 @@ export class HttpClient implements ifm.IHttpClient {
             // we don't want to set NODE_TLS_REJECT_UNAUTHORIZED=0 since that will affect request for entire process
             // http.RequestOptions doesn't expose a way to modify RequestOptions.agent.options
             // we have to cast it to any and change it directly
-            agent.options = Object.assign(agent.options || {}, { rejectUnauthorized: false });
+            agent.options = objectAssign(agent.options || {}, { rejectUnauthorized: false });
         }
 
         if (usingSsl && this._certConfig) {
-            agent.options = Object.assign(agent.options || {}, { ca: this._ca, cert: this._cert, key: this._key, passphrase: this._certConfig.passphrase });
+            agent.options = objectAssign(agent.options || {}, { ca: this._ca, cert: this._cert, key: this._key, passphrase: this._certConfig.passphrase });
         }
 
         return agent;
