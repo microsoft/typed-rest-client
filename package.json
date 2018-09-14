@@ -8,6 +8,7 @@
     "test": "node make.js test",
     "bt": "node make.js buildtest",
     "samples": "node make.js samples",
+    "start": "react-scripts start",
     "units": "node make.js units",
     "validate": "node make.js validate"
   },
@@ -33,6 +34,7 @@
     "@types/node": "^6.0.92",
     "@types/shelljs": "0.7.4",
     "mocha": "^3.5.3",
+    "react-scripts": "1.1.5",
     "shelljs": "0.7.6",
     "semver": "4.3.3",
     "typescript": "2.4.2"
