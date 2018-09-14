@@ -101,6 +101,8 @@ target.samples = function () {
     run('npm install ../_build');
     run('tsc');
     run('node samples.js');
+    run('npm install');
+    run('npm start');
     popd();
     console.log('done');
 }
