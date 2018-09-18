@@ -4,6 +4,6 @@
   "description": "NodejsWebApp",
   "main": "server.js",
   "devDependencies": {
-    "@types/node": "^8.0.14"
+    "@types/node": "8.0.14"
   }
 }

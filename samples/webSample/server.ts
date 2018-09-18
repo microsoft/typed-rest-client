@@ -13,17 +13,13 @@ function formatRestResponse(res: restm.IRestResponse<cm.HttpBinData>): string {
     return output_string;
 }
 
-http.createServer(function (req, res) {
+http.createServer(async function (req, res) {
     let output: string = "HTTP example\n";
     res.writeHead(200, { 'Content-Type': 'text/plain' });
-    let result: Promise<httpm.HttpClientResponse> = httpc.get('https://httpbin.org/get');
-    let body: Promise<string> = result.then((message) => message.readBody());
-    body.then((bodyString) => {
-        output += bodyString;
-        let result2: Promise<restm.IRestResponse<cm.HttpBinData>> = restc.get<cm.HttpBinData>('get');
-        result2.then((restResponse) => {
-            output += "\nRest example\n" + formatRestResponse(restResponse);
-            res.end(output);
-        });
-    });
+    const result: httpm.HttpClientResponse = await httpc.get('https://httpbin.org/get');
+    const body: string =  await result.readBody();
+    output += body;
+    const restResponse: restm.IRestResponse<cm.HttpBinData> = await restc.get<cm.HttpBinData>('get');
+    output += "\nRest example\n" + formatRestResponse(restResponse);
+    res.end(output);
 }).listen(port);

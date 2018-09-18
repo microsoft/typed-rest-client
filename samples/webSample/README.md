@@ -1,4 +1,4 @@
-﻿# NodejsWebApp1
+﻿# NodejsWebApp
 
 Simple node web server
 To run, run the following from the command line:

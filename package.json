@@ -8,7 +8,6 @@
     "test": "node make.js test",
     "bt": "node make.js buildtest",
     "samples": "node make.js samples",
-    "start": "react-scripts start",
     "units": "node make.js units",
     "validate": "node make.js validate"
   },
