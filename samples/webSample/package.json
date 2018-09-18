@@ -1,0 +1,9 @@
+{
+  "name": "nodejs-web-app",
+  "version": "0.0.0",
+  "description": "NodejsWebApp",
+  "main": "server.js",
+  "devDependencies": {
+    "@types/node": "^8.0.14"
+  }
+}
