@@ -37,14 +37,15 @@ export enum HttpCodes {
     GatewayTimeout = 504
 }
 
-const HttpRedirectCodes: number[] = [HttpCodes.MovedPermanently, HttpCodes.ResourceMoved, HttpCodes.SeeOther, HttpCodes.TemporaryRedirect, HttpCodes.PermanentRedirect];
+const HttpRedirectCodes: number[] = [HttpCodes.MovedPermanently, HttpCodes.ResourceMoved, HttpCodes.SeeOther, HttpCodes.TemporaryRedirect,
+                                     HttpCodes.PermanentRedirect];
 
 export class HttpClientResponse implements ifm.IHttpClientResponse {
+    public message: http.IncomingMessage;
+
     constructor(message: http.IncomingMessage) {
         this.message = message;
     }
-
-    public message: http.IncomingMessage;
     readBody(): Promise<string> {
         return new Promise<string>(async (resolve, reject) => {
             let output: string = '';
@@ -172,7 +173,8 @@ export class HttpClient implements ifm.IHttpClient {
         return this.request('HEAD', requestUrl, null, additionalHeaders || {});
     }
 
-    public sendStream(verb: string, requestUrl: string, stream: NodeJS.ReadableStream, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
+    public sendStream(verb: string, requestUrl: string, stream: NodeJS.ReadableStream,
+                      additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
         return this.request(verb, requestUrl, stream, additionalHeaders);
     }
 
@@ -181,7 +183,8 @@ export class HttpClient implements ifm.IHttpClient {
      * All other methods such as get, post, patch, and request ultimately call this.
      * Prefer get, del, post and patch
      */
-    public async request(verb: string, requestUrl: string, data: string | NodeJS.ReadableStream, headers: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
+    public async request(verb: string, requestUrl: string, data: string | NodeJS.ReadableStream,
+                         headers: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
         if (this._disposed) {
             throw new Error('Client has already been disposed.');
         }
@@ -250,7 +253,7 @@ export class HttpClient implements ifm.IHttpClient {
      */
     public requestRaw(info: ifm.IRequestInfo, data: string | NodeJS.ReadableStream): Promise<ifm.IHttpClientResponse> {
         return new Promise<ifm.IHttpClientResponse>((resolve, reject) => {
-            const callbackForResult = function (err: any, res: ifm.IHttpClientResponse) {
+            const callbackForResult = (err: any, res: ifm.IHttpClientResponse) => {
                 if (err) {
                     reject(err);
                 }
@@ -268,10 +271,10 @@ export class HttpClient implements ifm.IHttpClient {
      * @param data
      * @param onResult
      */
-    public requestRawWithCallback(info: ifm.IRequestInfo, data: string | NodeJS.ReadableStream, onResult: (err: any, res: ifm.IHttpClientResponse) => void): void {
+    public requestRawWithCallback(info: ifm.IRequestInfo, data: string | NodeJS.ReadableStream,
+                                  onResult: (err: any, res: ifm.IHttpClientResponse) => void): void {
         let socket;
 
-        const isDataString = typeof (data) === 'string';
         if (typeof (data) === 'string') {
             info.options.headers['Content-Length'] = Buffer.byteLength(data, 'utf8');
         }
@@ -302,7 +305,7 @@ export class HttpClient implements ifm.IHttpClient {
             handleResult(new Error('Request timeout: ' + info.options.path), null);
         });
 
-        req.on('error', function (err) {
+        req.on('error', (err) => {
             // err has statusCode property
             // res should have headers
             handleResult(err, null);
@@ -313,7 +316,7 @@ export class HttpClient implements ifm.IHttpClient {
         }
 
         if (data && typeof (data) !== 'string') {
-            data.on('close', function () {
+            data.on('close', () => {
                 req.end();
             });
 
@@ -376,12 +379,12 @@ export class HttpClient implements ifm.IHttpClient {
 
         if (useProxy) {
             const agentOptions: tunnel.TunnelOptions = {
-                maxSockets: maxSockets,
                 keepAlive: this._keepAlive,
+                maxSockets: maxSockets,
                 proxy: {
-                    proxyAuth: proxy.proxyAuth,
                     host: proxy.proxyUrl.hostname,
-                    port: proxy.proxyUrl.port
+                    port: proxy.proxyUrl.port,
+                    proxyAuth: proxy.proxyAuth
                 }
             };
 
@@ -417,7 +420,8 @@ export class HttpClient implements ifm.IHttpClient {
         }
 
         if (usingSsl && this._certConfig) {
-            agent.options = Object.assign(agent.options || {}, { ca: this._ca, cert: this._cert, key: this._key, passphrase: this._certConfig.passphrase });
+            agent.options = Object.assign(agent.options || {}, { ca: this._ca, cert: this._cert,
+                                                                 key: this._key, passphrase: this._certConfig.passphrase });
         }
 
         return agent;

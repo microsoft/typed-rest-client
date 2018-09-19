@@ -54,8 +54,9 @@ var run = function (cl) {
 var lint = function () {
     var filesGlob = '"lib/**/*.ts?(x)"'; 
     var rulesDir = path.join(__dirname, 'node_modules/tslint-microsoft-contrib');
-    var config = path.join(__dirname, 'tslint.json');
-    run(tslint + ' ' + filesGlob + ' --rules-dir "' + rulesDir + '" --config "' + config + '"');
+    var lintConfig = path.join(__dirname, 'tslint.json');
+    var tsConfig = path.join(__dirname, 'tsconfig.json');
+    run(tslint + ' ' + filesGlob + ' --rules-dir "' + rulesDir + '" --project "' + tsConfig + '" --config "' + lintConfig + '"');
 }
 
 target.clean = function () {

@@ -60,7 +60,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
 
     public handleAuthentication(httpClient: ifm.IHttpClient, requestInfo: ifm.IRequestInfo, objs): Promise<ifm.IHttpClientResponse> {
         return new Promise<ifm.IHttpClientResponse>((resolve, reject) => {
-            const callbackForResult = function (err: any, res: ifm.IHttpClientResponse) {
+            const callbackForResult = (err: any, res: ifm.IHttpClientResponse) => {
                 if (err) {
                     reject(err);
                 }
@@ -77,9 +77,9 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
     private handleAuthenticationPrivate(httpClient: any, requestInfo: ifm.IRequestInfo, objs, finalCallback): void {
         // Set up the headers for NTLM authentication
         requestInfo.options = _.extend(requestInfo.options, {
-            username: this._ntlmOptions.username,
-            password: this._ntlmOptions.password,
             domain: this._ntlmOptions.domain,
+            password: this._ntlmOptions.password,
+            username: this._ntlmOptions.username,
             workstation: this._ntlmOptions.workstation
         });
 
@@ -94,7 +94,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
         // The following pattern of sending the type1 message following immediately (in a setImmediate) is
         // critical for the NTLM exchange to happen.  If we removed setImmediate (or call in a different manner)
         // the NTLM exchange will always fail with a 401.
-        this.sendType1Message(httpClient, requestInfo, objs, function (err, res) {
+        this.sendType1Message(httpClient, requestInfo, objs, (err, res) => {
             if (err) {
                 return finalCallback(err, null, null);
             }
@@ -106,7 +106,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
                 // setImmediate allows us to queue a second request on the same connection. If this second
                 // request is not queued on the connection when the first request finishes then node closes
                 // the connection. NTLM requires both requests to be on the same connection so we need this.
-                setImmediate(function () {
+                setImmediate(() => {
                     self.sendType3Message(httpClient, requestInfo, objs, res, finalCallback);
                 });
             });
@@ -118,12 +118,12 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
         const type1msg = ntlm.createType1Message(this._ntlmOptions);
 
         const type1options: http.RequestOptions = {
+            agent: requestInfo.httpModule,
             headers: {
-                Connection: 'keep-alive',
-                Authorization: type1msg
+                Authorization: type1msg,
+                Connection: 'keep-alive'
             },
-            timeout: requestInfo.options.timeout || 0,
-            agent: requestInfo.httpModule
+            timeout: requestInfo.options.timeout || 0
         };
 
         const type1info = <ifm.IRequestInfo>{};
@@ -144,11 +144,11 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
         const type3msg = ntlm.createType3Message(type2msg, this._ntlmOptions);
 
         const type3options: http.RequestOptions = {
+            agent: requestInfo.httpModule,
             headers: {
                 Authorization: type3msg,
                 Connection: 'Close'
-            },
-            agent: requestInfo.httpModule
+            }
         };
 
         const type3info = <ifm.IRequestInfo>{};

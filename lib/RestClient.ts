@@ -25,12 +25,14 @@ export interface IRequestOptions {
 export class RestClient {
     client: httpm.HttpClient;
     versionParam: string;
+    private _baseUrl: string;
 
     /**
      * Creates an instance of the RestClient
      * @constructor
      * @param {string} userAgent - userAgent for requests
-     * @param {string} baseUrl - (Optional) If not specified, use full urls per request.  If supplied and a function passes a relative url, it will be appended to this
+     * @param {string} baseUrl - (Optional) If not specified, use full urls per request.
+     *                                      If supplied and a function passes a relative url, it will be appended to this
      * @param {ifm.IRequestHandler[]} handlers - handlers are typically auth handlers (basic, bearer, ntlm supplied)
      * @param {ifm.IRequestOptions} requestOptions - options for each http requests (http proxy setting, socket timeout)
      */
@@ -43,8 +45,6 @@ export class RestClient {
             this._baseUrl = baseUrl;
         }
     }
-
-    private _baseUrl: string;
 
     /**
      * Gets a resource from an endpoint
@@ -177,8 +177,8 @@ export class RestClient {
             const statusCode: number = res.message.statusCode;
 
             const response: IRestResponse<T> = {
-                statusCode: statusCode,
-                result: null
+                result: null,
+                statusCode: statusCode
             };
 
             // not found leads to null obj returned
