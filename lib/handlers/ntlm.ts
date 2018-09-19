@@ -5,8 +5,8 @@ import http = require('http');
 import https = require('https');
 import ifm = require('../Interfaces');
 
-const _ = require('underscore');
-const ntlm = require('../opensource/node-http-ntlm/ntlm');
+const _: any = require('underscore');
+const ntlm: any = require('../opensource/node-http-ntlm/ntlm');
 
 interface INtlmOptions {
     username?: string;
@@ -44,11 +44,11 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
         if (response && response.message && response.message.statusCode === 401) {
             // Ensure that we're talking NTLM here
             // Once we have the www-authenticate header, split it so we can ensure we can talk NTLM
-            const wwwAuthenticate = response.message.headers['www-authenticate'];
+            const wwwAuthenticate: string = response.message.headers['www-authenticate'];
 
             if (wwwAuthenticate) {
-                const mechanisms = wwwAuthenticate.split(', ');
-                const index = mechanisms.indexOf('NTLM');
+                const mechanisms: string[] = wwwAuthenticate.split(', ');
+                const index: number = mechanisms.indexOf('NTLM');
                 if (index >= 0) {
                     return true;
                 }
@@ -58,9 +58,9 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
         return false;
     }
 
-    public handleAuthentication(httpClient: ifm.IHttpClient, requestInfo: ifm.IRequestInfo, objs): Promise<ifm.IHttpClientResponse> {
-        return new Promise<ifm.IHttpClientResponse>((resolve, reject) => {
-            const callbackForResult = (err: any, res: ifm.IHttpClientResponse) => {
+    public handleAuthentication(httpClient: ifm.IHttpClient, requestInfo: ifm.IRequestInfo, objs: any): Promise<ifm.IHttpClientResponse> {
+        return new Promise<ifm.IHttpClientResponse>((resolve: Function, reject: Function) => {
+            const callbackForResult: Function = (err: any, res: ifm.IHttpClientResponse) => {
                 if (err) {
                     reject(err);
                 }
@@ -74,7 +74,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
         });
     }
 
-    private handleAuthenticationPrivate(httpClient: any, requestInfo: ifm.IRequestInfo, objs, finalCallback): void {
+    private handleAuthenticationPrivate(httpClient: any, requestInfo: ifm.IRequestInfo, objs: any, finalCallback: any): void {
         // Set up the headers for NTLM authentication
         requestInfo.options = _.extend(requestInfo.options, {
             domain: this._ntlmOptions.domain,
@@ -89,12 +89,12 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
             requestInfo.options.agent = new http.Agent({ keepAlive: true });
         }
 
-        const self = this;
+        const self: this = this;
 
         // The following pattern of sending the type1 message following immediately (in a setImmediate) is
         // critical for the NTLM exchange to happen.  If we removed setImmediate (or call in a different manner)
         // the NTLM exchange will always fail with a 401.
-        this.sendType1Message(httpClient, requestInfo, objs, (err, res) => {
+        this.sendType1Message(httpClient, requestInfo, objs, (err: any, res: ifm.IHttpClientResponse) => {
             if (err) {
                 return finalCallback(err, null, null);
             }
@@ -114,8 +114,8 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
     }
 
     // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
-    private sendType1Message(httpClient: ifm.IHttpClient, requestInfo: ifm.IRequestInfo, objs: any, finalCallback): void {
-        const type1msg = ntlm.createType1Message(this._ntlmOptions);
+    private sendType1Message(httpClient: ifm.IHttpClient, requestInfo: ifm.IRequestInfo, objs: any, finalCallback: any): void {
+        const type1msg: any = ntlm.createType1Message(this._ntlmOptions);
 
         const type1options: http.RequestOptions = {
             agent: requestInfo.httpModule,
@@ -126,7 +126,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
             timeout: requestInfo.options.timeout || 0
         };
 
-        const type1info = <ifm.IRequestInfo>{};
+        const type1info: ifm.IRequestInfo = <ifm.IRequestInfo>{};
         type1info.httpModule = requestInfo.httpModule;
         type1info.parsedUrl = requestInfo.parsedUrl;
         type1info.options = _.extend(type1options, _.omit(requestInfo.options, 'headers'));
@@ -135,13 +135,13 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
     }
 
     // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
-    private sendType3Message(httpClient: ifm.IHttpClient, requestInfo: ifm.IRequestInfo, objs: any, res, callback): void {
+    private sendType3Message(httpClient: ifm.IHttpClient, requestInfo: ifm.IRequestInfo, objs: any, res: any, callback: any): void {
         if (!res.message.headers && !res.message.headers['www-authenticate']) {
             throw new Error('www-authenticate not found on response of second request');
         }
 
-        const type2msg = ntlm.parseType2Message(res.message.headers['www-authenticate']);
-        const type3msg = ntlm.createType3Message(type2msg, this._ntlmOptions);
+        const type2msg: any = ntlm.parseType2Message(res.message.headers['www-authenticate']);
+        const type3msg: any = ntlm.createType3Message(type2msg, this._ntlmOptions);
 
         const type3options: http.RequestOptions = {
             agent: requestInfo.httpModule,
@@ -151,7 +151,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
             }
         };
 
-        const type3info = <ifm.IRequestInfo>{};
+        const type3info: ifm.IRequestInfo = <ifm.IRequestInfo>{};
         type3info.httpModule = requestInfo.httpModule;
         type3info.parsedUrl = requestInfo.parsedUrl;
         type3options.headers = _.extend(type3options.headers, requestInfo.options.headers);

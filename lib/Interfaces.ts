@@ -28,7 +28,7 @@ export interface IHttpClient {
 export interface IRequestHandler {
     prepareRequest(options: http.RequestOptions): void;
     canHandleAuthentication(response: IHttpClientResponse): boolean;
-    handleAuthentication(httpClient: IHttpClient, requestInfo: IRequestInfo, objs): Promise<IHttpClientResponse>;
+    handleAuthentication(httpClient: IHttpClient, requestInfo: IRequestInfo, objs: any): Promise<IHttpClientResponse>;
 }
 
 export interface IHttpClientResponse {

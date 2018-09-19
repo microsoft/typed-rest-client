@@ -50,13 +50,12 @@ export class RestClient {
      * Gets a resource from an endpoint
      * Be aware that not found returns a null.  Other error conditions reject the promise
      * @param {string} requestUrl - fully qualified or relative url
+     * @param {any} resources - Any additional data/resources
      * @param {IRequestOptions} requestOptions - (optional) requestOptions object
      */
-    public async options<T>(requestUrl: string,
-        options?: IRequestOptions): Promise<IRestResponse<T>> {
+    public async options<T>(requestUrl: string, options?: IRequestOptions): Promise<IRestResponse<T>> {
         const url: string = util.getUrl(requestUrl, this._baseUrl);
-        const res: httpm.HttpClientResponse = await this.client.options(url,
-            this._headersFromOptions(options));
+        const res: httpm.HttpClientResponse = await this.client.options(url, this._headersFromOptions(options));
 
         return this._processResponse<T>(res, options);
     }
@@ -65,13 +64,12 @@ export class RestClient {
      * Gets a resource from an endpoint
      * Be aware that not found returns a null.  Other error conditions reject the promise
      * @param {string} resource - fully qualified url or relative path
+     * @param {any} resources - Any additional data/resources
      * @param {IRequestOptions} requestOptions - (optional) requestOptions object
      */
-    public async get<T>(resource: string,
-        options?: IRequestOptions): Promise<IRestResponse<T>> {
+    public async get<T>(resource: string, options?: IRequestOptions): Promise<IRestResponse<T>> {
         const url: string = util.getUrl(resource, this._baseUrl);
-        const res: httpm.HttpClientResponse = await this.client.get(url,
-            this._headersFromOptions(options));
+        const res: httpm.HttpClientResponse = await this.client.get(url, this._headersFromOptions(options));
 
         return this._processResponse<T>(res, options);
     }
@@ -80,13 +78,12 @@ export class RestClient {
      * Deletes a resource from an endpoint
      * Be aware that not found returns a null.  Other error conditions reject the promise
      * @param {string} resource - fully qualified or relative url
+     * @param {any} resources - Any additional data/resources
      * @param {IRequestOptions} requestOptions - (optional) requestOptions object
      */
-    public async del<T>(resource: string,
-        options?: IRequestOptions): Promise<IRestResponse<T>> {
+    public async del<T>(resource: string, options?: IRequestOptions): Promise<IRestResponse<T>> {
         const url: string = util.getUrl(resource, this._baseUrl);
-        const res: httpm.HttpClientResponse = await this.client.del(url,
-            this._headersFromOptions(options));
+        const res: httpm.HttpClientResponse = await this.client.del(url, this._headersFromOptions(options));
 
         return this._processResponse<T>(res, options);
     }
@@ -96,11 +93,10 @@ export class RestClient {
      * T type of object returned.
      * Be aware that not found returns a null.  Other error conditions reject the promise
      * @param {string} resource - fully qualified or relative url
+     * @param {any} resources - Any additional data/resources
      * @param {IRequestOptions} requestOptions - (optional) requestOptions object
      */
-    public async create<T>(resource: string,
-        resources: any,
-        options?: IRequestOptions): Promise<IRestResponse<T>> {
+    public async create<T>(resource: string, resources: any, options?: IRequestOptions): Promise<IRestResponse<T>> {
         const url: string = util.getUrl(resource, this._baseUrl);
         const headers: ifm.IHeaders = this._headersFromOptions(options, true);
 
@@ -115,11 +111,10 @@ export class RestClient {
      * T type of object returned.
      * Be aware that not found returns a null.  Other error conditions reject the promise
      * @param {string} resource - fully qualified or relative url
+     * @param {any} resources - Any additional data/resources
      * @param {IRequestOptions} requestOptions - (optional) requestOptions object
      */
-    public async update<T>(resource: string,
-        resources: any,
-        options?: IRequestOptions): Promise<IRestResponse<T>> {
+    public async update<T>(resource: string, resources: any, options?: IRequestOptions): Promise<IRestResponse<T>> {
         const url: string = util.getUrl(resource, this._baseUrl);
         const headers: ifm.IHeaders = this._headersFromOptions(options, true);
 
@@ -134,11 +129,10 @@ export class RestClient {
      * T type of object returned.
      * Be aware that not found returns a null.  Other error conditions reject the promise
      * @param {string} resource - fully qualified or relative url
+     * @param {any} resources - Any additional data/resources
      * @param {IRequestOptions} requestOptions - (optional) requestOptions object
      */
-    public async replace<T>(resource: string,
-        resources: any,
-        options?: IRequestOptions): Promise<IRestResponse<T>> {
+    public async replace<T>(resource: string, resources: any, options?: IRequestOptions): Promise<IRestResponse<T>> {
         const url: string = util.getUrl(resource, this._baseUrl);
         const headers: ifm.IHeaders = this._headersFromOptions(options, true);
 
@@ -148,10 +142,8 @@ export class RestClient {
         return this._processResponse<T>(res, options);
     }
 
-    public async uploadStream<T>(verb: string,
-        requestUrl: string,
-        stream: NodeJS.ReadableStream,
-        options?: IRequestOptions): Promise<IRestResponse<T>> {
+    public async uploadStream<T>(verb: string, requestUrl: string, stream: NodeJS.ReadableStream,
+                                 options?: IRequestOptions): Promise<IRestResponse<T>> {
         const url: string = util.getUrl(requestUrl, this._baseUrl);
         const headers: ifm.IHeaders = this._headersFromOptions(options, true);
 
@@ -173,7 +165,7 @@ export class RestClient {
     }
 
     private async _processResponse<T>(res: httpm.HttpClientResponse, options: IRequestOptions): Promise<IRestResponse<T>> {
-        return new Promise<IRestResponse<T>>(async (resolve, reject) => {
+        return new Promise<IRestResponse<T>>(async (resolve: Function, reject: Function) => {
             const statusCode: number = res.message.statusCode;
 
             const response: IRestResponse<T> = {

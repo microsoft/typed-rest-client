@@ -174,9 +174,8 @@
     "prefer-template": false,
     "return-undefined": true,
     "typedef": [
-      false,
+      true,
       "call-signature",
-      "arrow-call-signature",
       "parameter",
       "arrow-parameter",
       "property-declaration",
@@ -201,7 +200,7 @@
     "react-a11y-tabindex-no-positive": true,
     "react-a11y-titles": true,
     "align": [
-      false,
+      true,
       "parameters",
       "arguments",
       "statements"
