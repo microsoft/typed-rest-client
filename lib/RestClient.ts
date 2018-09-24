@@ -21,7 +21,7 @@ export interface IRequestOptions {
 
     responseProcessor?: Function,
     //Dates aren't automatically deserialized by JSON, this adds a date reviver to ensure they aren't just left as strings
-    reviveDates?: boolean
+    deserializeDates?: boolean
 }
 
 export class RestClient {
@@ -205,7 +205,7 @@ export class RestClient {
             try {
                 let contents: string = await res.readBody();
                 if (contents && contents.length > 0) {
-                    if (options && options.reviveDates) {
+                    if (options && options.deserializeDates) {
                         obj = JSON.parse(contents, RestClient.dateTimeReviver);
                     } else {
                         obj = JSON.parse(contents);
