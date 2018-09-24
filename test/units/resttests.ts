@@ -90,6 +90,7 @@ describe('Rest Tests', function () {
             });
         const restRes: restm.IRestResponse<HttpData> = await _rest.get<HttpData>('http://microsoft.com/date', {reviveDates: true});
         assert(restRes.result);
+        assert(restRes.statusCode == 200, "statusCode should be 200");
         assert.equal(typeof(restRes.result.json.nonDateProperty), 'string');
         assert.equal(restRes.result.json.nonDateProperty, 'stringObject');
     });
