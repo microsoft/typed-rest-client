@@ -174,7 +174,7 @@ export class RestClient {
         return headers;
     }
 
-    private static dateTimeReviver(key: any, value: any): any {
+    private static dateTimeDeserializer(key: any, value: any): any {
         if (typeof value === 'string'){
             let a = new Date(value);
             if (!isNaN(a.valueOf())) {
@@ -206,7 +206,7 @@ export class RestClient {
                 let contents: string = await res.readBody();
                 if (contents && contents.length > 0) {
                     if (options && options.deserializeDates) {
-                        obj = JSON.parse(contents, RestClient.dateTimeReviver);
+                        obj = JSON.parse(contents, RestClient.dateTimeDeserializer);
                     } else {
                         obj = JSON.parse(contents);
                     }

@@ -64,14 +64,19 @@ describe('Rest Tests', function () {
         assert(restRes.result && restRes.result.url === 'http://microsoft.com');
     });
 
-    it('gets a resource and correctly revives its Date property', async() => {
+    it('gets a resource and correctly deserializes its Date property', async() => {
+        //Arrange
         const dateObject: Date = new Date(2018, 9, 24, 10, 54, 11, 1);
         nock('http://microsoft.com')
             .get('/date')
             .reply(200, {
                 json: {dateProperty: dateObject.toDateString()}
             });
-        const restRes: restm.IRestResponse<HttpData> = await _rest.get<HttpData>('http://microsoft.com/date', {reviveDates: true});
+        
+        //Act
+        const restRes: restm.IRestResponse<HttpData> = await _rest.get<HttpData>('http://microsoft.com/date', {deserializeDates: true});
+
+        //Assert
         assert(restRes.result);
         const dateProperty: Date = restRes.result.json.dateProperty;
         assert(dateProperty.getTime, 'dateProperty should have a getTime method');
@@ -81,14 +86,19 @@ describe('Rest Tests', function () {
 
     });
 
-    it('gets a resource and doesn\'t revive its non-Date property', async() => {
+    it('gets a resource and doesn\'t deserialize its non-Date property', async() => {
+        //Arrange
         const nonDateObject: string = 'stringObject';
         nock('http://microsoft.com')
             .get('/date')
             .reply(200, {
                 json: {nonDateProperty: nonDateObject}
             });
-        const restRes: restm.IRestResponse<HttpData> = await _rest.get<HttpData>('http://microsoft.com/date', {reviveDates: true});
+
+        //Act
+        const restRes: restm.IRestResponse<HttpData> = await _rest.get<HttpData>('http://microsoft.com/date', {deserializeDates: true});
+
+        //Assert
         assert(restRes.result);
         assert(restRes.statusCode == 200, "statusCode should be 200");
         assert.equal(typeof(restRes.result.json.nonDateProperty), 'string');
