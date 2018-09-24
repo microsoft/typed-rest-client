@@ -65,25 +65,33 @@ describe('Rest Tests', function () {
     });
 
     it('gets a resource and correctly revives its Date property', async() => {
-        const dateObject: Date = new Date();
+        const dateObject: Date = new Date(2018, 9, 24, 10, 54, 11, 1);
         nock('http://microsoft.com')
             .get('/date')
             .reply(200, {
                 json: {dateProperty: dateObject.toDateString()}
             });
         const restRes: restm.IRestResponse<HttpData> = await _rest.get<HttpData>('http://microsoft.com/date', {reviveDates: true});
-        assert(restRes.result && restRes.result.json.dateProperty.getTime != undefined);
+        assert(restRes.result);
+        const dateProperty: Date = restRes.result.json.dateProperty;
+        assert(dateProperty.getTime, 'dateProperty should have a getTime method');
+        assert.equal(dateProperty.getFullYear(), 2018);
+        assert.equal(dateProperty.getMonth(), 9);
+        assert.equal(dateProperty.getDate(), 24);
+
     });
 
     it('gets a resource and doesn\'t revive its non-Date property', async() => {
-        const nonDateObject: string = "stringObject";
+        const nonDateObject: string = 'stringObject';
         nock('http://microsoft.com')
             .get('/date')
             .reply(200, {
                 json: {nonDateProperty: nonDateObject}
             });
         const restRes: restm.IRestResponse<HttpData> = await _rest.get<HttpData>('http://microsoft.com/date', {reviveDates: true});
-        assert(restRes.result && typeof(restRes.result.json.nonDateProperty) == 'string' && restRes.result.json.nonDateProperty == "stringObject");
+        assert(restRes.result);
+        assert.equal(typeof(restRes.result.json.nonDateProperty), 'string');
+        assert.equal(restRes.result.json.nonDateProperty, 'stringObject');
     });
 
     it('creates a resource', async() => {
