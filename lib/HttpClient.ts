@@ -9,8 +9,6 @@ import tunnel = require("tunnel");
 import ifm = require('./Interfaces');
 import fs = require('fs');
 
-//require('es6-promise').polyfill();
-
 export enum HttpCodes {
     OK = 200,
     MultipleChoices = 300,
