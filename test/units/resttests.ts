@@ -34,7 +34,7 @@ describe('Rest Tests', function () {
     it('constructs', () => {
         this.timeout(1000);
 
-        let rest: restm.RestClient = new restm.RestClient('typed-test-client-tests');
+        let rest: restm.RestClient = new restm.RestClient('typed-rest-client-tests');
         assert(rest, 'rest client should not be null');
     })
 
@@ -62,6 +62,47 @@ describe('Rest Tests', function () {
         let restRes: restm.IRestResponse<HttpData> = await _restMic.get<HttpData>('');
         assert(restRes.statusCode == 200, "statusCode should be 200");
         assert(restRes.result && restRes.result.url === 'http://microsoft.com');
+    });
+
+    it('gets a resource and correctly deserializes its Date property', async() => {
+        //Arrange
+        const dateObject: Date = new Date(2018, 9, 24, 10, 54, 11, 1);
+        nock('http://microsoft.com')
+            .get('/date')
+            .reply(200, {
+                json: {dateProperty: dateObject.toDateString()}
+            });
+        
+        //Act
+        const restRes: restm.IRestResponse<HttpData> = await _rest.get<HttpData>('http://microsoft.com/date', {deserializeDates: true});
+
+        //Assert
+        assert(restRes.result);
+        const dateProperty: Date = restRes.result.json.dateProperty;
+        assert(dateProperty.getTime, 'dateProperty should have a getTime method');
+        assert.equal(dateProperty.getFullYear(), 2018);
+        assert.equal(dateProperty.getMonth(), 9);
+        assert.equal(dateProperty.getDate(), 24);
+
+    });
+
+    it('gets a resource and doesn\'t deserialize its non-Date property', async() => {
+        //Arrange
+        const nonDateObject: string = 'stringObject';
+        nock('http://microsoft.com')
+            .get('/date')
+            .reply(200, {
+                json: {nonDateProperty: nonDateObject}
+            });
+
+        //Act
+        const restRes: restm.IRestResponse<HttpData> = await _rest.get<HttpData>('http://microsoft.com/date', {deserializeDates: true});
+
+        //Assert
+        assert(restRes.result);
+        assert(restRes.statusCode == 200, "statusCode should be 200");
+        assert.equal(typeof(restRes.result.json.nonDateProperty), 'string');
+        assert.equal(restRes.result.json.nonDateProperty, 'stringObject');
     });
 
     it('creates a resource', async() => {

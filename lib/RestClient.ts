@@ -19,7 +19,9 @@ export interface IRequestOptions {
     // since accept is defaulted, set additional headers if needed
     additionalHeaders?: ifm.IHeaders,
 
-    responseProcessor?: Function
+    responseProcessor?: Function,
+    //Dates aren't automatically deserialized by JSON, this adds a date reviver to ensure they aren't just left as strings
+    deserializeDates?: boolean
 }
 
 export class RestClient {
@@ -172,6 +174,17 @@ export class RestClient {
         return headers;
     }
 
+    private static dateTimeDeserializer(key: any, value: any): any {
+        if (typeof value === 'string'){
+            let a = new Date(value);
+            if (!isNaN(a.valueOf())) {
+                return a;
+            }
+        }
+
+        return value;
+    }
+
     private async _processResponse<T>(res: httpm.HttpClientResponse, options: IRequestOptions): Promise<IRestResponse<T>> {
         return new Promise<IRestResponse<T>>(async (resolve, reject) => {
             const statusCode: number = res.message.statusCode;
@@ -192,7 +205,11 @@ export class RestClient {
             try {
                 let contents: string = await res.readBody();
                 if (contents && contents.length > 0) {
-                    obj = JSON.parse(contents);
+                    if (options && options.deserializeDates) {
+                        obj = JSON.parse(contents, RestClient.dateTimeDeserializer);
+                    } else {
+                        obj = JSON.parse(contents);
+                    }
                     if (options && options.responseProcessor) {
                         response.result = options.responseProcessor(obj);
                     }
