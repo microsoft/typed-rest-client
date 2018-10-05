@@ -5,12 +5,12 @@ import * as httpm from 'typed-rest-client/HttpClient';
 export async function run() {
     cm.banner('Handler Samples');
 
-    var username = "";
-    var password = "";
-    var workstation = "";
-    var domain = "";
-    var url = "";
-    
+    const username = "";
+    const password = "";
+    const workstation = "";
+    const domain = "";
+    const url = "";
+
     const basicHandler: hm.BasicCredentialHandler = new hm.BasicCredentialHandler(username, password);
     const patHandler: hm.PersonalAccessTokenCredentialHandler = new hm.PersonalAccessTokenCredentialHandler('scbfb44vxzku5l4xgc3qfazn3lpk4awflfryc76esaiq7aypcbhs');
     const ntlmHandler: hm.NtlmCredentialHandler = new hm.NtlmCredentialHandler(username, password, workstation, domain);
