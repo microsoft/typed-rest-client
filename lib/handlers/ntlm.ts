@@ -27,8 +27,14 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
         if (domain !== undefined) {
             this._ntlmOptions.domain = domain;
         }
+        else {
+            this._ntlmOptions.domain = '';
+        }
         if (workstation !== undefined) {
             this._ntlmOptions.workstation = workstation;
+        }
+        else {
+            this._ntlmOptions.workstation = '';
         }
     }
 
