@@ -66,6 +66,7 @@ target.build = function () {
 }
 
 target.units = function() {
+    target.build();
     // install the just built lib into the test proj
     pushd('test')
     run('npm install ../_build');
@@ -78,21 +79,15 @@ target.units = function() {
 
 target.test = function() {
     // install the just built lib into the test proj
-    pushd('test')
-    run('npm install ../_build');
-    popd();
-
-    console.log("-------Unit Tests-------");
-    run('tsc -p ./test/units');
-    run('mocha test/units');
+    target.units();
 
     console.log("-------Other Tests-------");
     run('tsc -p ./test/tests');
     run('mocha test/tests');
 }
 
+//Deprecated since we automatically build in units before testing, keeping for back compat
 target.buildtest = function() {
-    target.build();
     target.test();
 }
 
@@ -108,7 +103,6 @@ target.samples = function () {
 }
 
 target.validate = function() {
-    target.build();
     target.test();
     target.samples();
 }
