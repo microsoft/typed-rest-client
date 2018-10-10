@@ -14,22 +14,24 @@ export function getUrl(resource: string, baseUrl?: string): string  {
     if (!baseUrl) {
         return resource;
     }
-
-    if (!resource) {
+    else if (!resource) {
         return baseUrl;
     }
-    
-    let base: url.Url = url.parse(baseUrl);
+    else {
+        const base: url.Url = url.parse(baseUrl);
+        const resultantUrl: url.Url = url.parse(resource);
 
-    // resource (specific per request) eliments take priority
-    let resultantUrl: url.Url = url.parse(resource);
-    resultantUrl.protocol = resultantUrl.protocol || base.protocol;
-    resultantUrl.auth = resultantUrl.auth || base.auth;
-    resultantUrl.host = resultantUrl.host || base.host;
+        // resource (specific per request) elements take priority
+        resultantUrl.protocol = resultantUrl.protocol || base.protocol;
+        resultantUrl.auth = resultantUrl.auth || base.auth;
+        resultantUrl.host = resultantUrl.host || base.host;
 
-    resultantUrl.pathname = path.posix.resolve(base.pathname, resultantUrl.pathname);
+        resultantUrl.pathname = path.posix.resolve(base.pathname, resultantUrl.pathname);
 
-    let res: string = url.format(resultantUrl);
+        if (!resultantUrl.pathname.endsWith('/') && resource.endsWith('/')) {
+            resultantUrl.pathname += '/';
+        }
 
-    return res;
+        return url.format(resultantUrl);
+    }
 }
