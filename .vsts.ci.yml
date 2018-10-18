@@ -51,6 +51,6 @@ steps:
 
 - task: PublishBuildArtifacts@1
   inputs:
-    PathtoPublish: "$(Agent.WorkFolder)\_tasks"
+    PathtoPublish: "$(Agent.WorkFolder)\\_tasks"
     ArtifactName: "tasks"
     ArtifactType: "Container"
