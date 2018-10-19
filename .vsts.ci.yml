@@ -1,56 +1,49 @@
 steps:
 # use node 8.9.1 this is the recommended version for building the typed rest client
-# - task: NodeTool@0
-#   inputs:
-#     versionSpec: "8.9.1"
-#   displayName: Install node 8.9.1
+- task: NodeTool@0
+  inputs:
+    versionSpec: "8.9.1"
+  displayName: Install node 8.9.1
 
-# # install dependencies
-# - script: npm install
-#   displayName: npm install
+# install dependencies
+- script: npm install
+  displayName: npm install
 
-# # build
-# - script: npm run build
-#   displayName: npm run build
+# build
+- script: npm run build
+  displayName: npm run build
 
-# # test using node 8.9.1
-# - script: npm run test
-#   displayName: npm run test
+# test using node 8.9.1
+- script: npm run test
+  displayName: npm run test
 
-# # test using node 4.8.6
-# - task: NodeTool@0
-#   inputs:
-#     versionSpec: "4.8.6"
-#   displayName: Install node 4.8.6
+# test using node 4.8.6
+- task: NodeTool@0
+  inputs:
+    versionSpec: "4.8.6"
+  displayName: Install node 4.8.6
 
-# - script: npm run test
-#   displayName: npm run test
+- script: npm run test
+  displayName: npm run test
 
-# # test using node 6.12.0
-# - task: NodeTool@0
-#   inputs:
-#     versionSpec: "6.12.0"
-#   displayName: Install node 6.12.0
+# test using node 6.12.0
+- task: NodeTool@0
+  inputs:
+    versionSpec: "6.12.0"
+  displayName: Install node 6.12.0
 
-# - script: npm run test
-#   displayName: npm run test
+- script: npm run test
+  displayName: npm run test
 
-# # publish build artifacts to drop folder so we can use them for release
-# - task: PublishBuildArtifacts@1
-#   inputs:
-#     PathtoPublish: "_build"
-#     ArtifactName: "drop"
-#     ArtifactType: "Container"
-#   displayName: Publish build artifacts
+# publish build artifacts to drop folder so we can use them for release
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: "_build"
+    ArtifactName: "drop"
+    ArtifactType: "Container"
+  displayName: Publish build artifacts
 
 # register with component governance
 - task: ms.vss-governance-buildtask.governance-build-task-component-detection.ComponentGovernanceComponentDetection@0
   displayName: 'Component Detection'
   # condition: and(succeeded(), ne(variables['build.reason'], 'PullRequest'))
-  continueOnError: true
-
-- task: PublishBuildArtifacts@1
-  inputs:
-    PathtoPublish: "$(Agent.WorkFolder)\\_tasks"
-    ArtifactName: "tasks"
-    ArtifactType: "Container"
