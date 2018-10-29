@@ -168,7 +168,17 @@ export class RestClient {
         headers["Accept"] = options.acceptHeader || "application/json";
 
         if (contentType) {
-            headers["Content-Type"] = headers["Content-Type"] || 'application/json; charset=utf-8';
+            let found: boolean = false;
+
+            for (let header in headers) {
+                if (header.toLowerCase() == "content-type") {
+                    found = true;
+                }
+            }
+
+            if (!found) {
+                headers["Content-Type"] = 'application/json; charset=utf-8';
+            }
         }
 
         return headers;
