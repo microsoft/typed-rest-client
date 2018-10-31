@@ -33,13 +33,13 @@
     "@types/node": "^6.0.92",
     "@types/shelljs": "0.7.4",
     "mocha": "^3.5.3",
+    "nock": "9.6.1",
     "react-scripts": "1.1.5",
     "shelljs": "0.7.6",
     "semver": "4.3.3",
     "typescript": "2.4.2"
   },
   "dependencies": {
-    "nock": "9.6.1",
     "tunnel": "0.0.4",
     "underscore": "1.8.3"
   }
