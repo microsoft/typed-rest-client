@@ -324,7 +324,7 @@ export class HttpClient implements ifm.IHttpClient {
         }
     }
 
-    private _prepareRequest(method: string, requestUrl: string, headers: any): ifm.IRequestInfo {
+    private _prepareRequest(method: string, requestUrl: string, headers: ifm.IHeaders): ifm.IRequestInfo {
         const info: ifm.IRequestInfo = <ifm.IRequestInfo>{};
 
         info.parsedUrl = url.parse(requestUrl);
@@ -336,7 +336,7 @@ export class HttpClient implements ifm.IHttpClient {
         info.options.port = info.parsedUrl.port ? parseInt(info.parsedUrl.port) : defaultPort;
         info.options.path = (info.parsedUrl.pathname || '') + (info.parsedUrl.search || '');
         info.options.method = method;
-        info.options.headers = headers || {};
+        info.options.headers = this._mergeHeaders(headers);
         info.options.headers["User-Agent"] = this.userAgent;
         info.options.agent = this._getAgent(requestUrl);
 
@@ -348,6 +348,14 @@ export class HttpClient implements ifm.IHttpClient {
         }
 
         return info;
+    }
+
+    private _mergeHeaders(headers: ifm.IHeaders) : ifm.IHeaders {
+        if (this.requestOptions && this.requestOptions.headers) {
+            return Object.assign({}, this.requestOptions.headers, headers);
+        }
+
+        return headers || {};
     }
 
     private _getAgent(requestUrl: string) {

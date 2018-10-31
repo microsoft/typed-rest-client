@@ -81,6 +81,40 @@ describe('Http Tests', function () {
         assert(creds === 'PAT:' + token, "creds should be the token");
         assert(obj.url === "http://httpbin.org/get");
     });
+    
+    it('does basic http get request with default headers', async() => {
+        let http: httpm.HttpClient = new httpm.HttpClient('typed-rest-client-tests', [], {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+        let res: httpm.HttpClientResponse = await http.get('http://httpbin.org/get');
+        assert(res.message.statusCode == 200, "status code should be 200");
+        let body: string = await res.readBody(); 
+        let obj:any = JSON.parse(body);
+        assert(obj.headers.Accept === 'application/json', "Accept header should be 'application/json'");
+        assert(obj.headers['Content-Type'] === 'application/json', "Content-Type header should be 'application/json'");
+        assert(obj.url === "http://httpbin.org/get");
+    });
+    
+    it('does basic http get request with merged headers', async() => {
+        let http: httpm.HttpClient = new httpm.HttpClient('typed-rest-client-tests', [], {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+        let res: httpm.HttpClientResponse = await http.get('http://httpbin.org/get', {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        });
+        assert(res.message.statusCode == 200, "status code should be 200");
+        let body: string = await res.readBody(); 
+        let obj:any = JSON.parse(body);
+        assert(obj.headers.Accept === 'application/json', "Accept header should be 'application/json'");
+        assert(obj.headers['Content-Type'] === 'application/x-www-form-urlencoded', "Content-Type header should be 'application/x-www-form-urlencoded'");
+        assert(obj.url === "http://httpbin.org/get");
+    });
 
     it('pipes a get request', () => {
         return new Promise<string>(async (resolve, reject) => {

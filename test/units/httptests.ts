@@ -105,6 +105,62 @@ describe('Http Tests', function () {
         assert(obj.success, "Authentication should succeed");
     });
 
+    it('does basic http get request with default headers', async() => {
+        //Set nock for correct credentials
+        nock('http://microsoft.com', {
+            reqheaders: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        })
+            .get('/')
+            .reply(200, {
+            success: true,
+            source: "nock"
+        });
+        let http: httpm.HttpClient = new httpm.HttpClient('typed-rest-client-tests', [], {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+        let res: httpm.HttpClientResponse = await http.get('http://microsoft.com');
+        assert(res.message.statusCode == 200, "status code should be 200");
+        let body: string = await res.readBody();      
+        let obj: any = JSON.parse(body);
+        assert(obj.source === "nock", "http get request should be intercepted by nock");
+        assert(obj.success, "Headers should send");
+    });
+
+    it('does basic http get request with merged headers', async() => {
+        //Set nock for correct credentials
+        nock('http://microsoft.com', {
+            reqheaders: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        })
+            .get('/')
+            .reply(200, {
+            success: true,
+            source: "nock"
+        });
+        let http: httpm.HttpClient = new httpm.HttpClient('typed-rest-client-tests', [], {
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+        let res: httpm.HttpClientResponse = await http.get('http://microsoft.com', {
+            'Content-Type': 'application/x-www-form-urlencoded'
+        });
+        assert(res.message.statusCode == 200, "status code should be 200");
+        let body: string = await res.readBody();      
+        let obj: any = JSON.parse(body);
+        assert(obj.source === "nock", "http get request should be intercepted by nock");
+        assert(obj.success, "Headers should merge/send");
+    });
+
     it('pipes a get request', () => {
         nock('http://microsoft.com')
             .get('/')
