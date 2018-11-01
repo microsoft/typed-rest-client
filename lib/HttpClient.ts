@@ -337,7 +337,7 @@ export class HttpClient implements ifm.IHttpClient {
         info.options.path = (info.parsedUrl.pathname || '') + (info.parsedUrl.search || '');
         info.options.method = method;
         info.options.headers = this._mergeHeaders(headers);
-        info.options.headers["User-Agent"] = this.userAgent;
+        info.options.headers["user-agent"] = this.userAgent;
         info.options.agent = this._getAgent(requestUrl);
 
         // gives handlers an opportunity to participate
@@ -351,11 +351,17 @@ export class HttpClient implements ifm.IHttpClient {
     }
 
     private _mergeHeaders(headers: ifm.IHeaders) : ifm.IHeaders {
+        const lowercaseKeys = obj => Object.keys(obj).reduce((c, k) => (c[k.toLowerCase()] = obj[k], c), {});
+
         if (this.requestOptions && this.requestOptions.headers) {
-            return Object.assign({}, this.requestOptions.headers, headers);
+            return Object.assign(
+                {},
+                lowercaseKeys(this.requestOptions.headers),
+                lowercaseKeys(headers)
+            );
         }
 
-        return headers || {};
+        return lowercaseKeys(headers || {});
     }
 
     private _getAgent(requestUrl: string) {

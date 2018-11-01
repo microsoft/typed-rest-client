@@ -106,7 +106,7 @@ describe('Http Tests', function () {
             }
         });
         let res: httpm.HttpClientResponse = await http.get('http://httpbin.org/get', {
-            'Content-Type': 'application/x-www-form-urlencoded'
+            'content-type': 'application/x-www-form-urlencoded'
         });
         assert(res.message.statusCode == 200, "status code should be 200");
         let body: string = await res.readBody(); 
