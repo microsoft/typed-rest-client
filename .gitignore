@@ -4,6 +4,6 @@ _build
 lib/*.js
 samples/*.js
 samples/*.txt
-test/*.js
-test/testoutput.txt
+test/**/*.js
+test/**/testoutput.txt
 npm-debug.log
