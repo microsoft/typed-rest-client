@@ -4,10 +4,9 @@
 import assert = require('assert');
 import * as httpm from 'typed-rest-client/HttpClient';
 import * as hm from 'typed-rest-client/Handlers';
-import * as fs from 'fs';
+import { WritableStreamBuffer } from 'stream-buffers';
 import * as path from 'path';
 
-let sampleFilePath: string = path.join(__dirname, 'testoutput.txt');
 
 describe('Http Tests', function () {
     let _http: httpm.HttpClient;
@@ -118,9 +117,9 @@ describe('Http Tests', function () {
 
     it('pipes a get request', () => {
         return new Promise<string>(async (resolve, reject) => {
-            let file: NodeJS.WritableStream = fs.createWriteStream(sampleFilePath);
-            (await _http.get('https://httpbin.org/get')).message.pipe(file).on('close', () => {
-                let body: string = fs.readFileSync(sampleFilePath).toString();
+            let file: WritableStreamBuffer = new WritableStreamBuffer();
+            (await _http.get('https://httpbin.org/get')).message.pipe(file).on('finish', () => {
+                let body: string = file.getContentsAsString('utf8');
                 let obj:any = JSON.parse(body);
                 assert(obj.url === "https://httpbin.org/get", "response from piped stream should have url");
                 resolve();
