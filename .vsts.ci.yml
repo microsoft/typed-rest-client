@@ -22,9 +22,6 @@ steps:
   inputs:
     versionSpec: "4.8.6"
   displayName: Install node 4.8.6
-  
-- script: npm install npm@latest
-  displayName: update npm
 
 - script: npm run test
   displayName: npm run test
