@@ -4,7 +4,7 @@
 import assert = require('assert');
 import * as httpm from 'typed-rest-client/HttpClient';
 import * as hm from 'typed-rest-client/Handlers';
-import * as streamBuffers from 'stream-buffers';
+import { WritableStreamBuffer } from 'stream-buffers';
 import * as path from 'path';
 
 
@@ -117,7 +117,7 @@ describe('Http Tests', function () {
 
     it('pipes a get request', () => {
         return new Promise<string>(async (resolve, reject) => {
-            let file = new streamBuffers.WritableStreamBuffer();
+            let file: WritableStreamBuffer = new WritableStreamBuffer();
             (await _http.get('https://httpbin.org/get')).message.pipe(file).on('finish', () => {
                 let body: string = file.getContentsAsString('utf8');
                 let obj:any = JSON.parse(body);

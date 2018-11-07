@@ -5,7 +5,7 @@ import assert = require('assert');
 import nock = require('nock');
 import * as httpm from 'typed-rest-client/HttpClient';
 import * as hm from 'typed-rest-client/Handlers';
-import * as streamBuffers from 'stream-buffers';
+import { WritableStreamBuffer } from 'stream-buffers';
 import * as path from 'path';
 
 
@@ -167,7 +167,7 @@ describe('Http Tests', function () {
                 url: "http://microsoft.com"
             });
         return new Promise<string>(async (resolve, reject) => {
-            let file = new streamBuffers.WritableStreamBuffer();
+            let file: WritableStreamBuffer = new WritableStreamBuffer();
             (await _http.get('http://microsoft.com')).message.pipe(file).on('finish', () => {
                 let body: string = file.getContentsAsString('utf8');
                 let obj:any = JSON.parse(body);
