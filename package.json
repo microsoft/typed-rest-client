@@ -32,13 +32,11 @@
     "@types/mocha": "^2.2.44",
     "@types/node": "^6.0.92",
     "@types/shelljs": "0.7.4",
-    "@types/stream-buffers": "^3.0.2",
     "mocha": "^3.5.3",
     "nock": "9.6.1",
     "react-scripts": "1.1.5",
-    "semver": "4.3.3",
     "shelljs": "0.7.6",
-    "stream-buffers": "^3.0.2",
+    "semver": "4.3.3",
     "typescript": "2.4.2"
   },
   "dependencies": {

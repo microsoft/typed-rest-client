@@ -11,7 +11,6 @@ import * as path from 'path';
  * @return {string} - resultant url 
  */
 export function getUrl(resource: string, baseUrl?: string): string  {
-    const pathApi = path.posix || path;
     if (!baseUrl) {
         return resource;
     }
@@ -27,7 +26,7 @@ export function getUrl(resource: string, baseUrl?: string): string  {
         resultantUrl.auth = resultantUrl.auth || base.auth;
         resultantUrl.host = resultantUrl.host || base.host;
 
-        resultantUrl.pathname = pathApi.resolve(base.pathname, resultantUrl.pathname);
+        resultantUrl.pathname = path.posix.resolve(base.pathname, resultantUrl.pathname);
 
         if (!resultantUrl.pathname.endsWith('/') && resource.endsWith('/')) {
             resultantUrl.pathname += '/';
