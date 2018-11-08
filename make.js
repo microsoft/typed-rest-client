@@ -80,7 +80,7 @@ target.test = function() {
     // install the just built lib into the test proj
     target.units();
 
-    console.log("-------Other Tests-------");
+    console.log("-------Integration Tests-------");
     run('tsc -p ./test/tests');
     run('mocha test/tests');
 }
