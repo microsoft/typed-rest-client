@@ -17,15 +17,16 @@ steps:
 - script: npm run test
   displayName: npm run test
 
-# test using node 5.x
+# test using node 4.8.6
 - task: NodeTool@0
   inputs:
-    versionSpec: '5.x'
-  displayName: Install node 5.x
+    versionSpec: "4.8.6"
+  displayName: Install node 4.8.6
 
-- script: |
-    npm -v
-    npm run test
+- script: npm install npm@5.5.1
+  displayName: Install npm 5.5.1
+
+- script: npm run test
   displayName: npm run test
 
 # test using node 6.12.0
@@ -33,6 +34,9 @@ steps:
   inputs:
     versionSpec: "6.12.0"
   displayName: Install node 6.12.0
+
+- script: npm install npm@5.5.1
+  displayName: Install npm 5.5.1
 
 - script: npm run test
   displayName: npm run test
