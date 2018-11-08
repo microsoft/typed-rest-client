@@ -21,9 +21,11 @@ steps:
 - task: NodeTool@0
   inputs:
     versionSpec: '5.x'
-  displayName: Install node 4.8.6
+  displayName: Install node 5.x
 
-- script: npm run test
+- script: |
+    npm -v
+    npm run test
   displayName: npm run test
 
 # test using node 6.12.0
