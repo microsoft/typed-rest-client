@@ -23,6 +23,10 @@ steps:
     versionSpec: "4.8.6"
   displayName: Install node 4.8.6
 
+# install dependencies
+- script: npm install
+  displayName: npm install
+
 - script: npm run test
   displayName: npm run test
 
