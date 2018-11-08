@@ -65,8 +65,10 @@ target.build = function () {
     cp(rp('ThirdPartyNotice.txt'), buildPath);
 }
 
-target.units = function() {
-    target.build();
+target.units = function(noBuild) {
+    if (!noBuild) {
+        target.build();
+    }
     // install the just built lib into the test proj
     pushd('test')
     run('npm install ../_build');
@@ -77,9 +79,9 @@ target.units = function() {
     run('mocha test/units');
 }
 
-target.test = function() {
+target.test = function(noBuild) {
     // install the just built lib into the test proj
-    target.units();
+    target.units(noBuild);
 
     console.log("-------Other Tests-------");
     run('tsc -p ./test/tests');
@@ -87,17 +89,7 @@ target.test = function() {
 }
 
 target.testNoBuild = function() {
-    pushd('test')
-    run('npm install ../_build');
-    popd();
-
-    console.log("-------Unit Tests-------");
-    run('tsc -p ./test/units');
-    run('mocha test/units');
-
-    console.log("-------Other Tests-------");
-    run('tsc -p ./test/tests');
-    run('mocha test/tests');
+    target.test(true);
 }
 
 //Deprecated since we automatically build in units before testing, keeping for back compat
