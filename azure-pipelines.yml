@@ -17,15 +17,11 @@ steps:
 - script: npm run test
   displayName: npm run test
 
-# test using node 4.8.6
+# test using node 5.x
 - task: NodeTool@0
   inputs:
-    versionSpec: "4.8.6"
+    versionSpec: '5.x'
   displayName: Install node 4.8.6
-
-# install dependencies
-- script: npm install
-  displayName: npm install
 
 - script: npm run test
   displayName: npm run test
