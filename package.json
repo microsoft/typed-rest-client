@@ -6,7 +6,6 @@
   "scripts": {
     "build": "node make.js build",
     "test": "node make.js test",
-    "testNoBuild": "node make.js testNoBuild",
     "bt": "node make.js buildtest",
     "samples": "node make.js samples",
     "units": "node make.js units",
