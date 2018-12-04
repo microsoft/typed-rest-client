@@ -66,7 +66,6 @@ target.build = function () {
 }
 
 target.units = function() {
-    target.build();
     // install the just built lib into the test proj
     pushd('test')
     run('npm install ../_build');
@@ -81,7 +80,7 @@ target.test = function() {
     // install the just built lib into the test proj
     target.units();
 
-    console.log("-------Other Tests-------");
+    console.log("-------Integration Tests-------");
     run('tsc -p ./test/tests');
     run('mocha test/tests');
 }
