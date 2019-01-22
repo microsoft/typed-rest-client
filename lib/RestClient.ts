@@ -210,10 +210,11 @@ export class RestClient {
             }
 
             let obj: any;
+            let contents: string;
 
             // get the result from the body
             try {
-                let contents: string = await res.readBody();
+                contents = await res.readBody();
                 if (contents && contents.length > 0) {
                     if (options && options.deserializeDates) {
                         obj = JSON.parse(contents, RestClient.dateTimeDeserializer);
@@ -239,6 +240,9 @@ export class RestClient {
                 // if exception/error in body, attempt to get better error
                 if (obj && obj.message) {
                     msg = obj.message;
+                } else if (contents && contents.length > 0) {
+                    // it may be the case that the exception is in the body message as string
+                    msg = contents;
                 } else {
                     msg = "Failed request: (" + statusCode + ")";
                 }
