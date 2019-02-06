@@ -1,12 +1,13 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-import url = require("url");
-import http = require("http");
-import https = require("https");
-import tunnel = require("tunnel");
-import ifm = require('./Interfaces');
 import fs = require('fs');
+import http = require('http');
+import https = require('https');
+import tunnel = require('tunnel');
+import url = require('url');
+
+import ifm = require('./Interfaces');
 
 export enum HttpCodes {
     OK = 200,
@@ -34,19 +35,24 @@ export enum HttpCodes {
     NotImplemented = 501,
     BadGateway = 502,
     ServiceUnavailable = 503,
-    GatewayTimeout = 504,
+    GatewayTimeout = 504
 }
 
-const HttpRedirectCodes: number[] = [HttpCodes.MovedPermanently, HttpCodes.ResourceMoved, HttpCodes.SeeOther, HttpCodes.TemporaryRedirect, HttpCodes.PermanentRedirect];
+const HttpRedirectCodes: number[] = [HttpCodes.MovedPermanently,
+                                     HttpCodes.ResourceMoved,
+                                     HttpCodes.SeeOther,
+                                     HttpCodes.TemporaryRedirect,
+                                     HttpCodes.PermanentRedirect];
 
 export class HttpClientResponse implements ifm.IHttpClientResponse {
+    public message: http.IncomingMessage;
+
     constructor(message: http.IncomingMessage) {
         this.message = message;
     }
 
-    public message: http.IncomingMessage;
     readBody(): Promise<string> {
-        return new Promise<string>(async (resolve, reject) => {
+        return new Promise<string>(async (resolve: Function, reject: Function) => {
             let output: string = '';
 
             this.message.on('data', (chunk: string) => {
@@ -66,14 +72,15 @@ export interface RequestInfo {
     httpModule: any;
 }
 
-export function isHttps(requestUrl: string) {
-    let parsedUrl: url.Url = url.parse(requestUrl);
+export function isHttps(requestUrl: string): boolean {
+    const parsedUrl: url.Url = url.parse(requestUrl);
+
     return parsedUrl.protocol === 'https:';
 }
 
 enum EnvironmentVariables {
-    HTTP_PROXY = "HTTP_PROXY",
-    HTTPS_PROXY = "HTTPS_PROXY",
+    HTTP_PROXY = 'HTTP_PROXY',
+    HTTPS_PROXY = 'HTTPS_PROXY'
 }
 
 export class HttpClient implements ifm.IHttpClient {
@@ -86,9 +93,9 @@ export class HttpClient implements ifm.IHttpClient {
     private _httpProxy: ifm.IProxyConfiguration;
     private _httpProxyBypassHosts: RegExp[];
     private _allowRedirects: boolean = true;
-    private _maxRedirects: number = 50
-    private _agent;
-    private _proxyAgent;
+    private _maxRedirects: number = 50;
+    private _agent: any;
+    private _proxyAgent: any;
     private _keepAlive: boolean = false;
     private _disposed: boolean = false;
     private _certConfig: ifm.ICertConfiguration;
@@ -109,14 +116,14 @@ export class HttpClient implements ifm.IHttpClient {
             this._httpProxy = requestOptions.proxy;
             if (requestOptions.proxy && requestOptions.proxy.proxyBypassHosts) {
                 this._httpProxyBypassHosts = [];
-                requestOptions.proxy.proxyBypassHosts.forEach(bypass => {
+                requestOptions.proxy.proxyBypassHosts.forEach((bypass: any) => {
                     this._httpProxyBypassHosts.push(new RegExp(bypass, 'i'));
                 });
             }
 
             this._certConfig = requestOptions.cert;
 
-            // cache the cert content into memory, so we don't have to read it from disk every time 
+            // cache the cert content into memory, so we don't have to read it from disk every time
             if (this._certConfig && this._certConfig.caFile && fs.existsSync(this._certConfig.caFile)) {
                 this._ca = fs.readFileSync(this._certConfig.caFile, 'utf8');
             }
@@ -171,7 +178,10 @@ export class HttpClient implements ifm.IHttpClient {
         return this.request('HEAD', requestUrl, null, additionalHeaders || {});
     }
 
-    public sendStream(verb: string, requestUrl: string, stream: NodeJS.ReadableStream, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
+    public sendStream(verb: string,
+                      requestUrl: string,
+                      stream: NodeJS.ReadableStream,
+                      additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
         return this.request(verb, requestUrl, stream, additionalHeaders);
     }
 
@@ -180,9 +190,12 @@ export class HttpClient implements ifm.IHttpClient {
      * All other methods such as get, post, patch, and request ultimately call this.
      * Prefer get, del, post and patch
      */
-    public async request(verb: string, requestUrl: string, data: string | NodeJS.ReadableStream, headers: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
+    public async request(verb: string,
+                         requestUrl: string,
+                         data: string | NodeJS.ReadableStream,
+                         headers: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
         if (this._disposed) {
-            throw new Error("Client has already been disposed.");
+            throw new Error('Client has already been disposed.');
         }
 
         let info: RequestInfo = this._prepareRequest(verb, requestUrl, headers);
@@ -192,7 +205,7 @@ export class HttpClient implements ifm.IHttpClient {
         if (response && response.message && response.message.statusCode === HttpCodes.Unauthorized) {
             let authenticationHandler: ifm.IRequestHandler;
 
-            for (let i = 0; i < this.handlers.length; i++) {
+            for (let i: number = 0; i < this.handlers.length; i += 1) {
                 if (this.handlers[i].canHandleAuthentication(response)) {
                     authenticationHandler = this.handlers[i];
                     break;
@@ -201,8 +214,7 @@ export class HttpClient implements ifm.IHttpClient {
 
             if (authenticationHandler) {
                 return authenticationHandler.handleAuthentication(this, info, data);
-            }  
-            else {
+            } else {
                 // We have received an unauthorized response but have no handlers to handle it.
                 // Let the response return to the caller.
                 return response;
@@ -210,11 +222,11 @@ export class HttpClient implements ifm.IHttpClient {
         }
 
         let redirectsRemaining: number = this._maxRedirects;
-        while (HttpRedirectCodes.indexOf(response.message.statusCode) != -1
+        while (HttpRedirectCodes.indexOf(response.message.statusCode) !== -1
                && this._allowRedirects
                && redirectsRemaining > 0) {
 
-            const redirectUrl: any = response.message.headers["location"];
+            const redirectUrl: any = response.message.headers['location'];
             if (!redirectUrl) {
                 // if there's no location to redirect to, we won't
                 break;
@@ -227,7 +239,7 @@ export class HttpClient implements ifm.IHttpClient {
             // let's make the request with the new redirectUrl
             info = this._prepareRequest(verb, redirectUrl, headers);
             response = await this.requestRaw(info, data);
-            redirectsRemaining--;
+            redirectsRemaining -= 1;
         }
 
         return response;
@@ -236,22 +248,22 @@ export class HttpClient implements ifm.IHttpClient {
     /**
      * Needs to be called if keepAlive is set to true in request options.
      */
-    public dispose() {
+    public dispose(): void {
         if (this._agent) {
             this._agent.destroy();
         }
-        
+
         this._disposed = true;
     }
 
     /**
      * Raw request.
-     * @param info 
-     * @param data 
+     * @param info
+     * @param data
      */
     public requestRaw(info: ifm.IRequestInfo, data: string | NodeJS.ReadableStream): Promise<ifm.IHttpClientResponse> {
-        return new Promise<ifm.IHttpClientResponse>((resolve, reject) => {
-            let callbackForResult = function (err: any, res: ifm.IHttpClientResponse) {
+        return new Promise<ifm.IHttpClientResponse>((resolve: Function, reject: Function) => {
+            const callbackForResult: any = (err: any, res: ifm.IHttpClientResponse) => {
                 if (err) {
                     reject(err);
                 }
@@ -265,32 +277,33 @@ export class HttpClient implements ifm.IHttpClient {
 
     /**
      * Raw request with callback.
-     * @param info 
-     * @param data 
-     * @param onResult 
+     * @param info
+     * @param data
+     * @param onResult
      */
-    public requestRawWithCallback(info: ifm.IRequestInfo, data: string | NodeJS.ReadableStream, onResult: (err: any, res: ifm.IHttpClientResponse) => void): void {
-        let socket;
-        
-        let isDataString = typeof (data) === 'string';
+    public requestRawWithCallback(info: ifm.IRequestInfo,
+                                  data: string | NodeJS.ReadableStream,
+                                  onResult: (err: any, res: ifm.IHttpClientResponse) => void): void {
+        let socket: any;
+
         if (typeof (data) === 'string') {
-            info.options.headers["Content-Length"] = Buffer.byteLength(data, 'utf8');
+            info.options.headers['Content-Length'] = Buffer.byteLength(data, 'utf8');
         }
 
         let callbackCalled: boolean = false;
-        let handleResult = (err: any, res: HttpClientResponse) => {
+        const handleResult: Function = (err: any, res: HttpClientResponse) => {
             if (!callbackCalled) {
                 callbackCalled = true;
                 onResult(err, res);
             }
         };
 
-        let req: http.ClientRequest = info.httpModule.request(info.options, (msg: http.IncomingMessage) => {
-            let res: HttpClientResponse = new HttpClientResponse(msg);
+        const req: http.ClientRequest = info.httpModule.request(info.options, (msg: http.IncomingMessage) => {
+            const res: HttpClientResponse = new HttpClientResponse(msg);
             handleResult(null, res);
         });
 
-        req.on('socket', (sock) => {
+        req.on('socket', (sock: any) => {
             socket = sock;
         });
 
@@ -302,7 +315,7 @@ export class HttpClient implements ifm.IHttpClient {
             handleResult(new Error('Request timeout: ' + info.options.path), null);
         });
 
-        req.on('error', function (err) {
+        req.on('error', (err: any) => {
             // err has statusCode property
             // res should have headers
             handleResult(err, null);
@@ -313,13 +326,12 @@ export class HttpClient implements ifm.IHttpClient {
         }
 
         if (data && typeof (data) !== 'string') {
-            data.on('close', function () {
+            data.on('close', () => {
                 req.end();
             });
 
             data.pipe(req);
-        }
-        else {
+        } else {
             req.end();
         }
     }
@@ -333,16 +345,16 @@ export class HttpClient implements ifm.IHttpClient {
         const defaultPort: number = usingSsl ? 443 : 80;
         info.options = <http.RequestOptions>{};
         info.options.host = info.parsedUrl.hostname;
-        info.options.port = info.parsedUrl.port ? parseInt(info.parsedUrl.port) : defaultPort;
+        info.options.port = info.parsedUrl.port ? parseInt(info.parsedUrl.port, 10) : defaultPort;
         info.options.path = (info.parsedUrl.pathname || '') + (info.parsedUrl.search || '');
         info.options.method = method;
         info.options.headers = this._mergeHeaders(headers);
-        info.options.headers["user-agent"] = this.userAgent;
+        info.options.headers['user-agent'] = this.userAgent;
         info.options.agent = this._getAgent(requestUrl);
 
         // gives handlers an opportunity to participate
         if (this.handlers) {
-            this.handlers.forEach((handler) => {
+            this.handlers.forEach((handler: ifm.IRequestHandler) => {
                 handler.prepareRequest(info.options);
             });
         }
@@ -351,7 +363,7 @@ export class HttpClient implements ifm.IHttpClient {
     }
 
     private _mergeHeaders(headers: ifm.IHeaders) : ifm.IHeaders {
-        const lowercaseKeys = obj => Object.keys(obj).reduce((c, k) => (c[k.toLowerCase()] = obj[k], c), {});
+        const lowercaseKeys: any = (obj: any) => Object.keys(obj).reduce((c: any, k: any) => (c[k.toLowerCase()] = obj[k], c), {});
 
         if (this.requestOptions && this.requestOptions.headers) {
             return Object.assign(
@@ -364,10 +376,10 @@ export class HttpClient implements ifm.IHttpClient {
         return lowercaseKeys(headers || {});
     }
 
-    private _getAgent(requestUrl: string) {
-        let agent;
-        let proxy = this._getProxy(requestUrl);
-        let useProxy = proxy.proxyUrl && proxy.proxyUrl.hostname && !this._isBypassProxy(requestUrl);
+    private _getAgent(requestUrl: string): any {
+        let agent: any;
+        const proxy: any = this._getProxy(requestUrl);
+        const useProxy: boolean = proxy.proxyUrl && proxy.proxyUrl.hostname && !this._isBypassProxy(requestUrl);
 
         if (this._keepAlive && useProxy) {
             agent = this._proxyAgent;
@@ -382,26 +394,26 @@ export class HttpClient implements ifm.IHttpClient {
             return agent;
         }
 
-        let parsedUrl = url.parse(requestUrl);
-        const usingSsl = parsedUrl.protocol === 'https:';
-        let maxSockets = 100;
+        const parsedUrl: url.Url = url.parse(requestUrl);
+        const usingSsl: boolean = parsedUrl.protocol === 'https:';
+        let maxSockets: number = 100;
         if (!!this.requestOptions) {
-            maxSockets = this.requestOptions.maxSockets || http.globalAgent.maxSockets
+            maxSockets = this.requestOptions.maxSockets || http.globalAgent.maxSockets;
         }
 
         if (useProxy) {
             const agentOptions: tunnel.TunnelOptions = {
-                maxSockets: maxSockets,
                 keepAlive: this._keepAlive,
+                maxSockets: maxSockets,
                 proxy: {
-                    proxyAuth: proxy.proxyAuth,
                     host: proxy.proxyUrl.hostname,
-                    port: proxy.proxyUrl.port
-                },
+                    port: proxy.proxyUrl.port,
+                    proxyAuth: proxy.proxyAuth
+                }
             };
 
             let tunnelAgent: Function;
-            const overHttps = proxy.proxyUrl.protocol === 'https:';
+            const overHttps: boolean = proxy.proxyUrl.protocol === 'https:';
             if (usingSsl) {
                 tunnelAgent = overHttps ? tunnel.httpsOverHttps : tunnel.httpsOverHttp;
             } else {
@@ -414,7 +426,7 @@ export class HttpClient implements ifm.IHttpClient {
 
         // if reusing agent across request and tunneling agent isn't assigned create a new agent
         if (this._keepAlive && !agent) {
-            const options = { keepAlive: this._keepAlive, maxSockets: maxSockets };
+            const options: any = { keepAlive: this._keepAlive, maxSockets: maxSockets };
             agent = usingSsl ? new https.Agent(options) : new http.Agent(options);
             this._agent = agent;
         }
@@ -432,20 +444,21 @@ export class HttpClient implements ifm.IHttpClient {
         }
 
         if (usingSsl && this._certConfig) {
-            agent.options = Object.assign(agent.options || {}, { ca: this._ca, cert: this._cert, key: this._key, passphrase: this._certConfig.passphrase });
+            agent.options = Object.assign(agent.options || {}, { ca: this._ca, cert: this._cert,
+                                                                 key: this._key, passphrase: this._certConfig.passphrase });
         }
 
         return agent;
     }
 
-    private _getProxy(requestUrl) {
-        const parsedUrl = url.parse(requestUrl);
-        let usingSsl = parsedUrl.protocol === 'https:';
+    private _getProxy(requestUrl: string): any {
+        const parsedUrl: url.Url = url.parse(requestUrl);
+        const usingSsl: boolean = parsedUrl.protocol === 'https:';
         let proxyConfig: ifm.IProxyConfiguration = this._httpProxy;
 
         // fallback to http_proxy and https_proxy env
-        let https_proxy: string = process.env[EnvironmentVariables.HTTPS_PROXY];
-        let http_proxy: string = process.env[EnvironmentVariables.HTTP_PROXY];
+        const https_proxy: string = process.env[EnvironmentVariables.HTTPS_PROXY];
+        const http_proxy: string = process.env[EnvironmentVariables.HTTP_PROXY];
 
         if (!proxyConfig) {
             if (https_proxy && usingSsl) {
@@ -467,7 +480,7 @@ export class HttpClient implements ifm.IHttpClient {
             }
 
             if (proxyConfig.proxyUsername || proxyConfig.proxyPassword) {
-                proxyAuth = proxyConfig.proxyUsername + ":" + proxyConfig.proxyPassword;
+                proxyAuth = proxyConfig.proxyUsername + ':' + proxyConfig.proxyPassword;
             }
         }
 
@@ -480,7 +493,7 @@ export class HttpClient implements ifm.IHttpClient {
         }
 
         let bypass: boolean = false;
-        this._httpProxyBypassHosts.forEach(bypassHost => {
+        this._httpProxyBypassHosts.forEach((bypassHost: RegExp) => {
             if (bypassHost.test(requestUrl)) {
                 bypass = true;
             }

@@ -14,7 +14,8 @@ var fail = function (message) {
 }
 
 var buildPath = path.join(__dirname, '_build');
-var testPath = path.join(__dirname, 'test');
+var tsc = path.join(__dirname, 'node_modules/.bin/tsc');
+var tslint = path.join(__dirname, 'node_modules/.bin/tslint');
 
 var enforceMinimumVersions = function () {
     // enforce minimum Node version
@@ -48,13 +49,21 @@ var run = function (cl) {
     }
 }
 
+var lint = function () {
+    var filesGlob = '"lib/**/*.ts?(x)"'; 
+    var rulesDir = path.join(__dirname, 'node_modules/tslint-microsoft-contrib');
+    var lintConfig = path.join(__dirname, 'tslint.json');
+    var tsConfig = path.join(__dirname, 'tsconfig.json');
+    run(tslint + ' ' + filesGlob + ' --rules-dir "' + rulesDir + '" --project "' + tsConfig + '" --config "' + lintConfig + '"');
+}
+
 target.clean = function () {
     rm('-Rf', buildPath);
 };
 
 target.build = function () {
     enforceMinimumVersions();
-    run(path.join(__dirname, 'node_modules/.bin/tsc') + ' --outDir ' + buildPath);
+    run(tsc + ' --outDir ' + buildPath);
     
     cp('-Rf', rp('lib/opensource'), buildPath);
 
@@ -63,6 +72,8 @@ target.build = function () {
     cp(rp('package-lock.json'), buildPath);
     cp(rp('README.md'), buildPath);
     cp(rp('ThirdPartyNotice.txt'), buildPath);
+    
+    lint();
 }
 
 target.units = function() {

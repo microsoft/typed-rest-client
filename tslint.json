@@ -1,0 +1,46 @@
+{
+  "extends": "tslint-microsoft-contrib",
+  "rules": {
+    "no-reserved-keywords": false,
+    "no-string-based-set-timeout": false,
+    "no-any": false,
+    "no-floating-promises": false,
+    "no-string-literal": false,
+    "no-unsafe-any": false,
+    "promise-function-async": false,
+    "restrict-plus-operands": false,
+    "strict-boolean-expressions": false,
+    "completed-docs": [
+      false,
+      "classes"
+    ],
+    "export-name": false,
+    "no-for-in": false,
+    "function-name": false,
+    "import-name": false,
+    "interface-name": false,
+    "member-access": false,
+    "missing-jsdoc": false,
+    "no-relative-imports": false,
+    "no-require-imports": false,
+    "no-suspicious-comment": false,
+    "no-var-requires": false,
+    "no-var-self": false,
+    "no-void-expression": false,
+    "prefer-for-of": false,
+    "prefer-template": false,
+    "typedef": [
+      true,
+      "call-signature",
+      "parameter",
+      "arrow-parameter",
+      "property-declaration",
+      "variable-declaration",
+      "member-variable-declaration"
+    ],
+    "variable-name": false,
+    "linebreak-style": false,
+    "cyclomatic-complexity": false
+  },
+  "rulesDirectory": "./node_modules/tslint-microsoft-contrib"
+} 

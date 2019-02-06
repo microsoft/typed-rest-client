@@ -1,24 +1,22 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-import * as url from 'url';
 import * as path from 'path';
+import * as url from 'url';
 
 /**
  * creates an url from a request url and optional base url (http://server:8080)
  * @param {string} resource - a fully qualified url or relative path
  * @param {string} baseUrl - an optional baseUrl (http://server:8080)
- * @return {string} - resultant url 
+ * @return {string} - resultant url
  */
 export function getUrl(resource: string, baseUrl?: string): string  {
-    const pathApi = path.posix || path;
+    const pathApi: any = path.posix || path;
     if (!baseUrl) {
         return resource;
-    }
-    else if (!resource) {
+    } else if (!resource) {
         return baseUrl;
-    }
-    else {
+    } else {
         const base: url.Url = url.parse(baseUrl);
         const resultantUrl: url.Url = url.parse(resource);
 

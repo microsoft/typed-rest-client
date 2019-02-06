@@ -1,10 +1,10 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-import http = require("http");
-import url = require("url");
+import http = require('http');
+import url = require('url');
 
-export interface IHeaders { [key: string]: any };
+export interface IHeaders { [key: string]: any; }
 
 export interface IBasicCredentials {
     username: string;
@@ -17,17 +17,22 @@ export interface IHttpClient {
     del(requestUrl: string, additionalHeaders?: IHeaders): Promise<IHttpClientResponse>;
     post(requestUrl: string, data: string, additionalHeaders?: IHeaders): Promise<IHttpClientResponse>;
     patch(requestUrl: string, data: string, additionalHeaders?: IHeaders): Promise<IHttpClientResponse>;
-    put(requestUrl: string, data: string, additionalHeaders?: IHeaders): Promise<IHttpClientResponse>;        
-    sendStream(verb: string, requestUrl: string, stream: NodeJS.ReadableStream, additionalHeaders?: IHeaders): Promise<IHttpClientResponse>;
+    put(requestUrl: string, data: string, additionalHeaders?: IHeaders): Promise<IHttpClientResponse>;
+    sendStream(verb: string,
+               requestUrl: string,
+               stream: NodeJS.ReadableStream,
+               additionalHeaders?: IHeaders): Promise<IHttpClientResponse>;
     request(verb: string, requestUrl: string, data: string | NodeJS.ReadableStream, headers: IHeaders): Promise<IHttpClientResponse>;
     requestRaw(info: IRequestInfo, data: string | NodeJS.ReadableStream): Promise<IHttpClientResponse>;
-    requestRawWithCallback(info: IRequestInfo, data: string | NodeJS.ReadableStream, onResult: (err: any, res: IHttpClientResponse) => void): void;
+    requestRawWithCallback(info: IRequestInfo,
+                           data: string | NodeJS.ReadableStream,
+                           onResult: (err: any, res: IHttpClientResponse) => void): void;
 }
 
 export interface IRequestHandler {
     prepareRequest(options: http.RequestOptions): void;
     canHandleAuthentication(response: IHttpClientResponse): boolean;
-    handleAuthentication(httpClient: IHttpClient, requestInfo: IRequestInfo, objs): Promise<IHttpClientResponse>;
+    handleAuthentication(httpClient: IHttpClient, requestInfo: IRequestInfo, objs: any): Promise<IHttpClientResponse>;
 }
 
 export interface IHttpClientResponse {
@@ -43,14 +48,14 @@ export interface IRequestInfo {
 
 export interface IRequestOptions {
     headers?: IHeaders;
-    socketTimeout?: number,
-    ignoreSslError?: boolean,
-    proxy?: IProxyConfiguration,
-    cert?: ICertConfiguration,
-    allowRedirects?: boolean, 
-    maxRedirects?: number,
-    maxSockets?: number,
-    keepAlive?: boolean
+    socketTimeout?: number;
+    ignoreSslError?: boolean;
+    proxy?: IProxyConfiguration;
+    cert?: ICertConfiguration;
+    allowRedirects?: boolean;
+    maxRedirects?: number;
+    maxSockets?: number;
+    keepAlive?: boolean;
 }
 
 export interface IProxyConfiguration {
