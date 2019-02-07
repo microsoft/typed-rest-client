@@ -1,10 +1,12 @@
-# Typed Rest and Http Client with TypeScript Typings
+[![Build Status](https://dev.azure.com/ms/typed-rest-client/_apis/build/status/Microsoft.typed-rest-client?branchName=master)](https://dev.azure.com/ms/typed-rest-client/_build/latest?definitionId=42&branchName=master)
 
-A lightweight Rest and Http Client optimized for use with TypeScript with generics and async await.
+# Typed Rest and HTTTP Client with TypeScript Typings
+
+A lightweight Rest and HTTP Client optimized for use with TypeScript with generics and async await.
 
 ## Features
 
-  - Rest and Http Client with typescript generics and async/await/Promises
+  - Rest and HTTP Client with typescript generics and async/await/Promises
   - Typings included so no need to acquire separately (great for intellisense and no versioning drift)
   - Basic, Bearer and NTLM Support out of the box.  Extensible handlers for others.
   - Proxy support
@@ -58,7 +60,7 @@ The http client does not throw unless truly exceptional.  A request that success
 See [http tests](./test/tests/httptests.ts) for detailed examples.
 
 ### rest
-The rest client is a high level client which uses the http client.  It's responsibility is to turn a body into a typed resource object.  
+The rest client is a high level client which uses the HTTP client.  It's responsibility is to turn a body into a typed resource object.  
 
 A 200 will be success.  
 Redirects (3xx) will be followed.  
