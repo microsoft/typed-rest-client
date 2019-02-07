@@ -178,6 +178,7 @@ describe('Rest Tests', function () {
     // should return the text in the body if body is not JSON
     //
     it('gets and handles an error with non JSON body', async() => { 
+        this.timeout(5000);
         try {
             let restRes: restm.IRestResponse<any> = await _rest.get('https://httpstat.us/406');
             assert(false, "should throw");
