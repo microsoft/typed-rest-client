@@ -43,14 +43,15 @@ export interface IRequestInfo {
 
 export interface IRequestOptions {
     headers?: IHeaders;
-    socketTimeout?: number,
-    ignoreSslError?: boolean,
-    proxy?: IProxyConfiguration,
-    cert?: ICertConfiguration,
-    allowRedirects?: boolean, 
-    maxRedirects?: number,
-    maxSockets?: number,
-    keepAlive?: boolean
+    socketTimeout?: number;
+    ignoreSslError?: boolean;
+    proxy?: IProxyConfiguration;
+    cert?: ICertConfiguration;
+    allowRedirects?: boolean;
+    maxRedirects?: number;
+    maxSockets?: number;
+    keepAlive?: boolean;
+    presignedUrlPatterns?: RegExp[];
 }
 
 export interface IProxyConfiguration {
