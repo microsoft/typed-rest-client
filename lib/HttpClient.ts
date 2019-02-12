@@ -350,10 +350,10 @@ export class HttpClient implements ifm.IHttpClient {
         return info;
     }
 
-    private _isPresigned(requestUrl): boolean {
+    private _isPresigned(requestUrl: string): boolean {
         if (this.requestOptions && this.requestOptions.presignedUrlPatterns) {
             const patterns: RegExp[] = this.requestOptions.presignedUrlPatterns;
-            for (let i: number = 0; i < patterns.length; i += 1) {
+            for (let i: number = 0; i < patterns.length; i ++) {
                 if (requestUrl.match(patterns[i])) {
                     return true;
                 }
