@@ -2,7 +2,7 @@
 
 # Typed REST and HTTP Client with TypeScript Typings
 
-A lightweight REST and HTTP Client optimized for use with TypeScript with generics and async await.
+A lightweight REST and HTTP client optimized for use with TypeScript with generics and async await.
 
 ## Features
 
