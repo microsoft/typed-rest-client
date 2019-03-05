@@ -43,7 +43,7 @@ describe('Http Tests', function () {
         assert(res.message.statusCode == 200, "status code should be 200");
         let body: string = await res.readBody();      
         let obj:any = JSON.parse(body);
-        assert(obj.url === "http://httpbin.org/get");
+        assert(obj.url === "https://httpbin.org/get");
     });
 
     it('does basic https get request', async() => {
@@ -64,7 +64,7 @@ describe('Http Tests', function () {
         let auth: string = obj.headers.Authorization;
         let creds: string = Buffer.from(auth.substring('Basic '.length), 'base64').toString();
         assert(creds === 'johndoe:password', "should be the username and password");
-        assert(obj.url === "http://httpbin.org/get");
+        assert(obj.url === "https://httpbin.org/get");
     });
     
     it('does basic http get request with pat token auth', async() => {
@@ -79,7 +79,7 @@ describe('Http Tests', function () {
         let auth: string = obj.headers.Authorization;
         let creds: string = Buffer.from(auth.substring('Basic '.length), 'base64').toString();
         assert(creds === 'PAT:' + token, "creds should be the token");
-        assert(obj.url === "http://httpbin.org/get");
+        assert(obj.url === "https://httpbin.org/get");
     });
     
     it('does basic http get request with default headers', async() => {
@@ -95,7 +95,7 @@ describe('Http Tests', function () {
         let obj:any = JSON.parse(body);
         assert(obj.headers.Accept === 'application/json', "Accept header should be 'application/json'");
         assert(obj.headers['Content-Type'] === 'application/json', "Content-Type header should be 'application/json'");
-        assert(obj.url === "http://httpbin.org/get");
+        assert(obj.url === "https://httpbin.org/get");
     });
     
     it('does basic http get request with merged headers', async() => {
@@ -113,7 +113,7 @@ describe('Http Tests', function () {
         let obj:any = JSON.parse(body);
         assert(obj.headers.Accept === 'application/json', "Accept header should be 'application/json'");
         assert(obj.headers['Content-Type'] === 'application/x-www-form-urlencoded', "Content-Type header should be 'application/x-www-form-urlencoded'");
-        assert(obj.url === "http://httpbin.org/get");
+        assert(obj.url === "https://httpbin.org/get");
     });
 
     it('pipes a get request', () => {
@@ -176,7 +176,7 @@ describe('Http Tests', function () {
         let body: string = await res.readBody();
         let obj:any = JSON.parse(body);
         assert(obj.data === b);
-        assert(obj.url === "http://httpbin.org/post");
+        assert(obj.url === "https://httpbin.org/post");
     });
     
     it('does basic http patch request', async() => {
@@ -186,7 +186,7 @@ describe('Http Tests', function () {
         let body: string = await res.readBody();
         let obj:any = JSON.parse(body);
         assert(obj.data === b);
-        assert(obj.url === "http://httpbin.org/patch");
+        assert(obj.url === "https://httpbin.org/patch");
     });
     
     it('does basic http options request', async() => {
@@ -217,7 +217,7 @@ describe('Http Tests with keepAlive', function () {
         assert(res.message.statusCode == 200, "status code should be 200");
         let body: string = await res.readBody();      
         let obj:any = JSON.parse(body);
-        assert(obj.url === "http://httpbin.org/get");
+        assert(obj.url === "https://httpbin.org/get");
     });
 
     it('does basic head request with keepAlive true', async() => {
@@ -239,7 +239,7 @@ describe('Http Tests with keepAlive', function () {
         let body: string = await res.readBody();
         let obj:any = JSON.parse(body);
         assert(obj.data === b);
-        assert(obj.url === "http://httpbin.org/post");
+        assert(obj.url === "https://httpbin.org/post");
     });
     
     it('does basic http patch request with keepAlive true', async() => {
@@ -249,7 +249,7 @@ describe('Http Tests with keepAlive', function () {
         let body: string = await res.readBody();
         let obj:any = JSON.parse(body);
         assert(obj.data === b);
-        assert(obj.url === "http://httpbin.org/patch");
+        assert(obj.url === "https://httpbin.org/patch");
     }); 
     
     it('does basic http options request with keepAlive true', async() => {
