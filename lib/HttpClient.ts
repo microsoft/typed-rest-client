@@ -38,6 +38,8 @@ export enum HttpCodes {
 }
 
 const HttpRedirectCodes: number[] = [HttpCodes.MovedPermanently, HttpCodes.ResourceMoved, HttpCodes.SeeOther, HttpCodes.TemporaryRedirect, HttpCodes.PermanentRedirect];
+const HttpRetryCodes: number[] = [HttpCodes.BadGateway, HttpCodes.ServiceUnavailable, HttpCodes.GatewayTimeout];
+const HttpWriteOptions: string[] = ['DELETE', 'POST', 'PUT', 'PATCH'];
 
 export class HttpClientResponse implements ifm.IHttpClientResponse {
     constructor(message: http.IncomingMessage) {
@@ -87,6 +89,8 @@ export class HttpClient implements ifm.IHttpClient {
     private _httpProxyBypassHosts: RegExp[];
     private _allowRedirects: boolean = true;
     private _maxRedirects: number = 50
+    private _allowRetries: boolean = false;
+    private _maxRetries: number = 1;
     private _agent;
     private _proxyAgent;
     private _keepAlive: boolean = false;
@@ -140,6 +144,14 @@ export class HttpClient implements ifm.IHttpClient {
             if (requestOptions.keepAlive != null) {
                 this._keepAlive = requestOptions.keepAlive;
             }
+
+            if (requestOptions.allowRetries != null) {
+                this._allowRetries = requestOptions.allowRetries;
+            }
+
+            if (requestOptions.maxRetries != null) {
+                this._maxRetries = requestOptions.maxRetries;
+            }
         }
     }
 
@@ -186,48 +198,62 @@ export class HttpClient implements ifm.IHttpClient {
         }
 
         let info: RequestInfo = this._prepareRequest(verb, requestUrl, headers);
-        let response: HttpClientResponse = await this.requestRaw(info, data);
 
-        // Check if it's an authentication challenge
-        if (response && response.message && response.message.statusCode === HttpCodes.Unauthorized) {
-            let authenticationHandler: ifm.IRequestHandler;
+        // Only perform retries on reads since writes may not be idempotent.
+        let numTries = (this._allowRetries && HttpWriteOptions.indexOf(verb) == -1) ? this._maxRetries + 1 : 1;
 
-            for (let i = 0; i < this.handlers.length; i++) {
-                if (this.handlers[i].canHandleAuthentication(response)) {
-                    authenticationHandler = this.handlers[i];
-                    break;
+        let response: HttpClientResponse;
+        while (numTries > 0) {
+            let response: HttpClientResponse = await this.requestRaw(info, data);
+
+            // Check if it's an authentication challenge
+            if (response && response.message && response.message.statusCode === HttpCodes.Unauthorized) {
+                let authenticationHandler: ifm.IRequestHandler;
+
+                for (let i = 0; i < this.handlers.length; i++) {
+                    if (this.handlers[i].canHandleAuthentication(response)) {
+                        authenticationHandler = this.handlers[i];
+                        break;
+                    }
+                }
+
+                if (authenticationHandler) {
+                    return authenticationHandler.handleAuthentication(this, info, data);
+                }  
+                else {
+                    // We have received an unauthorized response but have no handlers to handle it.
+                    // Let the response return to the caller.
+                    return response;
                 }
             }
 
-            if (authenticationHandler) {
-                return authenticationHandler.handleAuthentication(this, info, data);
-            }  
-            else {
-                // We have received an unauthorized response but have no handlers to handle it.
-                // Let the response return to the caller.
+            let redirectsRemaining: number = this._maxRedirects;
+            while (HttpRedirectCodes.indexOf(response.message.statusCode) != -1
+                && this._allowRedirects
+                && redirectsRemaining > 0) {
+
+                const redirectUrl: any = response.message.headers["location"];
+                if (!redirectUrl) {
+                    // if there's no location to redirect to, we won't
+                    break;
+                }
+
+                // we need to finish reading the response before reassigning response
+                // which will leak the open socket.
+                await response.readBody();
+
+                // let's make the request with the new redirectUrl
+                info = this._prepareRequest(verb, redirectUrl, headers);
+                response = await this.requestRaw(info, data);
+                redirectsRemaining--;
+            }
+
+            if (HttpRetryCodes.indexOf(response.message.statusCode) == -1) {
+                // If not a retry code, return immediately instead of retrying
                 return response;
             }
-        }
 
-        let redirectsRemaining: number = this._maxRedirects;
-        while (HttpRedirectCodes.indexOf(response.message.statusCode) != -1
-               && this._allowRedirects
-               && redirectsRemaining > 0) {
-
-            const redirectUrl: any = response.message.headers["location"];
-            if (!redirectUrl) {
-                // if there's no location to redirect to, we won't
-                break;
-            }
-
-            // we need to finish reading the response before reassigning response
-            // which will leak the open socket.
-            await response.readBody();
-
-            // let's make the request with the new redirectUrl
-            info = this._prepareRequest(verb, redirectUrl, headers);
-            response = await this.requestRaw(info, data);
-            redirectsRemaining--;
+            numTries -= 1;
         }
 
         return response;

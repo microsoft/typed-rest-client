@@ -50,7 +50,10 @@ export interface IRequestOptions {
     allowRedirects?: boolean, 
     maxRedirects?: number,
     maxSockets?: number,
-    keepAlive?: boolean
+    keepAlive?: boolean,
+    // Allows retries only on Read operations (since writes may not be idempotent)
+    allowRetries?: boolean,
+    maxRetries?: number
 }
 
 export interface IProxyConfiguration {
