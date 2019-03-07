@@ -200,10 +200,10 @@ export class HttpClient implements ifm.IHttpClient {
         let info: RequestInfo = this._prepareRequest(verb, requestUrl, headers);
 
         // Only perform retries on reads since writes may not be idempotent.
-        let numTries = (this._allowRetries && HttpWriteOptions.indexOf(verb) == -1) ? this._maxRetries + 1 : 1;
+        let numTriesRemaining = (this._allowRetries && HttpWriteOptions.indexOf(verb) == -1) ? this._maxRetries + 1 : 1;
 
         let response: HttpClientResponse;
-        while (numTries > 0) {
+        while (numTriesRemaining > 0) {
             let response: HttpClientResponse = await this.requestRaw(info, data);
 
             // Check if it's an authentication challenge
@@ -253,7 +253,7 @@ export class HttpClient implements ifm.IHttpClient {
                 return response;
             }
 
-            numTries -= 1;
+            numTriesRemaining -= 1;
         }
 
         return response;
