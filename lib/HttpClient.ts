@@ -204,7 +204,8 @@ export class HttpClient implements ifm.IHttpClient {
 
         let response: HttpClientResponse;
         while (numTries > 0) {
-            let response: HttpClientResponse = await this.requestRaw(info, data);
+
+            response = await this.requestRaw(info, data);
 
             // Check if it's an authentication challenge
             if (response && response.message && response.message.statusCode === HttpCodes.Unauthorized) {
