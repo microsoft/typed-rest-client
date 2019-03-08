@@ -14,8 +14,8 @@ steps:
   displayName: npm run build
 
 # test using node 8.9.1
-- script: npm run test
-  displayName: npm run test
+- script: npm run units
+  displayName: npm run units
 
 # test using node 4.8.6
 - task: NodeTool@0
@@ -23,8 +23,8 @@ steps:
     versionSpec: "4.8.6"
   displayName: Install node 4.8.6
 
-- script: npm run test
-  displayName: npm run test
+- script: npm run units
+  displayName: npm run units
 
 # test using node 6.12.0
 - task: NodeTool@0
@@ -32,8 +32,8 @@ steps:
     versionSpec: "6.12.0"
   displayName: Install node 6.12.0
 
-- script: npm run test
-  displayName: npm run test
+- script: npm run units
+  displayName: npm run units
 
 # publish build artifacts to drop folder so we can use them for release
 - task: PublishBuildArtifacts@1
