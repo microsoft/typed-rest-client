@@ -42,7 +42,7 @@ describe('Http Tests', function () {
         let body: string = await res.readBody();      
         let obj: any = JSON.parse(body);
         assert(obj.source === "nock", "http get request should be intercepted by nock");
-    })
+    });
 
     it('does basic http get request with basic auth', async() => {
         //Set nock for correct credentials
@@ -65,6 +65,35 @@ describe('Http Tests', function () {
             });
         let bh: hm.BasicCredentialHandler = new hm.BasicCredentialHandler('johndoe', 'password');
         let http: httpm.HttpClient = new httpm.HttpClient('typed-rest-client-tests', [bh]);
+        let res: httpm.HttpClientResponse = await http.get('http://microsoft.com');
+        assert(res.message.statusCode == 200, "status code should be 200");
+        let body: string = await res.readBody();      
+        let obj: any = JSON.parse(body);
+        assert(obj.source === "nock", "http get request should be intercepted by nock");
+        assert(obj.success, "Authentication should succeed");
+    });
+
+    it('doesnt use auth when presigned', async() => {
+        //Set nock for correct credentials
+        nock('http://microsoft.com')
+            .get('/')
+            .basicAuth({
+                user: 'johndoe',
+                pass: 'password'
+            })
+            .reply(200, {
+                success: false,
+                source: "nock"
+            });
+        //Set nock for request without credentials
+        nock('http://microsoft.com')
+            .get('/')
+            .reply(200, {
+                success: true,
+                source: "nock"
+            });
+        let bh: hm.BasicCredentialHandler = new hm.BasicCredentialHandler('johndoe', 'password');
+        let http: httpm.HttpClient = new httpm.HttpClient('typed-rest-client-tests', [bh], {presignedUrlPatterns: [/microsoft/i]});
         let res: httpm.HttpClientResponse = await http.get('http://microsoft.com');
         assert(res.message.statusCode == 200, "status code should be 200");
         let body: string = await res.readBody();      

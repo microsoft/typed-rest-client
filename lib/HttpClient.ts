@@ -200,11 +200,10 @@ export class HttpClient implements ifm.IHttpClient {
         let info: RequestInfo = this._prepareRequest(verb, requestUrl, headers);
 
         // Only perform retries on reads since writes may not be idempotent.
-        let numTries = (this._allowRetries && HttpWriteOptions.indexOf(verb) == -1) ? this._maxRetries + 1 : 1;
+        let numTriesRemaining = (this._allowRetries && HttpWriteOptions.indexOf(verb) == -1) ? this._maxRetries + 1 : 1;
 
         let response: HttpClientResponse;
-        while (numTries > 0) {
-
+        while (numTriesRemaining > 0) {
             response = await this.requestRaw(info, data);
 
             // Check if it's an authentication challenge
@@ -254,7 +253,7 @@ export class HttpClient implements ifm.IHttpClient {
                 return response;
             }
 
-            numTries -= 1;
+            numTriesRemaining -= 1;
         }
 
         return response;
@@ -368,13 +367,26 @@ export class HttpClient implements ifm.IHttpClient {
         info.options.agent = this._getAgent(requestUrl);
 
         // gives handlers an opportunity to participate
-        if (this.handlers) {
+        if (this.handlers && !this._isPresigned(requestUrl)) {
             this.handlers.forEach((handler) => {
                 handler.prepareRequest(info.options);
             });
         }
 
         return info;
+    }
+
+    private _isPresigned(requestUrl: string): boolean {
+        if (this.requestOptions && this.requestOptions.presignedUrlPatterns) {
+            const patterns: RegExp[] = this.requestOptions.presignedUrlPatterns;
+            for (let i: number = 0; i < patterns.length; i ++) {
+                if (requestUrl.match(patterns[i])) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     private _mergeHeaders(headers: ifm.IHeaders) : ifm.IHeaders {
