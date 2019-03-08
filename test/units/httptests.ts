@@ -429,12 +429,12 @@ describe('Http Tests with keepAlive', function () {
         let numTries = 0;
         nock('http://microsoft.com')
             .options('/')
-            .times(2)
+            .times(4)
             .reply(504, function(uri, requestBody) {
                 numTries += 1;
             });
         let res: httpm.HttpClientResponse = await _http.options('http://microsoft.com');
-        assert(numTries == 2, "client should retry on failure" + numTries);
+        assert(numTries == 4, "client should retry on failure" + numTries);
         assert(res.message.statusCode == 504, "status code should be 504");
     });
 });

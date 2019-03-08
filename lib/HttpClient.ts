@@ -38,8 +38,8 @@ export enum HttpCodes {
 }
 
 const HttpRedirectCodes: number[] = [HttpCodes.MovedPermanently, HttpCodes.ResourceMoved, HttpCodes.SeeOther, HttpCodes.TemporaryRedirect, HttpCodes.PermanentRedirect];
-const HttpRetryCodes: number[] = [HttpCodes.BadGateway, HttpCodes.ServiceUnavailable, HttpCodes.GatewayTimeout];
-const HttpWriteOptions: string[] = ['DELETE', 'POST', 'PUT', 'PATCH'];
+const HttpResponseRetryCodes: number[] = [HttpCodes.BadGateway, HttpCodes.ServiceUnavailable, HttpCodes.GatewayTimeout];
+const RetryableHttpVerbs: string[] = ['OPTIONS', 'GET', 'DELETE', 'HEAD'];
 
 export class HttpClientResponse implements ifm.IHttpClientResponse {
     constructor(message: http.IncomingMessage) {
@@ -200,7 +200,7 @@ export class HttpClient implements ifm.IHttpClient {
         let info: RequestInfo = this._prepareRequest(verb, requestUrl, headers);
 
         // Only perform retries on reads since writes may not be idempotent.
-        let numTriesRemaining = (this._allowRetries && HttpWriteOptions.indexOf(verb) == -1) ? this._maxRetries + 1 : 1;
+        let numTriesRemaining = (this._allowRetries && RetryableHttpVerbs.indexOf(verb) != -1) ? this._maxRetries + 1 : 1;
 
         let response: HttpClientResponse;
         while (numTriesRemaining > 0) {
@@ -248,7 +248,7 @@ export class HttpClient implements ifm.IHttpClient {
                 redirectsRemaining--;
             }
 
-            if (HttpRetryCodes.indexOf(response.message.statusCode) == -1) {
+            if (HttpResponseRetryCodes.indexOf(response.message.statusCode) == -1) {
                 // If not a retry code, return immediately instead of retrying
                 return response;
             }
