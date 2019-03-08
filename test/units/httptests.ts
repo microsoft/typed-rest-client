@@ -424,7 +424,7 @@ describe('Http Tests with keepAlive', function () {
     });
 
     it('handles retries correctly', async() => {
-        _http = new httpm.HttpClient('typed-test-client-tests', null, {allowRetries: true, maxRetries: 1});
+        _http = new httpm.HttpClient('typed-test-client-tests', null, {allowRetries: true, maxRetries: 3});
 
         let numTries = 0;
         nock('http://microsoft.com')
@@ -434,7 +434,7 @@ describe('Http Tests with keepAlive', function () {
                 numTries += 1;
             });
         let res: httpm.HttpClientResponse = await _http.options('http://microsoft.com');
-        assert(numTries == 4, "client should retry on failure" + numTries);
+        assert(numTries == 4, "client should retry on failure");
         assert(res.message.statusCode == 504, "status code should be 504");
     });
 });

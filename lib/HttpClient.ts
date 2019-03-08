@@ -40,6 +40,8 @@ export enum HttpCodes {
 const HttpRedirectCodes: number[] = [HttpCodes.MovedPermanently, HttpCodes.ResourceMoved, HttpCodes.SeeOther, HttpCodes.TemporaryRedirect, HttpCodes.PermanentRedirect];
 const HttpResponseRetryCodes: number[] = [HttpCodes.BadGateway, HttpCodes.ServiceUnavailable, HttpCodes.GatewayTimeout];
 const RetryableHttpVerbs: string[] = ['OPTIONS', 'GET', 'DELETE', 'HEAD'];
+const ExponentialBackoffCeiling = 10;
+const ExponentialBackoffSlotTime = 5;
 
 export class HttpClientResponse implements ifm.IHttpClientResponse {
     constructor(message: http.IncomingMessage) {
@@ -200,10 +202,11 @@ export class HttpClient implements ifm.IHttpClient {
         let info: RequestInfo = this._prepareRequest(verb, requestUrl, headers);
 
         // Only perform retries on reads since writes may not be idempotent.
-        let numTriesRemaining = (this._allowRetries && RetryableHttpVerbs.indexOf(verb) != -1) ? this._maxRetries + 1 : 1;
+        let maxTries = (this._allowRetries && RetryableHttpVerbs.indexOf(verb) != -1) ? this._maxRetries + 1 : 1;
+        let numTries = 0;
 
         let response: HttpClientResponse;
-        while (numTriesRemaining > 0) {
+        while (numTries < maxTries) {
             response = await this.requestRaw(info, data);
 
             // Check if it's an authentication challenge
@@ -253,7 +256,12 @@ export class HttpClient implements ifm.IHttpClient {
                 return response;
             }
 
-            numTriesRemaining -= 1;
+            numTries += 1
+
+            if (numTries != maxTries) {
+                await response.readBody();
+                await this._performExponentialBackoff(numTries);
+            }
         }
 
         return response;
@@ -527,4 +535,10 @@ export class HttpClient implements ifm.IHttpClient {
 
         return bypass;
     }
+
+    private _performExponentialBackoff(retryNumber: number): Promise<void> {
+        retryNumber = Math.min(ExponentialBackoffCeiling, retryNumber);
+        const ms: number = ExponentialBackoffSlotTime/Math.pow(2, retryNumber);
+        return new Promise(resolve => setTimeout(()=>resolve(), ms));
+    } 
 }
