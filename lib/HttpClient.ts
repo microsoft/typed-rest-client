@@ -41,7 +41,7 @@ const HttpRedirectCodes: number[] = [HttpCodes.MovedPermanently, HttpCodes.Resou
 const HttpResponseRetryCodes: number[] = [HttpCodes.BadGateway, HttpCodes.ServiceUnavailable, HttpCodes.GatewayTimeout];
 const RetryableHttpVerbs: string[] = ['OPTIONS', 'GET', 'DELETE', 'HEAD'];
 const ExponentialBackoffCeiling = 10;
-const ExponentialBackoffSlotTime = 5;
+const ExponentialBackoffTimeSlice = 5;
 
 export class HttpClientResponse implements ifm.IHttpClientResponse {
     constructor(message: http.IncomingMessage) {
@@ -202,8 +202,8 @@ export class HttpClient implements ifm.IHttpClient {
         let info: RequestInfo = this._prepareRequest(verb, requestUrl, headers);
 
         // Only perform retries on reads since writes may not be idempotent.
-        let maxTries = (this._allowRetries && RetryableHttpVerbs.indexOf(verb) != -1) ? this._maxRetries + 1 : 1;
-        let numTries = 0;
+        let maxTries: number = (this._allowRetries && RetryableHttpVerbs.indexOf(verb) != -1) ? this._maxRetries + 1 : 1;
+        let numTries: number = 0;
 
         let response: HttpClientResponse;
         while (numTries < maxTries) {
@@ -258,7 +258,7 @@ export class HttpClient implements ifm.IHttpClient {
 
             numTries += 1
 
-            if (numTries != maxTries) {
+            if (numTries < maxTries) {
                 await response.readBody();
                 await this._performExponentialBackoff(numTries);
             }
@@ -538,7 +538,7 @@ export class HttpClient implements ifm.IHttpClient {
 
     private _performExponentialBackoff(retryNumber: number): Promise<void> {
         retryNumber = Math.min(ExponentialBackoffCeiling, retryNumber);
-        const ms: number = ExponentialBackoffSlotTime*Math.pow(2, retryNumber);
+        const ms: number = ExponentialBackoffTimeSlice*Math.pow(2, retryNumber);
         return new Promise(resolve => setTimeout(()=>resolve(), ms));
     } 
 }
