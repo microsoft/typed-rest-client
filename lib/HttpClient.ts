@@ -538,7 +538,7 @@ export class HttpClient implements ifm.IHttpClient {
 
     private _performExponentialBackoff(retryNumber: number): Promise<void> {
         retryNumber = Math.min(ExponentialBackoffCeiling, retryNumber);
-        const ms: number = ExponentialBackoffSlotTime/Math.pow(2, retryNumber);
+        const ms: number = ExponentialBackoffSlotTime*Math.pow(2, retryNumber);
         return new Promise(resolve => setTimeout(()=>resolve(), ms));
     } 
 }
