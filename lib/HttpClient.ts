@@ -256,7 +256,7 @@ export class HttpClient implements ifm.IHttpClient {
                 return response;
             }
 
-            numTries += 1
+            numTries += 1;
 
             if (numTries < maxTries) {
                 await response.readBody();
