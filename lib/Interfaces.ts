@@ -52,6 +52,9 @@ export interface IRequestOptions {
     maxSockets?: number;
     keepAlive?: boolean;
     presignedUrlPatterns?: RegExp[];
+    // Allows retries only on Read operations (since writes may not be idempotent)
+    allowRetries?: boolean;
+    maxRetries?: number;
 }
 
 export interface IProxyConfiguration {

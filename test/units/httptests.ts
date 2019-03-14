@@ -422,4 +422,48 @@ describe('Http Tests with keepAlive', function () {
         let res: httpm.HttpClientResponse = await _http.options('http://microsoft.com');
         assert(res.message.statusCode == 200, "status code should be 200");
     });
+
+    it('handles retries correctly', async() => {
+        _http = new httpm.HttpClient('typed-test-client-tests', null, {allowRetries: true, maxRetries: 3});
+
+        let numTries = 0;
+        nock('http://microsoft.com')
+            .options('/')
+            .times(4)
+            .reply(504, function(uri, requestBody) {
+                numTries += 1;
+            });
+        let res: httpm.HttpClientResponse = await _http.options('http://microsoft.com');
+        assert(numTries == 4, "client should retry on failure");
+        assert(res.message.statusCode == 504, "status code should be 504");
+    });
+
+    it('doesnt retry non-retryable verbs', async() => {
+        _http = new httpm.HttpClient('typed-test-client-tests', null, {allowRetries: true, maxRetries: 3});
+
+        let numTries = 0;
+        nock('http://microsoft.com')
+            .post('/')
+            .reply(504, function(uri, requestBody) {
+                numTries += 1;
+            });
+        let res: httpm.HttpClientResponse = await _http.post('http://microsoft.com', 'abc');
+        assert(numTries == 1, "client should not retry on failure");
+        assert(res.message.statusCode == 504, "status code should be 504");
+    });
+
+    it('doesnt retry non-retryable return codes', async() => {
+        _http = new httpm.HttpClient('typed-test-client-tests', null, {allowRetries: true, maxRetries: 3});
+
+        let numTries = 0;
+        nock('http://microsoft.com')
+            .options('/')
+            .times(1)
+            .reply(501, function(uri, requestBody) {
+                numTries += 1;
+            });
+        let res: httpm.HttpClientResponse = await _http.options('http://microsoft.com');
+        assert(numTries == 1, "client should not retry on failure");
+        assert(res.message.statusCode == 501, "status code should be 501");
+    });
 });
