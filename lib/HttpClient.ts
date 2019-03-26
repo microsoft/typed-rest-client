@@ -7,6 +7,7 @@ import https = require("https");
 import tunnel = require("tunnel");
 import ifm = require('./Interfaces');
 import fs = require('fs');
+import util = require("./Util");
 
 export enum HttpCodes {
     OK = 200,
@@ -169,15 +170,15 @@ export class HttpClient implements ifm.IHttpClient {
         return this.request('DELETE', requestUrl, null, additionalHeaders || {});
     }
 
-    public post(requestUrl: string, data: string, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
+    public post(requestUrl: string, data: string | FormData, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
         return this.request('POST', requestUrl, data, additionalHeaders || {});
     }
 
-    public patch(requestUrl: string, data: string, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
+    public patch(requestUrl: string, data: string | FormData, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
         return this.request('PATCH', requestUrl, data, additionalHeaders || {});
     }
 
-    public put(requestUrl: string, data: string, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
+    public put(requestUrl: string, data: string | FormData, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
         return this.request('PUT', requestUrl, data, additionalHeaders || {});
     }
 
@@ -194,7 +195,7 @@ export class HttpClient implements ifm.IHttpClient {
      * All other methods such as get, post, patch, and request ultimately call this.
      * Prefer get, del, post and patch
      */
-    public async request(verb: string, requestUrl: string, data: string | NodeJS.ReadableStream, headers: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
+    public async request(verb: string, requestUrl: string, data: string | FormData | NodeJS.ReadableStream, headers: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
         if (this._disposed) {
             throw new Error("Client has already been disposed.");
         }
@@ -283,7 +284,7 @@ export class HttpClient implements ifm.IHttpClient {
      * @param info 
      * @param data 
      */
-    public requestRaw(info: ifm.IRequestInfo, data: string | NodeJS.ReadableStream): Promise<ifm.IHttpClientResponse> {
+    public requestRaw(info: ifm.IRequestInfo, data: string | FormData | NodeJS.ReadableStream): Promise<ifm.IHttpClientResponse> {
         return new Promise<ifm.IHttpClientResponse>((resolve, reject) => {
             let callbackForResult = function (err: any, res: ifm.IHttpClientResponse) {
                 if (err) {
@@ -303,7 +304,7 @@ export class HttpClient implements ifm.IHttpClient {
      * @param data 
      * @param onResult 
      */
-    public requestRawWithCallback(info: ifm.IRequestInfo, data: string | NodeJS.ReadableStream, onResult: (err: any, res: ifm.IHttpClientResponse) => void): void {
+    public requestRawWithCallback(info: ifm.IRequestInfo, data: string | FormData | NodeJS.ReadableStream, onResult: (err: any, res: ifm.IHttpClientResponse) => void): void {
         let socket;
         
         let isDataString = typeof (data) === 'string';
@@ -342,19 +343,21 @@ export class HttpClient implements ifm.IHttpClient {
             handleResult(err, null);
         });
 
-        if (data && typeof (data) === 'string') {
-            req.write(data, 'utf8');
-        }
-
-        if (data && typeof (data) !== 'string') {
-            data.on('close', function () {
+        if (data) {
+            if (typeof (data) === 'string') {
+                req.write(data, 'utf8');
                 req.end();
-            });
-
-            data.pipe(req);
-        }
-        else {
-            req.end();
+            } else if (util.isFormData(data)) {
+                req.write(data);
+                req.end();
+            } else {
+                data = data as NodeJS.ReadableStream
+                data.on('close', function () {
+                    req.end();
+                });
+    
+                data.pipe(req);
+            }
         }
     }
 
