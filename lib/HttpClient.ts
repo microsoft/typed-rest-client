@@ -343,11 +343,12 @@ export class HttpClient implements ifm.IHttpClient {
             handleResult(err, null);
         });
 
-        if (data) {
-            if (typeof (data) === 'string') {
-                req.write(data, 'utf8');
-                req.end();
-            } else if (util.isFormData(data)) {
+        if (data && typeof (data) === 'string') {
+            req.write(data, 'utf8');
+        }
+
+        if (data && typeof (data) !== 'string') {
+            if (util.isFormData(data)) {
                 req.write(data);
                 req.end();
             } else {
@@ -358,6 +359,9 @@ export class HttpClient implements ifm.IHttpClient {
     
                 data.pipe(req);
             }
+        }
+        else {
+            req.end();
         }
     }
 
