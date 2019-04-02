@@ -37,7 +37,7 @@
     "react-scripts": "1.1.5",
     "shelljs": "0.7.6",
     "semver": "4.3.3",
-    "typescript": "2.4.2"
+    "typescript": "3.1.5"
   },
   "dependencies": {
     "tunnel": "0.0.4",
