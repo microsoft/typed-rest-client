@@ -1,8 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-import * as fs from 'fs';
-import * as http from 'http';
 import httpm = require('./HttpClient');
 import ifm = require("./Interfaces");
 import util = require("./Util");
