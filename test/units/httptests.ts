@@ -42,7 +42,7 @@ describe('Http Tests', function () {
         let body: string = await res.readBody();      
         let obj: any = JSON.parse(body);
         assert(obj.source === "nock", "http get request should be intercepted by nock");
-    })
+    });
 
     it('does basic http get request with basic auth', async() => {
         //Set nock for correct credentials
@@ -65,6 +65,35 @@ describe('Http Tests', function () {
             });
         let bh: hm.BasicCredentialHandler = new hm.BasicCredentialHandler('johndoe', 'password');
         let http: httpm.HttpClient = new httpm.HttpClient('typed-rest-client-tests', [bh]);
+        let res: httpm.HttpClientResponse = await http.get('http://microsoft.com');
+        assert(res.message.statusCode == 200, "status code should be 200");
+        let body: string = await res.readBody();      
+        let obj: any = JSON.parse(body);
+        assert(obj.source === "nock", "http get request should be intercepted by nock");
+        assert(obj.success, "Authentication should succeed");
+    });
+
+    it('doesnt use auth when presigned', async() => {
+        //Set nock for correct credentials
+        nock('http://microsoft.com')
+            .get('/')
+            .basicAuth({
+                user: 'johndoe',
+                pass: 'password'
+            })
+            .reply(200, {
+                success: false,
+                source: "nock"
+            });
+        //Set nock for request without credentials
+        nock('http://microsoft.com')
+            .get('/')
+            .reply(200, {
+                success: true,
+                source: "nock"
+            });
+        let bh: hm.BasicCredentialHandler = new hm.BasicCredentialHandler('johndoe', 'password');
+        let http: httpm.HttpClient = new httpm.HttpClient('typed-rest-client-tests', [bh], {presignedUrlPatterns: [/microsoft/i]});
         let res: httpm.HttpClientResponse = await http.get('http://microsoft.com');
         assert(res.message.statusCode == 200, "status code should be 200");
         let body: string = await res.readBody();      
@@ -392,5 +421,49 @@ describe('Http Tests with keepAlive', function () {
             .reply(200);
         let res: httpm.HttpClientResponse = await _http.options('http://microsoft.com');
         assert(res.message.statusCode == 200, "status code should be 200");
+    });
+
+    it('handles retries correctly', async() => {
+        _http = new httpm.HttpClient('typed-test-client-tests', null, {allowRetries: true, maxRetries: 3});
+
+        let numTries = 0;
+        nock('http://microsoft.com')
+            .options('/')
+            .times(4)
+            .reply(504, function(uri, requestBody) {
+                numTries += 1;
+            });
+        let res: httpm.HttpClientResponse = await _http.options('http://microsoft.com');
+        assert(numTries == 4, "client should retry on failure");
+        assert(res.message.statusCode == 504, "status code should be 504");
+    });
+
+    it('doesnt retry non-retryable verbs', async() => {
+        _http = new httpm.HttpClient('typed-test-client-tests', null, {allowRetries: true, maxRetries: 3});
+
+        let numTries = 0;
+        nock('http://microsoft.com')
+            .post('/')
+            .reply(504, function(uri, requestBody) {
+                numTries += 1;
+            });
+        let res: httpm.HttpClientResponse = await _http.post('http://microsoft.com', 'abc');
+        assert(numTries == 1, "client should not retry on failure");
+        assert(res.message.statusCode == 504, "status code should be 504");
+    });
+
+    it('doesnt retry non-retryable return codes', async() => {
+        _http = new httpm.HttpClient('typed-test-client-tests', null, {allowRetries: true, maxRetries: 3});
+
+        let numTries = 0;
+        nock('http://microsoft.com')
+            .options('/')
+            .times(1)
+            .reply(501, function(uri, requestBody) {
+                numTries += 1;
+            });
+        let res: httpm.HttpClientResponse = await _http.options('http://microsoft.com');
+        assert(numTries == 1, "client should not retry on failure");
+        assert(res.message.statusCode == 501, "status code should be 501");
     });
 });
