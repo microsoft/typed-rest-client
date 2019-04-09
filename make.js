@@ -96,7 +96,7 @@ target.samples = function () {
     run('tsc');
     run('node samples.js');
     run('npm install');
-    run('npm start');
+    run('npm run react');
     popd();
     console.log('done');
 }

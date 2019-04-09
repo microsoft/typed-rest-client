@@ -45,8 +45,11 @@ describe('Rest Tests', function () {
                 url: 'http://microsoft.com',
                 data: null,
                 json: null
+            }, {
+                'my-header': 'my-header-val'
             });
         let restRes: restm.IRestResponse<HttpData> = await _rest.get<HttpData>('http://microsoft.com');
+        assert(restRes.headers['my-header'] === 'my-header-val', 'Response should include headers');
         assert(restRes.statusCode == 200, "statusCode should be 200");
         assert(restRes.result && restRes.result.url === 'http://microsoft.com');
     });

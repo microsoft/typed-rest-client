@@ -7,7 +7,8 @@ import util = require("./Util");
 
 export interface IRestResponse<T> {
     statusCode: number,
-    result: T | null
+    result: T | null,
+    headers: Object
 }
 
 export interface IRequestOptions {
@@ -200,6 +201,7 @@ export class RestClient {
             const response: IRestResponse<T> = {
                 statusCode: statusCode,
                 result: null,
+                headers: {}
             };
 
             // not found leads to null obj returned
@@ -226,6 +228,7 @@ export class RestClient {
                         response.result = obj;
                     }
                 }
+                response.headers = res.message.headers;
             }
             catch (err) {
                 // Invalid resource (contents not json);  leaving result obj null
