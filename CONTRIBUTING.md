@@ -2,7 +2,9 @@
 
 ## Pre-requisites
 
-To build and test you need LTS Node >= 6.12.0 and Npm 5.5.1 (we use lock files).  You can download from [nodejs.org](https://nodejs.org)
+To build and test you need LTS Node >= 6.12.0 and Npm 5.5.1 (we use lock files).  You can download from [nodejs.org](https://nodejs.org).
+
+For contributions, we recommend using Node 10.15.1 and Npm 6.9.0 in order to minimize friction between package-lock formatting.
 
 ## Build
  
