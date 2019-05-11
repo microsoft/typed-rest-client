@@ -41,6 +41,7 @@
   },
   "dependencies": {
     "tunnel": "0.0.4",
-    "underscore": "1.8.3"
+    "underscore": "1.8.3",
+    "zlib": "^1.0.5"
   }
 }

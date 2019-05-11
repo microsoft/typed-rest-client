@@ -54,6 +54,22 @@ describe('Http Tests', function () {
         assert(obj.url === "https://httpbin.org/get");
     });
 
+    it('does basic http get request using gzip', async() => {
+        let res: httpm.HttpClientResponse = await _http.get('http://httpbin.org/gzip');
+        assert(res.message.statusCode == 200, "status code should be 200");
+        let body: string = await res.readBody();
+        let obj:any = JSON.parse(body);
+        assert(obj.headers.Host === "httpbin.org");
+    });
+
+    it('does basic https get request using gzip', async() => {
+        let res: httpm.HttpClientResponse = await _http.get('https://httpbin.org/gzip');
+        assert(res.message.statusCode == 200, "status code should be 200");
+        let body: string = await res.readBody();
+        let obj:any = JSON.parse(body);
+        assert(obj.headers.Host === "httpbin.org");
+    });
+
     it('does basic http get request with basic auth', async() => {
         let bh: hm.BasicCredentialHandler = new hm.BasicCredentialHandler('johndoe', 'password');
         let http: httpm.HttpClient = new httpm.HttpClient('typed-rest-client-tests', [bh]);

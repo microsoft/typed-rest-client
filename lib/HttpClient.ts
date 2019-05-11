@@ -7,6 +7,7 @@ import https = require("https");
 import tunnel = require("tunnel");
 import ifm = require('./Interfaces');
 import fs = require('fs');
+import zlib = require('zlib');
 
 export enum HttpCodes {
     OK = 200,
@@ -51,15 +52,28 @@ export class HttpClientResponse implements ifm.IHttpClientResponse {
     public message: http.IncomingMessage;
     readBody(): Promise<string> {
         return new Promise<string>(async (resolve, reject) => {
-            let output: string = '';
-
-            this.message.on('data', (chunk: string) => {
-                output += chunk;
-            });
-
-            this.message.on('end', () => {
-                resolve(output);
-            });
+            if (this.message.headers["content-encoding"] === "gzip") {
+                var buffer = [];
+                let unzipStream = zlib.createGunzip();
+                this.message.pipe(unzipStream);
+                unzipStream.on('data', function(data) {
+                    // decompression chunk ready, add it to the buffer
+                    buffer.push(data)
+                    }).on("end", function() {
+                        // response and decompression complete, join the buffer and return
+                        let s = buffer.join('').toString();
+                        s = s.substring(0, s.length);
+                        resolve(s);
+                  });
+            } else {
+                let output = '';
+                this.message.on('data', (chunk) => {
+                    output += chunk;
+                });
+                this.message.on('end', () => {
+                    resolve(output);
+                });
+            }
         });
     }
 }
