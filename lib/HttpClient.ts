@@ -4,9 +4,9 @@
 import url = require("url");
 import http = require("http");
 import https = require("https");
-import tunnel = require("tunnel");
 import ifm = require('./Interfaces');
-import fs = require('fs');
+let fs: any;
+let tunnel: any;
 
 export enum HttpCodes {
     OK = 200,
@@ -122,17 +122,22 @@ export class HttpClient implements ifm.IHttpClient {
 
             this._certConfig = requestOptions.cert;
 
-            // cache the cert content into memory, so we don't have to read it from disk every time 
-            if (this._certConfig && this._certConfig.caFile && fs.existsSync(this._certConfig.caFile)) {
-                this._ca = fs.readFileSync(this._certConfig.caFile, 'utf8');
-            }
+            if (this._certConfig) {
+                // If using cert, need fs
+                fs = require('fs');
 
-            if (this._certConfig && this._certConfig.certFile && fs.existsSync(this._certConfig.certFile)) {
-                this._cert = fs.readFileSync(this._certConfig.certFile, 'utf8');
-            }
-
-            if (this._certConfig && this._certConfig.keyFile && fs.existsSync(this._certConfig.keyFile)) {
-                this._key = fs.readFileSync(this._certConfig.keyFile, 'utf8');
+                // cache the cert content into memory, so we don't have to read it from disk every time 
+                if (this._certConfig.caFile && fs.existsSync(this._certConfig.caFile)) {
+                    this._ca = fs.readFileSync(this._certConfig.caFile, 'utf8');
+                }
+    
+                if (this._certConfig.certFile && fs.existsSync(this._certConfig.certFile)) {
+                    this._cert = fs.readFileSync(this._certConfig.certFile, 'utf8');
+                }
+    
+                if (this._certConfig.keyFile && fs.existsSync(this._certConfig.keyFile)) {
+                    this._key = fs.readFileSync(this._certConfig.keyFile, 'utf8');
+                }
             }
 
             if (requestOptions.allowRedirects != null) {
@@ -437,7 +442,12 @@ export class HttpClient implements ifm.IHttpClient {
         }
 
         if (useProxy) {
-            const agentOptions: tunnel.TunnelOptions = {
+            // If using proxy, need tunnel
+            if (!tunnel) {
+                tunnel = require('tunnel');
+            }
+
+            const agentOptions = {
                 maxSockets: maxSockets,
                 keepAlive: this._keepAlive,
                 proxy: {
