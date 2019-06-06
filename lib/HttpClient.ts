@@ -81,7 +81,7 @@ enum EnvironmentVariables {
 }
 
 export class HttpClient implements ifm.IHttpClient {
-    userAgent: string;
+    userAgent: string | null | undefined;
     handlers: ifm.IRequestHandler[];
     requestOptions: ifm.IRequestOptions;
 
@@ -102,7 +102,7 @@ export class HttpClient implements ifm.IHttpClient {
     private _cert: string;
     private _key: string;
 
-    constructor(userAgent: string, handlers?: ifm.IRequestHandler[], requestOptions?: ifm.IRequestOptions) {
+    constructor(userAgent: string | null | undefined, handlers?: ifm.IRequestHandler[], requestOptions?: ifm.IRequestOptions) {
         this.userAgent = userAgent;
         this.handlers = handlers || [];
         this.requestOptions = requestOptions;
@@ -371,7 +371,10 @@ export class HttpClient implements ifm.IHttpClient {
         info.options.path = (info.parsedUrl.pathname || '') + (info.parsedUrl.search || '');
         info.options.method = method;
         info.options.headers = this._mergeHeaders(headers);
-        info.options.headers["user-agent"] = this.userAgent;
+        if (this.userAgent != null) {
+            info.options.headers["user-agent"] = this.userAgent;
+        }
+        
         info.options.agent = this._getAgent(requestUrl);
 
         // gives handlers an opportunity to participate
