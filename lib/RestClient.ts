@@ -221,11 +221,6 @@ export class RestClient {
                     } else {
                         obj = JSON.parse(contents);
                     }
-                    // If the response was text/plain, JSON.parse will return undefined
-                    if (obj === undefined) {
-                        // contents was already the string in response
-                        obj = contents;
-                    }
                     if (options && options.responseProcessor) {
                         response.result = options.responseProcessor(obj);
                     }
@@ -236,7 +231,9 @@ export class RestClient {
                 response.headers = res.message.headers;
             }
             catch (err) {
-                // Invalid resource (contents not json);  leaving result obj null
+                // Contents not json, setting response to raw contents (text/plain content-type)
+                obj = contents;
+                response.result = obj;
             }
 
             // note that 3xx redirects are handled by the http layer.
