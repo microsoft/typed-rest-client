@@ -221,6 +221,11 @@ export class RestClient {
                     } else {
                         obj = JSON.parse(contents);
                     }
+                    // If the response was text/plain, JSON.parse will return undefined
+                    if (obj === undefined) {
+                        // contents was already the string in response
+                        obj = contents;
+                    }
                     if (options && options.responseProcessor) {
                         response.result = options.responseProcessor(obj);
                     }
