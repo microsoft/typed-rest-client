@@ -29,6 +29,45 @@ describe('Http Tests', function () {
 
         let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests');
         assert(http, 'http client should not be null');
+        assert(http.userAgent, 'user-agent should not be null')
+
+        let options = http.optionsForRequest('GET', 'http://microsoft.com');
+        assert('user-agent' in options.headers, 'user-agent should get set in headers')
+    });
+
+    it('constructs with null user-agent', () => {
+        this.timeout(1000);
+
+        let http: httpm.HttpClient = new httpm.HttpClient(null);
+        assert(http, 'http client should not be null');
+        assert(http.userAgent == null, 'user-agent should be null')
+
+        let options = http.optionsForRequest('GET', 'http://microsoft.com');
+        assert('user-agent' in options.headers === false, 'user-agent should not get set in headers')
+    });
+
+    it('constructs with undefined user-agent', () => {
+        this.timeout(1000);
+
+        let http: httpm.HttpClient = new httpm.HttpClient(undefined);
+        assert(http, 'http client should not be null');
+        assert(http.userAgent == null, 'user-agent should be null')
+
+        let options = http.optionsForRequest('GET', 'http://microsoft.com');
+        assert('user-agent' in options.headers === false, 'user-agent should not get set in headers')
+
+    });
+
+
+    it('constructs with empty user-agent', () => {
+        this.timeout(1000);
+
+        let http: httpm.HttpClient = new httpm.HttpClient('');
+        assert(http, 'http client should not be null');
+        assert(http.userAgent != null, 'user-agent should not be null')
+
+        let options = http.optionsForRequest('GET', 'http://microsoft.com');
+        assert('user-agent' in options.headers, 'user-agent should get set in headers')
     });
 
     it('does basic http get request', async() => {
