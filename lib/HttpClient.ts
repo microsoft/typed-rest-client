@@ -43,8 +43,6 @@ const HttpResponseRetryCodes: number[] = [HttpCodes.BadGateway, HttpCodes.Servic
 const RetryableHttpVerbs: string[] = ['OPTIONS', 'GET', 'DELETE', 'HEAD'];
 const ExponentialBackoffCeiling = 10;
 const ExponentialBackoffTimeSlice = 5;
-const HttpDefaultPort = 80;
-const HttpsDefaultPort = 443;
 
 
 export class HttpClientResponse implements ifm.IHttpClientResponse {
@@ -362,33 +360,26 @@ export class HttpClient implements ifm.IHttpClient {
         }
     }
 
-    public optionsForRequest(method: string, parsedUrl: url.Url | string, headers: ifm.IHeaders={}, defaultPort: number=HttpDefaultPort): http.RequestOptions {
-        if (typeof parsedUrl === 'string') {
-            parsedUrl = url.parse(parsedUrl)
-        }
-        let options = <http.RequestOptions>{};
-        options.host = parsedUrl.hostname;
-        options.port = parsedUrl.port ? parseInt(parsedUrl.port) : defaultPort;
-        options.path = (parsedUrl.pathname || '') + (parsedUrl.search || '');
-        options.method = method;
-        options.headers = this._mergeHeaders(headers);
-        if (this.userAgent != null) {
-            options.headers["user-agent"] = this.userAgent;
-        }
-        
-        options.agent = this._getAgent(parsedUrl);
-
-        return options;
-    }
-
     private _prepareRequest(method: string, requestUrl: string, headers: ifm.IHeaders): ifm.IRequestInfo {
         const info: ifm.IRequestInfo = <ifm.IRequestInfo>{};
 
         info.parsedUrl = url.parse(requestUrl);
         const usingSsl: boolean = info.parsedUrl.protocol === 'https:';
         info.httpModule = usingSsl ? https : http;
-        const defaultPort: number = usingSsl ? HttpsDefaultPort : HttpDefaultPort;
-        info.options = this.optionsForRequest(method, info.parsedUrl, headers, defaultPort)
+        const defaultPort: number = usingSsl ? 443 : 80;
+        
+        info.options = <http.RequestOptions>{};
+        info.options.host = info.parsedUrl.hostname;
+        info.options.port = info.parsedUrl.port ? parseInt(info.parsedUrl.port) : defaultPort;
+        info.options.path = (info.parsedUrl.pathname || '') + (info.parsedUrl.search || '');
+        info. options.method = method;
+
+        info.options.headers = this._mergeHeaders(headers);
+        if (this.userAgent != null) {
+            info.options.headers["user-agent"] = this.userAgent;
+        }
+        
+        info.options.agent = this._getAgent(info.parsedUrl);
 
         // gives handlers an opportunity to participate
         if (this.handlers && !this._isPresigned(requestUrl)) {
