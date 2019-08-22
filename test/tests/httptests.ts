@@ -42,9 +42,19 @@ describe('Http Tests', function () {
         let res: httpm.HttpClientResponse = await _http.get('http://httpbin.org/get');
         assert(res.message.statusCode == 200, "status code should be 200");
         let body: string = await res.readBody();      
-        let obj:any = JSON.parse(body);
+        let obj: any = JSON.parse(body);
         assert(obj.url === "https://httpbin.org/get");
         assert('User-Agent' in obj.headers === true, "User-Agent should be set");
+    });
+
+    it('does basic http get request with undefined agent', async() => {
+        let http: httpm.HttpClient = new httpm.HttpClient(undefined);
+        let res: httpm.HttpClientResponse = await http.get('http://httpbin.org/get');
+        assert(res.message.statusCode == 200, "status code should be 200");
+        let body: string = await res.readBody();      
+        let obj: any = JSON.parse(body);
+        assert(obj.url === "https://httpbin.org/get");
+        assert('User-Agent' in obj.headers === false, "User-Agent should not be set");
     });
 
     it('does basic http get request with null agent', async() => {
@@ -52,7 +62,7 @@ describe('Http Tests', function () {
         let res: httpm.HttpClientResponse = await http.get('http://httpbin.org/get');
         assert(res.message.statusCode == 200, "status code should be 200");
         let body: string = await res.readBody();      
-        let obj:any = JSON.parse(body);
+        let obj: any = JSON.parse(body);
         assert(obj.url === "https://httpbin.org/get");
         assert('User-Agent' in obj.headers === false, "User-Agent should not be set");
     });
@@ -62,16 +72,17 @@ describe('Http Tests', function () {
         let res: httpm.HttpClientResponse = await http.get('http://httpbin.org/get');
         assert(res.message.statusCode == 200, "status code should be 200");
         let body: string = await res.readBody();      
-        let obj:any = JSON.parse(body);
+        let obj: any = JSON.parse(body);
         assert(obj.url === "https://httpbin.org/get");
         assert('User-Agent' in obj.headers === true, "User-Agent should be set");
+        assert(obj.headers['User-Agent'] === '', "User-Agent should be set to empty string");
     });
 
     it('does basic https get request', async() => {
         let res: httpm.HttpClientResponse = await _http.get('https://httpbin.org/get');
         assert(res.message.statusCode == 200, "status code should be 200");
         let body: string = await res.readBody();
-        let obj:any = JSON.parse(body);
+        let obj: any = JSON.parse(body);
         assert(obj.url === "https://httpbin.org/get");
     });
 

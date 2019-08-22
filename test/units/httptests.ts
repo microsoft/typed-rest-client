@@ -46,9 +46,7 @@ describe('Http Tests', function () {
         let http: httpm.HttpClient = new httpm.HttpClient(undefined);
         assert(http, 'http client should not be null');
         assert(http.userAgent == null, 'user-agent should be null')
-
     });
-
 
     it('constructs with empty user-agent', () => {
         this.timeout(1000);
@@ -56,7 +54,6 @@ describe('Http Tests', function () {
         let http: httpm.HttpClient = new httpm.HttpClient('');
         assert(http, 'http client should not be null');
         assert(http.userAgent != null, 'user-agent should not be null')
-
     });
 
     it('does basic http get request', async() => {

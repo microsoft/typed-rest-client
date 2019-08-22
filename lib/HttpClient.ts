@@ -372,7 +372,7 @@ export class HttpClient implements ifm.IHttpClient {
         info.options.host = info.parsedUrl.hostname;
         info.options.port = info.parsedUrl.port ? parseInt(info.parsedUrl.port) : defaultPort;
         info.options.path = (info.parsedUrl.pathname || '') + (info.parsedUrl.search || '');
-        info. options.method = method;
+        info.options.method = method;
 
         info.options.headers = this._mergeHeaders(headers);
         if (this.userAgent != null) {
