@@ -5,7 +5,6 @@ import url = require("url");
 import http = require("http");
 import https = require("https");
 import ifm = require('./Interfaces');
-import { parse } from "querystring";
 let fs: any;
 let tunnel: any;
 
