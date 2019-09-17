@@ -43,6 +43,7 @@ const RetryableHttpVerbs: string[] = ['OPTIONS', 'GET', 'DELETE', 'HEAD'];
 const ExponentialBackoffCeiling = 10;
 const ExponentialBackoffTimeSlice = 5;
 
+
 export class HttpClientResponse implements ifm.IHttpClientResponse {
     constructor(message: http.IncomingMessage) {
         this.message = message;
@@ -81,7 +82,7 @@ enum EnvironmentVariables {
 }
 
 export class HttpClient implements ifm.IHttpClient {
-    userAgent: string;
+    userAgent: string | null | undefined;
     handlers: ifm.IRequestHandler[];
     requestOptions: ifm.IRequestOptions;
 
@@ -102,7 +103,7 @@ export class HttpClient implements ifm.IHttpClient {
     private _cert: string;
     private _key: string;
 
-    constructor(userAgent: string, handlers?: ifm.IRequestHandler[], requestOptions?: ifm.IRequestOptions) {
+    constructor(userAgent: string | null | undefined, handlers?: ifm.IRequestHandler[], requestOptions?: ifm.IRequestOptions) {
         this.userAgent = userAgent;
         this.handlers = handlers || [];
         this.requestOptions = requestOptions;
@@ -370,14 +371,19 @@ export class HttpClient implements ifm.IHttpClient {
         const usingSsl: boolean = info.parsedUrl.protocol === 'https:';
         info.httpModule = usingSsl ? https : http;
         const defaultPort: number = usingSsl ? 443 : 80;
+        
         info.options = <http.RequestOptions>{};
         info.options.host = info.parsedUrl.hostname;
         info.options.port = info.parsedUrl.port ? parseInt(info.parsedUrl.port) : defaultPort;
         info.options.path = (info.parsedUrl.pathname || '') + (info.parsedUrl.search || '');
         info.options.method = method;
+
         info.options.headers = this._mergeHeaders(headers);
-        info.options.headers["user-agent"] = this.userAgent;
-        info.options.agent = this._getAgent(requestUrl);
+        if (this.userAgent != null) {
+            info.options.headers["user-agent"] = this.userAgent;
+        }
+        
+        info.options.agent = this._getAgent(info.parsedUrl);
 
         // gives handlers an opportunity to participate
         if (this.handlers && !this._isPresigned(requestUrl)) {
@@ -416,10 +422,10 @@ export class HttpClient implements ifm.IHttpClient {
         return lowercaseKeys(headers || {});
     }
 
-    private _getAgent(requestUrl: string) {
+    private _getAgent(parsedUrl: url.Url) {
         let agent;
-        let proxy = this._getProxy(requestUrl);
-        let useProxy = proxy.proxyUrl && proxy.proxyUrl.hostname && !this._isBypassProxy(requestUrl);
+        let proxy = this._getProxy(parsedUrl);
+        let useProxy = proxy.proxyUrl && proxy.proxyUrl.hostname && !this._isBypassProxy(parsedUrl);
 
         if (this._keepAlive && useProxy) {
             agent = this._proxyAgent;
@@ -434,7 +440,6 @@ export class HttpClient implements ifm.IHttpClient {
             return agent;
         }
 
-        let parsedUrl = url.parse(requestUrl);
         const usingSsl = parsedUrl.protocol === 'https:';
         let maxSockets = 100;
         if (!!this.requestOptions) {
@@ -495,8 +500,7 @@ export class HttpClient implements ifm.IHttpClient {
         return agent;
     }
 
-    private _getProxy(requestUrl) {
-        const parsedUrl = url.parse(requestUrl);
+    private _getProxy(parsedUrl: url.Url) {
         let usingSsl = parsedUrl.protocol === 'https:';
         let proxyConfig: ifm.IProxyConfiguration = this._httpProxy;
 
@@ -531,14 +535,14 @@ export class HttpClient implements ifm.IHttpClient {
         return { proxyUrl: proxyUrl, proxyAuth: proxyAuth };
     }
 
-    private _isBypassProxy(requestUrl: string): Boolean {
+    private _isBypassProxy(parsedUrl: url.Url): Boolean {
         if (!this._httpProxyBypassHosts) {
             return false;
         }
 
         let bypass: boolean = false;
         this._httpProxyBypassHosts.forEach(bypassHost => {
-            if (bypassHost.test(requestUrl)) {
+            if (bypassHost.test(parsedUrl.href)) {
                 bypass = true;
             }
         });
