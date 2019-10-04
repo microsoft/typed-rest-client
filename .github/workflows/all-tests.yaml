@@ -1,0 +1,26 @@
+name: unit-tests
+on: 
+  push:
+    paths-ignore:
+      - '**.md'
+  pull_request:
+    paths-ignore:
+      - '**.md'   
+
+jobs:
+  units:
+    name: ${{ matrix.}}
+  strategy:
+    matrix:
+      node: [6, 8, 10]
+      os: [ubuntu-latest, windows-latest]
+  runs-on: ${{ matrix.os }}
+  steps:
+    - uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node }}
+    - run: npm run install
+    - run: npm run build
+    - run: npm test
+    - run: npm run samples
+
