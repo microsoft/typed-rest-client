@@ -10,17 +10,17 @@ on:
 jobs:
   units:
     name: ${{ matrix.os}}-node${{ matrix.node}}
-  strategy:
-    matrix:
-      node: [6, 8, 10]
-      os: ['ubuntu-latest', 'windows-latest']
-  runs-on: ${{ matrix.os }}
-  steps:
-    - uses: actions/setup-node@v1
-      with:
-        node-version: ${{ matrix.node }}
-    - run: npm run install
-    - run: npm run build
-    - run: npm test
-    - run: npm run samples
+    strategy:
+      matrix:
+        node: [6, 8, 10]
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm run install
+      - run: npm run build
+      - run: npm test
+      - run: npm run samples
 
