@@ -9,7 +9,7 @@ on:
 
 jobs:
   units:
-    name: ${{ matrix.}}
+    name: ${{ matrix.os}}-node${{ matrix.node}}
   strategy:
     matrix:
       node: [6, 8, 10]
