@@ -52,10 +52,10 @@ export class HttpClientResponse implements ifm.IHttpClientResponse {
     public message: http.IncomingMessage;
     readBody(): Promise<string> {
         return new Promise<string>(async (resolve, reject) => {
-            let output = Buffer.alloc(0);
+            let output: string = '';
 
             this.message.on('data', (chunk: string) => {
-                output = Buffer.concat([output, chunk]);
+                output += chunk;
             });
 
             this.message.on('end', () => {
