@@ -14,7 +14,7 @@ describe('Http Tests', function () {
     let _httpbin: httpm.HttpClient;
 
     before(() => {
-        _http = new httpm.HttpClient('typed-test-client-tests');
+        _http = new httpm.HttpClient('  -tests');
     });
 
     after(() => {
@@ -84,6 +84,13 @@ describe('Http Tests', function () {
         let body: string = await res.readBody();
         let obj: any = JSON.parse(body);
         assert(obj.url === "https://httpbin.org/get");
+    });
+
+    it('does basic https get request with long unicode response', async() => {
+        let res: httpm.HttpClientResponse = await _http.get('https://privacy.microsoft.com/ru-RU/privacystatement');
+        assert(res.message.statusCode == 200, "status code should be 200");
+        let body: string = await res.readBody();      
+        assert(body.indexOf('��') == -1, "All response bytes are decoded");
     });
 
     it('does basic http get request with basic auth', async() => {

@@ -54,12 +54,12 @@ export class HttpClientResponse implements ifm.IHttpClientResponse {
         return new Promise<string>(async (resolve, reject) => {
             let output = Buffer.alloc(0);
 
-            this.message.on('data', (chunk: string) => {
+            this.message.on('data', (chunk: Buffer) => {
                 output = Buffer.concat([output, chunk]);
             });
 
             this.message.on('end', () => {
-                resolve(output);
+                resolve(output.toString());
             });
         });
     }
