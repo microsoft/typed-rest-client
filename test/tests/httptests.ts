@@ -86,6 +86,13 @@ describe('Http Tests', function () {
         assert(obj.url === "https://httpbin.org/get");
     });
 
+    it('does basic https get request with long unicode response', async() => {
+        let res: httpm.HttpClientResponse = await _http.get('https://privacy.microsoft.com/ru-RU/privacystatement');
+        assert(res.message.statusCode == 200, "status code should be 200");
+        let body: string = await res.readBody();
+        assert(body.indexOf('��') == -1, "all response bytes are decoded");
+    });
+
     it('does basic http get request with basic auth', async() => {
         let bh: hm.BasicCredentialHandler = new hm.BasicCredentialHandler('johndoe', 'password');
         let http: httpm.HttpClient = new httpm.HttpClient('typed-rest-client-tests', [bh]);
