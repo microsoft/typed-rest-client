@@ -265,7 +265,7 @@ describe('Http Tests', function () {
             await _http.get('https://microsoft.com/redirect-to');
             assert(false, "The above should fail");
         } catch (err) {
-            assert.equal((err as Error).message, "Redirect from HTTPS to HTTP protocol.", "Error information.")
+            assert.equal((err as Error).message, "Redirect from HTTPS to HTTP protocol. This downgrade is not allowed for security reasons. If you want to allow this behavior, set the allowRedirectDowngrade option to true.", "Error information.")
         }
     });
 
