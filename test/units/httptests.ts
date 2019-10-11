@@ -64,7 +64,7 @@ describe('Http Tests', function () {
             });
         let res: httpm.HttpClientResponse = await _http.get('http://microsoft.com');
         assert(res.message.statusCode == 200, "status code should be 200");
-        let body: string = await res.readBody();      
+        let body: string = await res.readBody();
         let obj: any = JSON.parse(body);
         assert(obj.source === "nock", "http get request should be intercepted by nock");
     });
@@ -92,7 +92,7 @@ describe('Http Tests', function () {
         let http: httpm.HttpClient = new httpm.HttpClient('typed-rest-client-tests', [bh]);
         let res: httpm.HttpClientResponse = await http.get('http://microsoft.com');
         assert(res.message.statusCode == 200, "status code should be 200");
-        let body: string = await res.readBody();      
+        let body: string = await res.readBody();
         let obj: any = JSON.parse(body);
         assert(obj.source === "nock", "http get request should be intercepted by nock");
         assert(obj.success, "Authentication should succeed");
@@ -121,12 +121,12 @@ describe('Http Tests', function () {
         let http: httpm.HttpClient = new httpm.HttpClient('typed-rest-client-tests', [bh], {presignedUrlPatterns: [/microsoft/i]});
         let res: httpm.HttpClientResponse = await http.get('http://microsoft.com');
         assert(res.message.statusCode == 200, "status code should be 200");
-        let body: string = await res.readBody();      
+        let body: string = await res.readBody();
         let obj: any = JSON.parse(body);
         assert(obj.source === "nock", "http get request should be intercepted by nock");
         assert(obj.success, "Authentication should succeed");
     });
-    
+
     it('does basic http get request with pat token auth', async() => {
         let token: string = 'scbfb44vxzku5l4xgc3qfazn3lpk4awflfryc76esaiq7aypcbhs';
         let pat: string = new Buffer('PAT:' + token).toString('base64')
@@ -148,12 +148,12 @@ describe('Http Tests', function () {
                 success: false,
                 source: "nock"
             });
-        let ph: hm.PersonalAccessTokenCredentialHandler = 
+        let ph: hm.PersonalAccessTokenCredentialHandler =
             new hm.PersonalAccessTokenCredentialHandler(token);
         let http: httpm.HttpClient = new httpm.HttpClient('typed-rest-client-tests', [ph]);
         let res: httpm.HttpClientResponse = await http.get('http://microsoft.com');
         assert(res.message.statusCode == 200, "status code should be 200");
-        let body: string = await res.readBody();      
+        let body: string = await res.readBody();
         let obj: any = JSON.parse(body);
         assert(obj.source === "nock", "http get request should be intercepted by nock");
         assert(obj.success, "Authentication should succeed");
@@ -180,7 +180,7 @@ describe('Http Tests', function () {
         });
         let res: httpm.HttpClientResponse = await http.get('http://microsoft.com');
         assert(res.message.statusCode == 200, "status code should be 200");
-        let body: string = await res.readBody();      
+        let body: string = await res.readBody();
         let obj: any = JSON.parse(body);
         assert(obj.source === "nock", "http get request should be intercepted by nock");
         assert(obj.success, "Headers should send");
@@ -209,7 +209,7 @@ describe('Http Tests', function () {
             'content-type': 'application/x-www-form-urlencoded'
         });
         assert(res.message.statusCode == 200, "status code should be 200");
-        let body: string = await res.readBody();      
+        let body: string = await res.readBody();
         let obj: any = JSON.parse(body);
         assert(obj.source === "nock", "http get request should be intercepted by nock");
         assert(obj.success, "Headers should merge/send");
@@ -231,7 +231,7 @@ describe('Http Tests', function () {
             });
         });
     });
-    
+
     it('does basic get request with redirects', async() => {
         nock('http://microsoft.com')
             .get('/redirect-to')
@@ -245,7 +245,45 @@ describe('Http Tests', function () {
             });
         let res: httpm.HttpClientResponse = await _http.get('http://microsoft.com/redirect-to');
         assert(res.message.statusCode == 200, "status code should be 200");
-        let body: string = await res.readBody();      
+        let body: string = await res.readBody();
+        let obj: any = JSON.parse(body);
+        assert(obj.source === "nock", "request should redirect to mocked page");
+    });
+
+    it('fails request on redirect protocol downgrade', async() => {
+        nock('https://microsoft.com')
+            .get('/redirect-to')
+            .reply(301, undefined, {
+                location:'http://microsoft.com'
+            });
+        nock('http://microsoft.com')
+            .get('/')
+            .reply(200, {
+                source: "nock"
+            });
+        try {
+            await _http.get('https://microsoft.com/redirect-to');
+            assert(false, "The above should fail");
+        } catch (err) {
+            assert.equal((err as Error).message, "Redirect from HTTPS to HTTP protocol. This downgrade is not allowed for security reasons. If you want to allow this behavior, set the allowRedirectDowngrade option to true.", "Error information.")
+        }
+    });
+
+    it('does basic get request with redirect when downgrade is allowed', async () => {
+        _http = new httpm.HttpClient('typed-test-client-tests', null, { allowRedirectDowngrade: true });
+        nock('https://microsoft.com')
+            .get('/redirect-to')
+            .reply(301, undefined, {
+                location:'http://microsoft.com'
+            });
+        nock('http://microsoft.com')
+            .get('/')
+            .reply(200, {
+                source: "nock"
+            });
+        let res: httpm.HttpClientResponse = await _http.get('https://microsoft.com/redirect-to');
+        assert(res.message.statusCode == 200, "status code should be 200");
+        let body: string = await res.readBody();
         let obj: any = JSON.parse(body);
         assert(obj.source === "nock", "request should redirect to mocked page");
     });
@@ -263,7 +301,7 @@ describe('Http Tests', function () {
             });
         let res: httpm.HttpClientResponse = await _http.get('http://microsoft.com/redirect-to');
         assert(res.message.statusCode == 200, "status code should be 200");
-        let body: string = await res.readBody();      
+        let body: string = await res.readBody();
         let obj: any = JSON.parse(body);
         assert(obj.source === "nock", "request should redirect to mocked page");
     });
@@ -281,7 +319,7 @@ describe('Http Tests', function () {
         });
     let res: httpm.HttpClientResponse = await _http.get('http://microsoft.com/redirect-to');
     assert(res.message.statusCode == 404, "status code should be 404");
-    let body: string = await res.readBody();      
+    let body: string = await res.readBody();
     let obj: any = JSON.parse(body);
     assert(obj.source === "nock", "request should redirect to mocked missing");
     });
@@ -336,7 +374,7 @@ describe('Http Tests', function () {
         let obj:any = JSON.parse(body);
         assert(obj.data === b);
     });
-    
+
     it('does basic http patch request', async() => {
         nock('http://microsoft.com')
             .patch('/')
@@ -350,7 +388,7 @@ describe('Http Tests', function () {
         let obj:any = JSON.parse(body);
         assert(obj.data === b);
     });
-    
+
     it('does basic http options request', async() => {
         nock('http://microsoft.com')
             .options('/')
@@ -358,7 +396,7 @@ describe('Http Tests', function () {
         let res: httpm.HttpClientResponse = await _http.options('http://microsoft.com');
         assert(res.message.statusCode == 200, "status code should be 200");
     });
-    
+
     it('returns 404 for not found get request', async() => {
         nock('http://badmicrosoft.com')
             .get('/')
@@ -387,7 +425,7 @@ describe('Http Tests with keepAlive', function () {
             });
         let res: httpm.HttpClientResponse = await _http.get('http://microsoft.com');
         assert(res.message.statusCode == 200, "status code should be 200");
-        let body: string = await res.readBody();      
+        let body: string = await res.readBody();
         let obj: any = JSON.parse(body);
         assert(obj.source === "nock", "http get request should be intercepted by nock");
     });
@@ -400,7 +438,7 @@ describe('Http Tests with keepAlive', function () {
             });
         let res: httpm.HttpClientResponse = await _http.head('http://microsoft.com');
         assert(res.message.statusCode == 200, "status code should be 200");
-    });    
+    });
 
     it('does basic http delete request with keepAlive true', async() => {
         nock('http://microsoft.com')
@@ -425,7 +463,7 @@ describe('Http Tests with keepAlive', function () {
         let obj:any = JSON.parse(body);
         assert(obj.data === b);
     });
-    
+
     it('does basic http patch request with keepAlive true', async() => {
         nock('http://microsoft.com')
             .patch('/')
@@ -438,8 +476,8 @@ describe('Http Tests with keepAlive', function () {
         let body: string = await res.readBody();
         let obj:any = JSON.parse(body);
         assert(obj.data === b);
-    }); 
-    
+    });
+
     it('does basic http options request with keepAlive true', async() => {
         nock('http://microsoft.com')
             .options('/')

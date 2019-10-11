@@ -184,7 +184,7 @@ describe('Http Tests', function () {
     });
 
     it('returns 404 for not found get request on redirect', async() => {
-        let res: httpm.HttpClientResponse = await _http.get("https://httpbin.org/redirect-to?url=" + encodeURIComponent("http://httpbin.org/status/404") + '&status_code=303')
+        let res: httpm.HttpClientResponse = await _http.get("https://httpbin.org/redirect-to?url=" + encodeURIComponent("https://httpbin.org/status/404") + '&status_code=303')
         assert(res.message.statusCode == 404, "status code should be 404");
         let body: string = await res.readBody();
     });

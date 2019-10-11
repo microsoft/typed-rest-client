@@ -91,7 +91,8 @@ export class HttpClient implements ifm.IHttpClient {
     private _httpProxy: ifm.IProxyConfiguration;
     private _httpProxyBypassHosts: RegExp[];
     private _allowRedirects: boolean = true;
-    private _maxRedirects: number = 50
+    private _allowRedirectDowngrade: boolean = false;
+    private _maxRedirects: number = 50;
     private _allowRetries: boolean = false;
     private _maxRetries: number = 1;
     private _agent;
@@ -143,6 +144,10 @@ export class HttpClient implements ifm.IHttpClient {
 
             if (requestOptions.allowRedirects != null) {
                 this._allowRedirects = requestOptions.allowRedirects;
+            }
+
+            if (requestOptions.allowRedirectDowngrade != null) {
+                this._allowRedirectDowngrade = requestOptions.allowRedirectDowngrade;
             }
 
             if (requestOptions.maxRedirects != null) {
@@ -205,7 +210,8 @@ export class HttpClient implements ifm.IHttpClient {
             throw new Error("Client has already been disposed.");
         }
 
-        let info: RequestInfo = this._prepareRequest(verb, requestUrl, headers);
+        let parsedUrl = url.parse(requestUrl);
+        let info: RequestInfo = this._prepareRequest(verb, parsedUrl, headers);
 
         // Only perform retries on reads since writes may not be idempotent.
         let maxTries: number = (this._allowRetries && RetryableHttpVerbs.indexOf(verb) != -1) ? this._maxRetries + 1 : 1;
@@ -241,10 +247,14 @@ export class HttpClient implements ifm.IHttpClient {
                 && this._allowRedirects
                 && redirectsRemaining > 0) {
 
-                const redirectUrl: any = response.message.headers["location"];
+                const redirectUrl: string | null = response.message.headers["location"];
                 if (!redirectUrl) {
                     // if there's no location to redirect to, we won't
                     break;
+                }
+                let parsedRedirectUrl = url.parse(redirectUrl);
+                if (parsedUrl.protocol == 'https:' && parsedUrl.protocol != parsedRedirectUrl.protocol && !this._allowRedirectDowngrade) {
+                    throw new Error("Redirect from HTTPS to HTTP protocol. This downgrade is not allowed for security reasons. If you want to allow this behavior, set the allowRedirectDowngrade option to true.");
                 }
 
                 // we need to finish reading the response before reassigning response
@@ -252,7 +262,7 @@ export class HttpClient implements ifm.IHttpClient {
                 await response.readBody();
 
                 // let's make the request with the new redirectUrl
-                info = this._prepareRequest(verb, redirectUrl, headers);
+                info = this._prepareRequest(verb, parsedRedirectUrl, headers);
                 response = await this.requestRaw(info, data);
                 redirectsRemaining--;
             }
@@ -364,10 +374,10 @@ export class HttpClient implements ifm.IHttpClient {
         }
     }
 
-    private _prepareRequest(method: string, requestUrl: string, headers: ifm.IHeaders): ifm.IRequestInfo {
+    private _prepareRequest(method: string, requestUrl: url.Url, headers: ifm.IHeaders): ifm.IRequestInfo {
         const info: ifm.IRequestInfo = <ifm.IRequestInfo>{};
 
-        info.parsedUrl = url.parse(requestUrl);
+        info.parsedUrl = requestUrl;
         const usingSsl: boolean = info.parsedUrl.protocol === 'https:';
         info.httpModule = usingSsl ? https : http;
         const defaultPort: number = usingSsl ? 443 : 80;
@@ -386,7 +396,7 @@ export class HttpClient implements ifm.IHttpClient {
         info.options.agent = this._getAgent(info.parsedUrl);
 
         // gives handlers an opportunity to participate
-        if (this.handlers && !this._isPresigned(requestUrl)) {
+        if (this.handlers && !this._isPresigned(url.format(requestUrl))) {
             this.handlers.forEach((handler) => {
                 handler.prepareRequest(info.options);
             });
