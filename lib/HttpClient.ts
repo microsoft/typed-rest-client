@@ -70,7 +70,7 @@ export class HttpClientResponse implements ifm.IHttpClientResponse {
                     });
             } else {
                 let output = Buffer.alloc(0);
-                this.message.on('data', (chunk) => {
+                this.message.on('data', (chunk: any) => {
                     output = Buffer.concat([output, chunk]);
                 });
                 this.message.on('end', () => {
