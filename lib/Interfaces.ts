@@ -48,6 +48,7 @@ export interface IRequestOptions {
     proxy?: IProxyConfiguration;
     cert?: ICertConfiguration;
     allowRedirects?: boolean;
+    allowRedirectDowngrade?: boolean;
     maxRedirects?: number;
     maxSockets?: number;
     keepAlive?: boolean;

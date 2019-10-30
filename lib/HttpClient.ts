@@ -4,10 +4,10 @@
 import url = require("url");
 import http = require("http");
 import https = require("https");
-import tunnel = require("tunnel");
 import ifm = require('./Interfaces');
-import fs = require('fs');
 import zlib = require('zlib');
+let fs: any;
+let tunnel: any;
 
 export enum HttpCodes {
     OK = 200,
@@ -44,6 +44,7 @@ const RetryableHttpVerbs: string[] = ['OPTIONS', 'GET', 'DELETE', 'HEAD'];
 const ExponentialBackoffCeiling = 10;
 const ExponentialBackoffTimeSlice = 5;
 
+
 export class HttpClientResponse implements ifm.IHttpClientResponse {
     constructor(message: http.IncomingMessage) {
         this.message = message;
@@ -64,14 +65,16 @@ export class HttpClientResponse implements ifm.IHttpClientResponse {
                         let s = buffer.join('').toString();
                         s = s.substring(0, s.length);
                         resolve(s);
-                  });
+                    }).on("error", function(e) {
+                        reject(e);
+                    });
             } else {
-                let output = '';
+                let output = Buffer.alloc(0);
                 this.message.on('data', (chunk) => {
-                    output += chunk;
+                    output = Buffer.concat([output, chunk]);
                 });
                 this.message.on('end', () => {
-                    resolve(output);
+                    resolve(output.toString());
                 });
             }
         });
@@ -95,7 +98,7 @@ enum EnvironmentVariables {
 }
 
 export class HttpClient implements ifm.IHttpClient {
-    userAgent: string;
+    userAgent: string | null | undefined;
     handlers: ifm.IRequestHandler[];
     requestOptions: ifm.IRequestOptions;
 
@@ -104,7 +107,8 @@ export class HttpClient implements ifm.IHttpClient {
     private _httpProxy: ifm.IProxyConfiguration;
     private _httpProxyBypassHosts: RegExp[];
     private _allowRedirects: boolean = true;
-    private _maxRedirects: number = 50
+    private _allowRedirectDowngrade: boolean = false;
+    private _maxRedirects: number = 50;
     private _allowRetries: boolean = false;
     private _maxRetries: number = 1;
     private _agent;
@@ -116,7 +120,7 @@ export class HttpClient implements ifm.IHttpClient {
     private _cert: string;
     private _key: string;
 
-    constructor(userAgent: string, handlers?: ifm.IRequestHandler[], requestOptions?: ifm.IRequestOptions) {
+    constructor(userAgent: string | null | undefined, handlers?: ifm.IRequestHandler[], requestOptions?: ifm.IRequestOptions) {
         this.userAgent = userAgent;
         this.handlers = handlers || [];
         this.requestOptions = requestOptions;
@@ -136,21 +140,30 @@ export class HttpClient implements ifm.IHttpClient {
 
             this._certConfig = requestOptions.cert;
 
-            // cache the cert content into memory, so we don't have to read it from disk every time 
-            if (this._certConfig && this._certConfig.caFile && fs.existsSync(this._certConfig.caFile)) {
-                this._ca = fs.readFileSync(this._certConfig.caFile, 'utf8');
-            }
+            if (this._certConfig) {
+                // If using cert, need fs
+                fs = require('fs');
 
-            if (this._certConfig && this._certConfig.certFile && fs.existsSync(this._certConfig.certFile)) {
-                this._cert = fs.readFileSync(this._certConfig.certFile, 'utf8');
-            }
-
-            if (this._certConfig && this._certConfig.keyFile && fs.existsSync(this._certConfig.keyFile)) {
-                this._key = fs.readFileSync(this._certConfig.keyFile, 'utf8');
+                // cache the cert content into memory, so we don't have to read it from disk every time 
+                if (this._certConfig.caFile && fs.existsSync(this._certConfig.caFile)) {
+                    this._ca = fs.readFileSync(this._certConfig.caFile, 'utf8');
+                }
+    
+                if (this._certConfig.certFile && fs.existsSync(this._certConfig.certFile)) {
+                    this._cert = fs.readFileSync(this._certConfig.certFile, 'utf8');
+                }
+    
+                if (this._certConfig.keyFile && fs.existsSync(this._certConfig.keyFile)) {
+                    this._key = fs.readFileSync(this._certConfig.keyFile, 'utf8');
+                }
             }
 
             if (requestOptions.allowRedirects != null) {
                 this._allowRedirects = requestOptions.allowRedirects;
+            }
+
+            if (requestOptions.allowRedirectDowngrade != null) {
+                this._allowRedirectDowngrade = requestOptions.allowRedirectDowngrade;
             }
 
             if (requestOptions.maxRedirects != null) {
@@ -213,7 +226,8 @@ export class HttpClient implements ifm.IHttpClient {
             throw new Error("Client has already been disposed.");
         }
 
-        let info: RequestInfo = this._prepareRequest(verb, requestUrl, headers);
+        let parsedUrl = url.parse(requestUrl);
+        let info: RequestInfo = this._prepareRequest(verb, parsedUrl, headers);
 
         // Only perform retries on reads since writes may not be idempotent.
         let maxTries: number = (this._allowRetries && RetryableHttpVerbs.indexOf(verb) != -1) ? this._maxRetries + 1 : 1;
@@ -249,10 +263,14 @@ export class HttpClient implements ifm.IHttpClient {
                 && this._allowRedirects
                 && redirectsRemaining > 0) {
 
-                const redirectUrl: any = response.message.headers["location"];
+                const redirectUrl: string | null = response.message.headers["location"];
                 if (!redirectUrl) {
                     // if there's no location to redirect to, we won't
                     break;
+                }
+                let parsedRedirectUrl = url.parse(redirectUrl);
+                if (parsedUrl.protocol == 'https:' && parsedUrl.protocol != parsedRedirectUrl.protocol && !this._allowRedirectDowngrade) {
+                    throw new Error("Redirect from HTTPS to HTTP protocol. This downgrade is not allowed for security reasons. If you want to allow this behavior, set the allowRedirectDowngrade option to true.");
                 }
 
                 // we need to finish reading the response before reassigning response
@@ -260,7 +278,7 @@ export class HttpClient implements ifm.IHttpClient {
                 await response.readBody();
 
                 // let's make the request with the new redirectUrl
-                info = this._prepareRequest(verb, redirectUrl, headers);
+                info = this._prepareRequest(verb, parsedRedirectUrl, headers);
                 response = await this.requestRaw(info, data);
                 redirectsRemaining--;
             }
@@ -372,24 +390,29 @@ export class HttpClient implements ifm.IHttpClient {
         }
     }
 
-    private _prepareRequest(method: string, requestUrl: string, headers: ifm.IHeaders): ifm.IRequestInfo {
+    private _prepareRequest(method: string, requestUrl: url.Url, headers: ifm.IHeaders): ifm.IRequestInfo {
         const info: ifm.IRequestInfo = <ifm.IRequestInfo>{};
 
-        info.parsedUrl = url.parse(requestUrl);
+        info.parsedUrl = requestUrl;
         const usingSsl: boolean = info.parsedUrl.protocol === 'https:';
         info.httpModule = usingSsl ? https : http;
         const defaultPort: number = usingSsl ? 443 : 80;
+        
         info.options = <http.RequestOptions>{};
         info.options.host = info.parsedUrl.hostname;
         info.options.port = info.parsedUrl.port ? parseInt(info.parsedUrl.port) : defaultPort;
         info.options.path = (info.parsedUrl.pathname || '') + (info.parsedUrl.search || '');
         info.options.method = method;
+
         info.options.headers = this._mergeHeaders(headers);
-        info.options.headers["user-agent"] = this.userAgent;
-        info.options.agent = this._getAgent(requestUrl);
+        if (this.userAgent != null) {
+            info.options.headers["user-agent"] = this.userAgent;
+        }
+        
+        info.options.agent = this._getAgent(info.parsedUrl);
 
         // gives handlers an opportunity to participate
-        if (this.handlers && !this._isPresigned(requestUrl)) {
+        if (this.handlers && !this._isPresigned(url.format(requestUrl))) {
             this.handlers.forEach((handler) => {
                 handler.prepareRequest(info.options);
             });
@@ -425,10 +448,10 @@ export class HttpClient implements ifm.IHttpClient {
         return lowercaseKeys(headers || {});
     }
 
-    private _getAgent(requestUrl: string) {
+    private _getAgent(parsedUrl: url.Url) {
         let agent;
-        let proxy = this._getProxy(requestUrl);
-        let useProxy = proxy.proxyUrl && proxy.proxyUrl.hostname && !this._isBypassProxy(requestUrl);
+        let proxy = this._getProxy(parsedUrl);
+        let useProxy = proxy.proxyUrl && proxy.proxyUrl.hostname && !this._isBypassProxy(parsedUrl);
 
         if (this._keepAlive && useProxy) {
             agent = this._proxyAgent;
@@ -443,7 +466,6 @@ export class HttpClient implements ifm.IHttpClient {
             return agent;
         }
 
-        let parsedUrl = url.parse(requestUrl);
         const usingSsl = parsedUrl.protocol === 'https:';
         let maxSockets = 100;
         if (!!this.requestOptions) {
@@ -451,7 +473,12 @@ export class HttpClient implements ifm.IHttpClient {
         }
 
         if (useProxy) {
-            const agentOptions: tunnel.TunnelOptions = {
+            // If using proxy, need tunnel
+            if (!tunnel) {
+                tunnel = require('tunnel');
+            }
+
+            const agentOptions = {
                 maxSockets: maxSockets,
                 keepAlive: this._keepAlive,
                 proxy: {
@@ -499,8 +526,7 @@ export class HttpClient implements ifm.IHttpClient {
         return agent;
     }
 
-    private _getProxy(requestUrl) {
-        const parsedUrl = url.parse(requestUrl);
+    private _getProxy(parsedUrl: url.Url) {
         let usingSsl = parsedUrl.protocol === 'https:';
         let proxyConfig: ifm.IProxyConfiguration = this._httpProxy;
 
@@ -535,14 +561,14 @@ export class HttpClient implements ifm.IHttpClient {
         return { proxyUrl: proxyUrl, proxyAuth: proxyAuth };
     }
 
-    private _isBypassProxy(requestUrl: string): Boolean {
+    private _isBypassProxy(parsedUrl: url.Url): Boolean {
         if (!this._httpProxyBypassHosts) {
             return false;
         }
 
         let bypass: boolean = false;
         this._httpProxyBypassHosts.forEach(bypassHost => {
-            if (bypassHost.test(requestUrl)) {
+            if (bypassHost.test(parsedUrl.href)) {
                 bypass = true;
             }
         });

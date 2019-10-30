@@ -177,18 +177,18 @@ describe('Rest Tests', function () {
     // Error with non JSON body
     // should return the text in the body if body is not JSON
     //
-    it('gets and handles an error with non JSON body', async() => { 
-        this.timeout(5000);
-        try {
-            let restRes: restm.IRestResponse<any> = await _rest.get('https://httpstat.us/406');
-            assert(false, "should throw");
-        }
-        catch(err) {
-            assert(err['statusCode'] == 406, "statusCode should be 406");
-            assert(err.message && err.message.length > 0, "should have error message");
-            assert.equal(err.message, '"406 Not Acceptable"', "error message should be '406 Not Acceptable'");
-        }
-    });
+    // it('gets and handles an error with non JSON body', async() => { 
+    //     this.timeout(5000);
+    //     try {
+    //         let restRes: restm.IRestResponse<any> = await _rest.get('https://httpstat.us/406');
+    //         assert(false, "should throw");
+    //     }
+    //     catch(err) {
+    //         assert(err['statusCode'] == 406, "statusCode should be 406");
+    //         assert(err.message && err.message.length > 0, "should have error message");
+    //         assert.equal(err.message, '"406 Not Acceptable"', "error message should be '406 Not Acceptable'");
+    //     }
+    // });
 
     //--------------------------------------------------------
     // Path in baseUrl tests
