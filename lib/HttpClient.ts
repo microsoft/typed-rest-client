@@ -30,6 +30,7 @@ export enum HttpCodes {
     RequestTimeout = 408,
     Conflict = 409,
     Gone = 410,
+    TooManyRequests = 429,
     InternalServerError = 500,
     NotImplemented = 501,
     BadGateway = 502,
