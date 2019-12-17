@@ -5,6 +5,14 @@ import httpm = require('./HttpClient');
 import ifm = require("./Interfaces");
 import util = require("./Util");
 
+export interface IRequestQueryParams {
+    eq?: string,
+    sep?: string,
+    params: {
+        [name: string]: string | number | (string | number)[]
+    }
+}
+
 export interface IRestResponse<T> {
     statusCode: number,
     result: T | null,
@@ -20,7 +28,8 @@ export interface IRequestOptions {
 
     responseProcessor?: Function,
     //Dates aren't automatically deserialized by JSON, this adds a date reviver to ensure they aren't just left as strings
-    deserializeDates?: boolean
+    deserializeDates?: boolean,
+    queryParameters?: IRequestQueryParams
 }
 
 export class RestClient {
@@ -71,7 +80,7 @@ export class RestClient {
     public async get<T>(resource: string,
         options?: IRequestOptions): Promise<IRestResponse<T>> {
 
-        let url: string = util.getUrl(resource, this._baseUrl);
+        let url: string = util.getUrl(resource, this._baseUrl, options);
         let res: httpm.HttpClientResponse = await this.client.get(url,
             this._headersFromOptions(options));
         return this._processResponse<T>(res, options);
