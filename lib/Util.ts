@@ -55,7 +55,7 @@ export function getUrl(resource: string, baseUrl?: string, options?: IRequestOpt
  * @return {string} - Request's URL with Query Parameters appended/parsed.
  */
 function prepareUrlWithQueryParams(requestUrl: string, queryParams: IRequestQueryParams): string {
-    const url: string  = requestUrl.replace(/\?$/g, '');
+    const url: string  = requestUrl.replace(/\?$/g, ''); // Clean any extra end-of-string "?" character
     const parsedQueryParams: string = queryString.stringify(
         queryParams.params,
         queryParams.sep || '&',
