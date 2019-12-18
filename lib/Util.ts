@@ -4,7 +4,6 @@
 import * as qs from 'qs';
 import * as url from 'url';
 import * as path from 'path';
-import { IRequestOptions } from './RestClient';
 import { IRequestQueryParams } from './Interfaces';
 
 /**
@@ -14,7 +13,7 @@ import { IRequestQueryParams } from './Interfaces';
  * @param {IRequestOptions} options - an optional options object, could include QueryParameters e.g.
  * @return {string} - resultant url
  */
-export function getUrl(resource: string, baseUrl?: string, options?: IRequestOptions): string  {
+export function getUrl(resource: string, baseUrl?: string, queryParams?: IRequestQueryParams): string  {
     const pathApi = path.posix || path;
     let requestUrl = '';
 
@@ -41,8 +40,6 @@ export function getUrl(resource: string, baseUrl?: string, options?: IRequestOpt
 
         requestUrl = url.format(resultantUrl);
     }
-
-    const queryParams: IRequestQueryParams = ((options || {}).queryParameters) || undefined;
 
     return queryParams ?
         getUrlWithParsedQueryParams(requestUrl, queryParams):

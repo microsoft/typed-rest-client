@@ -72,7 +72,7 @@ export class RestClient {
     public async get<T>(resource: string,
         options?: IRequestOptions): Promise<IRestResponse<T>> {
 
-        let url: string = util.getUrl(resource, this._baseUrl, options);
+        let url: string = util.getUrl(resource, this._baseUrl, (options || {}).queryParameters);
         let res: httpm.HttpClientResponse = await this.client.get(url,
             this._headersFromOptions(options));
         return this._processResponse<T>(res, options);
