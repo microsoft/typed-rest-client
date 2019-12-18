@@ -17,10 +17,19 @@ export interface HttpBinData {
 describe('Rest Tests', function () {
     let _rest: restm.RestClient;
     let _restBin: restm.RestClient;
+    let _options: restm.IRequestOptions;
 
     before(() => {
         _rest = new restm.RestClient('typed-rest-client-tests');
         _restBin = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org');
+        _options = {
+            queryParameters: {
+                params: {
+                    id: 1,
+                    type: 'compact'
+                }
+            }
+        }
     });
 
     after(() => {
@@ -45,6 +54,35 @@ describe('Rest Tests', function () {
         let restRes: restm.IRestResponse<HttpBinData> = await _restBin.get<HttpBinData>('get');
         assert(restRes.statusCode == 200, "statusCode should be 200");
         assert(restRes.result && restRes.result.url === 'https://httpbin.org/get');
+    });
+
+    it('gets a resource passing Query Parameters', async() => {
+        this.timeout(3000);
+        const response: restm.IRestResponse<HttpBinData> = await _rest.get<HttpBinData>('https://httpbin.org/get', _options);
+
+        assert(response.statusCode == 200, "statusCode should be 200");
+        assert(response.result.url === 'https://httpbin.org/get?id=1&type=compact');
+
+        Object.keys(_options.queryParameters.params).forEach(key => {
+            const actual = response.result.args[key];
+            const expected = _options.queryParameters.params[key];
+
+            assert(expected == actual);
+        })
+    });
+
+    it('gets a resource with baseUrl passing Query Parameters', async() => {
+        const response: restm.IRestResponse<HttpBinData> = await _restBin.get<HttpBinData>('get', _options);
+
+        assert(response.statusCode == 200, "statusCode should be 200");
+        assert(response.result.url === 'https://httpbin.org/get?id=1&type=compact');
+
+        Object.keys(_options.queryParameters.params).forEach(key => {
+            const actual = response.result.args[key];
+            const expected = _options.queryParameters.params[key];
+
+            assert(expected == actual);
+        })
     });
 
     it('creates a resource', async() => {

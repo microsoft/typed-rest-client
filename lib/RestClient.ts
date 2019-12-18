@@ -20,7 +20,8 @@ export interface IRequestOptions {
 
     responseProcessor?: Function,
     //Dates aren't automatically deserialized by JSON, this adds a date reviver to ensure they aren't just left as strings
-    deserializeDates?: boolean
+    deserializeDates?: boolean,
+    queryParameters?: ifm.IRequestQueryParams
 }
 
 export class RestClient {
@@ -71,7 +72,7 @@ export class RestClient {
     public async get<T>(resource: string,
         options?: IRequestOptions): Promise<IRestResponse<T>> {
 
-        let url: string = util.getUrl(resource, this._baseUrl);
+        let url: string = util.getUrl(resource, this._baseUrl, (options || {}).queryParameters);
         let res: httpm.HttpClientResponse = await this.client.get(url,
             this._headersFromOptions(options));
         return this._processResponse<T>(res, options);

@@ -3,6 +3,7 @@
 
 import assert = require('assert');
 import nock = require('nock');
+import * as ifm from 'typed-rest-client/Interfaces';
 import * as restm from 'typed-rest-client/RestClient';
 import * as util from 'typed-rest-client/Util';
 
@@ -17,11 +18,18 @@ describe('Rest Tests', function () {
     let _rest: restm.RestClient;
     let _restBin: restm.RestClient;
     let _restMic: restm.RestClient;
+    let _queryParams: ifm.IRequestQueryParams;
 
     before(() => {
         _rest = new restm.RestClient('typed-rest-client-tests');
         _restBin = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org');
         _restMic = new restm.RestClient('typed-rest-client-tests', 'http://microsoft.com');
+        _queryParams = {
+            params: {
+                id: 1,
+                foo: 'bar'
+            }
+        };
     });
 
     after(() => {
@@ -475,6 +483,21 @@ describe('Rest Tests', function () {
         assert(res === 'http://microsoft.com', "should be http://microsoft.com");
     });
 
+    it('resolves a host resource with empty baseUrl and passing query parameters', async() => {
+        const res: string = util.getUrl('http://microsoft.com', '', _queryParams);
+        assert(res === 'http://microsoft.com?id=1&foo=bar', `should be http://microsoft.com?id=1&foo=bar but is ${res}`);
+    });
+
+    it('resolves an empty resource with baseUrl and passing query parameters', async() => {
+        const res: string = util.getUrl('', 'http://microsoft.com', _queryParams);
+        assert(res === 'http://microsoft.com?id=1&foo=bar', `should be http://microsoft.com?id=1&foo=bar but is ${res}`);
+    });
+
+    it('resolves a null resource with baseUrl and passing query parameters', async() => {
+        const res: string = util.getUrl(null, 'http://microsoft.com', _queryParams);
+        assert(res === 'http://microsoft.com?id=1&foo=bar', `should be http://microsoft.com?id=1&foo=bar but is ${res}`);
+    });
+
     it('resolves a full resource and no baseUrl', async() => {
         let res: string = util.getUrl('http://microsoft.com/get?x=y&a=b');
         assert(res === 'http://microsoft.com/get?x=y&a=b', `should be http://microsoft.com/get?x=y&a=b but is ${res}`);
@@ -488,6 +511,16 @@ describe('Rest Tests', function () {
     it('resolves a relative path resource with host baseUrl', async() => {
         let res: string = util.getUrl('get/foo', 'http://microsoft.com');
         assert(res === 'http://microsoft.com/get/foo', `should be http://microsoft.com/get/foo but is ${res}`);
+    });
+
+    it('resolves a rooted path resource with host baseUrl and passing query parameters', async() => {
+        const res: string = util.getUrl('/get/foo', 'http://microsoft.com', _queryParams);
+        assert(res === 'http://microsoft.com/get/foo?id=1&foo=bar', `should be http://microsoft.com/get/foo?id=1&foo=bar but is ${res}`)
+    });
+
+    it('resolves a relative path resource with host baseUrl and passing query parameters', async() => {
+        const res: string = util.getUrl('get/foo', 'http://microsoft.com', _queryParams);
+        assert(res === 'http://microsoft.com/get/foo?id=1&foo=bar', `should be http://microsoft.com/get/foo?id=1&foo=bar but is ${res}`);
     });
 
     it('resolves a rooted path resource with pathed baseUrl', async() => {

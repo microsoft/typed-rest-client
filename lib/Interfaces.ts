@@ -71,3 +71,16 @@ export interface ICertConfiguration {
     keyFile?: string;
     passphrase?: string;
 }
+
+export interface IRequestQueryParams {
+    options?: {
+        separator?: string,
+        arrayFormat?: string,
+        shouldAllowDots?: boolean
+        shouldOnlyEncodeValues?: boolean,
+    },
+    params: {
+        [name: string]: string | number | (string | number)[]
+    }
+}
+
