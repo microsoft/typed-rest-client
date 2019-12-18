@@ -5,14 +5,6 @@ import httpm = require('./HttpClient');
 import ifm = require("./Interfaces");
 import util = require("./Util");
 
-export interface IRequestQueryParams {
-    eq?: string,
-    sep?: string,
-    params: {
-        [name: string]: string | number | (string | number)[]
-    }
-}
-
 export interface IRestResponse<T> {
     statusCode: number,
     result: T | null,
@@ -29,7 +21,7 @@ export interface IRequestOptions {
     responseProcessor?: Function,
     //Dates aren't automatically deserialized by JSON, this adds a date reviver to ensure they aren't just left as strings
     deserializeDates?: boolean,
-    queryParameters?: IRequestQueryParams
+    queryParameters?: ifm.IRequestQueryParams
 }
 
 export class RestClient {

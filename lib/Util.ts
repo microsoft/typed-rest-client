@@ -4,7 +4,8 @@
 import * as url from 'url';
 import * as path from 'path';
 import queryString = require('querystring');
-import { IRequestOptions, IRequestQueryParams } from './RestClient';
+import { IRequestOptions } from './RestClient';
+import { IRequestQueryParams } from './Interfaces';
 
 /**
  * creates an url from a request url and optional base url (http://server:8080)
@@ -41,7 +42,7 @@ export function getUrl(resource: string, baseUrl?: string, options?: IRequestOpt
         requestUrl = url.format(resultantUrl);
     }
 
-    const queryParams = ((options || {}).queryParameters) || undefined;
+    const queryParams: IRequestQueryParams = ((options || {}).queryParameters) || undefined;
 
     return queryParams ?
         prepareUrlWithQueryParams(requestUrl, queryParams):
