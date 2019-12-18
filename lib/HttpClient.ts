@@ -4,6 +4,7 @@
 import url = require("url");
 import http = require("http");
 import https = require("https");
+import util = require('./Util');
 import ifm = require('./Interfaces');
 let fs: any;
 let tunnel: any;
@@ -52,6 +53,26 @@ export class HttpClientResponse implements ifm.IHttpClientResponse {
 
     public message: http.IncomingMessage;
     readBody(): Promise<string> {
+        const contentEncoding: string = this.message.headers['content-encoding'] || '';
+        const isGzippedEncoded: boolean = new RegExp('(gzip$)|(gzip, *deflate)').test(contentEncoding);
+
+        if (isGzippedEncoded) {
+            return new Promise<string>(async (resolve, reject) => {
+                const self = this;
+                let buffer: any = Buffer.alloc(0);
+
+                this.message.on('data', function(chunk) {
+                    buffer = Buffer.concat([buffer, chunk]);
+                }).on('end', async function() {
+                    const charset = util.obtainContentCharset(self);
+                    const output = await util.decompressGzippedContent(buffer, charset);
+                    resolve(output);
+                }).on('error', function(err) {
+                    reject(err);
+                });
+            });
+        }
+
         return new Promise<string>(async (resolve, reject) => {
             let output = Buffer.alloc(0);
 

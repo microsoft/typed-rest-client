@@ -4,7 +4,8 @@
 import * as qs from 'qs';
 import * as url from 'url';
 import * as path from 'path';
-import { IRequestQueryParams } from './Interfaces';
+import zlib = require('zlib');
+import { IRequestQueryParams, IHttpClientResponse } from './Interfaces';
 
 /**
  * creates an url from a request url and optional base url (http://server:8080)
@@ -75,4 +76,39 @@ function buildParamsStringifyOptions(queryParams: IRequestQueryParams): any  {
     }
 
     return options;
+}
+
+/**
+ * Decompress/Decode gzip encoded JSON
+ * Using Node.js built-in zlib module
+ *
+ * @param {Buffer} buffer
+ * @param {string} charset
+ * @return {Promise<string>}
+ */
+export async function decompressGzippedContent(buffer: Buffer, charset: string): Promise<string> {
+    return new Promise<string>(async (resolve, reject) => {
+        zlib.gunzip(buffer, function (error, buffer) {
+            if (error) {
+                reject(error);
+            }
+
+            resolve(buffer.toString(charset));
+        });
+    })
+}
+
+/**
+ * Obtain Response's Content Charset.
+ *
+ * @param {IHttpClientResponse} response
+ * @return {string} - Content Encoding Charset; Default=utf-8
+ */
+export function obtainContentCharset (response: IHttpClientResponse) : string {
+  // Find the charset, if specified.
+  // Match with regex "charset="
+  const contentType = response.message.headers['content-type'] || '';
+  const matches = contentType.match(/charset=([^;,\r\n]+)/i);
+
+  return (matches && matches[1]) ? matches[1] : 'utf-8';
 }
