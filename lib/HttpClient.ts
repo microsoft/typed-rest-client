@@ -62,7 +62,7 @@ export class HttpClientResponse implements ifm.IHttpClientResponse {
                 let buffer: Buffer = Buffer.alloc(0);
 
                 this.message.on('data', function(data) {
-                    const chunk: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data);
+                    const chunk = Buffer.isBuffer(data) ? data : Buffer.from(data);
                     buffer = Buffer.concat([buffer, chunk]);
                 }).on('end', async function() {
                     const charset = util.obtainContentCharset(self);
