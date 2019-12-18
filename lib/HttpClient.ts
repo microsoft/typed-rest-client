@@ -59,9 +59,10 @@ export class HttpClientResponse implements ifm.IHttpClientResponse {
         if (isGzippedEncoded) {
             return new Promise<string>(async (resolve, reject) => {
                 const self = this;
-                let buffer: any = Buffer.alloc(0);
+                let buffer: Buffer = Buffer.alloc(0);
 
-                this.message.on('data', function(chunk) {
+                this.message.on('data', function(data) {
+                    const chunk: Buffer = Buffer.isBuffer(data) ? data : Buffer.from(data);
                     buffer = Buffer.concat([buffer, chunk]);
                 }).on('end', async function() {
                     const charset = util.obtainContentCharset(self);
