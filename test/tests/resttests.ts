@@ -58,30 +58,28 @@ describe('Rest Tests', function () {
 
     it('gets a resource passing Query Parameters', async() => {
         this.timeout(3000);
-        const options: restm.IRequestOptions = { queryParameters: _options.queryParameters };
-        const response: restm.IRestResponse<HttpBinData> = await _rest.get<HttpBinData>('https://httpbin.org/get', options);
+        const response: restm.IRestResponse<HttpBinData> = await _rest.get<HttpBinData>('https://httpbin.org/get', _options);
 
         assert(response.statusCode == 200, "statusCode should be 200");
         assert(response.result.url === 'https://httpbin.org/get?id=1&type=compact');
-        Object.keys(options.queryParameters.params).forEach(key => {
+
+        Object.keys(_options.queryParameters.params).forEach(key => {
             const actual = response.result.args[key];
-            const expected = options.queryParameters.params[key];
+            const expected = _options.queryParameters.params[key];
 
             assert(expected == actual);
         })
     });
 
     it('gets a resource with baseUrl passing Query Parameters', async() => {
-        this.timeout(3000);
-        const options: restm.IRequestOptions = { queryParameters: _options.queryParameters };
-        const response: restm.IRestResponse<HttpBinData> = await _restBin.get<HttpBinData>('get', options);
+        const response: restm.IRestResponse<HttpBinData> = await _restBin.get<HttpBinData>('get', _options);
 
         assert(response.statusCode == 200, "statusCode should be 200");
         assert(response.result.url === 'https://httpbin.org/get?id=1&type=compact');
 
-        Object.keys(options.queryParameters.params).forEach(key => {
+        Object.keys(_options.queryParameters.params).forEach(key => {
             const actual = response.result.args[key];
-            const expected = options.queryParameters.params[key];
+            const expected = _options.queryParameters.params[key];
 
             assert(expected == actual);
         })

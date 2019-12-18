@@ -34,9 +34,10 @@
     "@types/shelljs": "0.7.4",
     "mocha": "^3.5.3",
     "nock": "9.6.1",
+    "qs": "^6.9.1",
     "react-scripts": "1.1.5",
-    "shelljs": "0.7.6",
     "semver": "4.3.3",
+    "shelljs": "0.7.6",
     "typescript": "3.1.5"
   },
   "dependencies": {

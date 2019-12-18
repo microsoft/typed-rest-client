@@ -1,9 +1,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+import * as qs from 'qs';
 import * as url from 'url';
 import * as path from 'path';
-import queryString = require('querystring');
 import { IRequestOptions } from './RestClient';
 import { IRequestQueryParams } from './Interfaces';
 
@@ -45,7 +45,7 @@ export function getUrl(resource: string, baseUrl?: string, options?: IRequestOpt
     const queryParams: IRequestQueryParams = ((options || {}).queryParameters) || undefined;
 
     return queryParams ?
-        prepareUrlWithQueryParams(requestUrl, queryParams):
+        getUrlWithParsedQueryParams(requestUrl, queryParams):
         requestUrl;
 }
 
@@ -55,13 +55,27 @@ export function getUrl(resource: string, baseUrl?: string, options?: IRequestOpt
  * @param {IRequestQueryParams} queryParams
  * @return {string} - Request's URL with Query Parameters appended/parsed.
  */
-function prepareUrlWithQueryParams(requestUrl: string, queryParams: IRequestQueryParams): string {
+function getUrlWithParsedQueryParams(requestUrl: string, queryParams: IRequestQueryParams): string {
     const url: string  = requestUrl.replace(/\?$/g, ''); // Clean any extra end-of-string "?" character
-    const parsedQueryParams: string = queryString.stringify(
-        queryParams.params,
-        queryParams.sep || '&',
-        queryParams.eq || '='
-    );
+    const parsedQueryParams: string = qs.stringify(queryParams.params, buildParamsStringifyOptions(queryParams));
 
-    return `${url}?${parsedQueryParams}`;
+    return `${url}${parsedQueryParams}`;
+}
+
+/**
+ * Build options for QueryParams Stringifying.
+ *
+ * @param {IRequestQueryParams} queryParams
+ * @return {object}
+ */
+function buildParamsStringifyOptions(queryParams: IRequestQueryParams): any  {
+    let options: any = {
+        addQueryPrefix: true,
+        delimiter: (queryParams.options || {}).separator || '&',
+        allowDots: (queryParams.options || {}).shouldAllowDots || false,
+        arrayFormat: (queryParams.options || {}).arrayFormat || 'repeat',
+        encodeValuesOnly: (queryParams.options || {}).shouldOnlyEncodeValues || true
+    }
+
+    return options;
 }

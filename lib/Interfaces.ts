@@ -73,8 +73,12 @@ export interface ICertConfiguration {
 }
 
 export interface IRequestQueryParams {
-    eq?: string,
-    sep?: string,
+    options?: {
+        separator?: string,
+        arrayFormat?: string,
+        shouldAllowDots?: boolean
+        shouldOnlyEncodeValues?: boolean,
+    },
     params: {
         [name: string]: string | number | (string | number)[]
     }
