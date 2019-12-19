@@ -83,17 +83,17 @@ function buildParamsStringifyOptions(queryParams: IRequestQueryParams): any  {
  * Using Node.js built-in zlib module
  *
  * @param {Buffer} buffer
- * @param {string} charset
+ * @param {string} charset? - optional; defaults to 'utf-8'
  * @return {Promise<string>}
  */
-export async function decompressGzippedContent(buffer: Buffer, charset: string): Promise<string> {
+export async function decompressGzippedContent(buffer: Buffer, charset?: string): Promise<string> {
     return new Promise<string>(async (resolve, reject) => {
         zlib.gunzip(buffer, function (error, buffer) {
             if (error) {
                 reject(error);
             }
 
-            resolve(buffer.toString(charset));
+            resolve(buffer.toString(charset || 'utf-8'));
         });
     })
 }
