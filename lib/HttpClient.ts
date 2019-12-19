@@ -53,10 +53,12 @@ export class HttpClientResponse implements ifm.IHttpClientResponse {
 
     public message: http.IncomingMessage;
     readBody(): Promise<string> {
+        // Extract Encoding from header: 'content-encoding'
+        // Match `gzip`, `gzip, deflate` variations of GZIP encoding
         const contentEncoding: string = this.message.headers['content-encoding'] || '';
         const isGzippedEncoded: boolean = new RegExp('(gzip$)|(gzip, *deflate)').test(contentEncoding);
 
-        if (isGzippedEncoded) {
+        if (isGzippedEncoded) { //Process GZIPPED Response
             return new Promise<string>(async (resolve, reject) => {
                 let buffer: Buffer = Buffer.alloc(0);
                 const encodingCharset = util.obtainContentCharset(this);
