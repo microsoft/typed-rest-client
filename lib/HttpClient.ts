@@ -4,6 +4,7 @@
 import url = require("url");
 import http = require("http");
 import https = require("https");
+import util = require('./Util');
 import ifm = require('./Interfaces');
 let fs: any;
 let tunnel: any;
@@ -53,14 +54,26 @@ export class HttpClientResponse implements ifm.IHttpClientResponse {
     public message: http.IncomingMessage;
     readBody(): Promise<string> {
         return new Promise<string>(async (resolve, reject) => {
-            let output = Buffer.alloc(0);
+            let buffer: Buffer = Buffer.alloc(0);
+            const encodingCharset = util.obtainContentCharset(this);
 
-            this.message.on('data', (chunk: Buffer) => {
-                output = Buffer.concat([output, chunk]);
-            });
+            // Extract Encoding from header: 'content-encoding'
+            // Match `gzip`, `gzip, deflate` variations of GZIP encoding
+            const contentEncoding: string = this.message.headers['content-encoding'] || '';
+            const isGzippedEncoded: boolean = new RegExp('(gzip$)|(gzip, *deflate)').test(contentEncoding);
 
-            this.message.on('end', () => {
-                resolve(output.toString());
+            this.message.on('data', function(data: string|Buffer) {
+                const chunk = (typeof data === 'string') ? Buffer.from(data, encodingCharset) : data;
+                buffer = Buffer.concat([buffer, chunk]);
+            }).on('end', async function() {
+                if (isGzippedEncoded) { // Process GZipped Response Body HERE
+                    const gunzippedBody = await util.decompressGzippedContent(buffer, encodingCharset);
+                    resolve(gunzippedBody);
+                }
+
+                resolve(buffer.toString(encodingCharset));
+            }).on('error', function(err) {
+                reject(err);
             });
         });
     }
