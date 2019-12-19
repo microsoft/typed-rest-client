@@ -86,7 +86,7 @@ function buildParamsStringifyOptions(queryParams: IRequestQueryParams): any  {
  * @param {string} charset
  * @return {Promise<string>}
  */
-export async function decompressGzippedContent(buffer: Buffer, charset: string = 'utf-8'): Promise<string> {
+export async function decompressGzippedContent(buffer: Buffer, charset: string): Promise<string> {
     return new Promise<string>(async (resolve, reject) => {
         zlib.gunzip(buffer, function (error, buffer) {
             if (error) {
