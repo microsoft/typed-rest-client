@@ -107,8 +107,8 @@ export async function decompressGzippedContent(buffer: Buffer, charset: string):
 export function obtainContentCharset (response: IHttpClientResponse) : string {
   // Find the charset, if specified.
   // Match with regex "charset="
-  const contentType = response.message.headers['content-type'] || '';
-  const matches = contentType.match(/charset=([^;,\r\n]+)/i);
+  const contentType: string = response.message.headers['content-type'] || '';
+  const matches: (RegExpMatchArray|null) = contentType.match(/charset=([^;,\r\n]+)/i);
 
   return (matches && matches[1]) ? matches[1] : 'utf-8';
 }
