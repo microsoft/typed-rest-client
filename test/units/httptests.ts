@@ -3,8 +3,9 @@
 
 import assert = require('assert');
 import nock = require('nock');
-import * as httpm from 'typed-rest-client/HttpClient';
 import * as hm from 'typed-rest-client/Handlers';
+import * as ifm from 'typed-rest-client/Interfaces';
+import * as httpm from 'typed-rest-client/HttpClient';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -96,6 +97,34 @@ describe('Http Tests', function () {
         let obj: any = JSON.parse(body);
         assert(obj.source === "nock", "http get request should be intercepted by nock");
         assert(obj.success, "Authentication should succeed");
+    });
+
+    it('returns proper error message on request timeout', async() => {
+        const socketTimeout = 3000; // 3 Seconds
+        const expectedErrorMessage = 'request timeout';
+        const options: ifm.IRequestOptions = { socketTimeout }; // Request Options
+
+        const onResolve = function(res): void {
+            assert.ok(false); // Always falsy assertion to guarantee Promise is NEVER resolved
+        }
+
+        const onReject = function(err): void {
+            const condition = err &&
+                err instanceof Error &&
+                ! (err instanceof TypeError) &&
+                (<Error> err).message.toLowerCase().includes(expectedErrorMessage);
+
+            assert.ok(condition);
+        }
+
+        const httpClient: httpm.HttpClient = new httpm.HttpClient(undefined, undefined, options);
+        nock('http://microsoft.com')
+            .get('/timeout')
+            .socketDelay(socketTimeout + 1000)
+            .reply(200)
+
+        await httpClient.get('http://microsoft.com/timeout')
+            .then(onResolve, onReject);
     });
 
     it('doesnt use auth when presigned', async() => {
