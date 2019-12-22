@@ -3,9 +3,8 @@
 
 import assert = require('assert');
 import nock = require('nock');
-import * as hm from 'typed-rest-client/Handlers';
-import * as ifm from 'typed-rest-client/Interfaces';
 import * as httpm from 'typed-rest-client/HttpClient';
+import * as hm from 'typed-rest-client/Handlers';
 import * as fs from 'fs';
 import * as path from 'path';
 
