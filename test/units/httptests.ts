@@ -99,34 +99,6 @@ describe('Http Tests', function () {
         assert(obj.success, "Authentication should succeed");
     });
 
-    it('returns proper error message on request timeout', async() => {
-        const timeout = 3000; // 3 Seconds
-        const expectedErrorMessage = 'request timeout';
-        const options: ifm.IRequestOptions = { socketTimeout: timeout }; // Request Options
-
-        const onResolve = function(res): void {
-            assert.ok(false); // Always falsy assertion to guarantee Promise is NEVER resolved
-        }
-
-        const onReject = function(err): void {
-            const condition = err &&
-                err instanceof Error &&
-                ! (err instanceof TypeError) &&
-                (<Error> err).message.toLowerCase().includes(expectedErrorMessage);
-
-            assert.ok(condition);
-        }
-
-        const httpClient: httpm.HttpClient = new httpm.HttpClient(undefined, undefined, options);
-        nock('http://microsoft.com')
-            .get('/timeout')
-            .delayConnection(timeout + 1000)
-            .reply(200)
-
-        await httpClient.get('http://microsoft.com/timeout')
-            .then(onResolve, onReject);
-    });
-
     it('doesnt use auth when presigned', async() => {
         //Set nock for correct credentials
         nock('http://microsoft.com')
