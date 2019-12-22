@@ -100,9 +100,9 @@ describe('Http Tests', function () {
     });
 
     it('returns proper error message on request timeout', async() => {
-        const socketTimeout = 3000; // 3 Seconds
+        const timeout = 3000; // 3 Seconds
         const expectedErrorMessage = 'request timeout';
-        const options: ifm.IRequestOptions = { socketTimeout }; // Request Options
+        const options: ifm.IRequestOptions = { socketTimeout: timeout }; // Request Options
 
         const onResolve = function(res): void {
             assert.ok(false); // Always falsy assertion to guarantee Promise is NEVER resolved
@@ -120,7 +120,7 @@ describe('Http Tests', function () {
         const httpClient: httpm.HttpClient = new httpm.HttpClient(undefined, undefined, options);
         nock('http://microsoft.com')
             .get('/timeout')
-            .socketDelay(socketTimeout + 1000)
+            .delayConnection(timeout + 1000)
             .reply(200)
 
         await httpClient.get('http://microsoft.com/timeout')
