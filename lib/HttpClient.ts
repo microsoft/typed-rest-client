@@ -369,7 +369,7 @@ export class HttpClient implements ifm.IHttpClient {
         // If we ever get disconnected, we want the socket to timeout eventually
         req.setTimeout(this._socketTimeout || 3 * 60000, () => {
             if (socket) {
-                socket.end();
+                socket.destroy();
             }
             handleResult(new Error('Request timeout: ' + info.options.path), null);
         });
