@@ -345,7 +345,6 @@ export class HttpClient implements ifm.IHttpClient {
     public requestRawWithCallback(info: ifm.IRequestInfo, data: string | NodeJS.ReadableStream, onResult: (err: any, res: ifm.IHttpClientResponse) => void): void {
         let socket;
 
-        let isDataString = typeof (data) === 'string';
         if (typeof (data) === 'string') {
             info.options.headers["Content-Length"] = Buffer.byteLength(data, 'utf8');
         }
