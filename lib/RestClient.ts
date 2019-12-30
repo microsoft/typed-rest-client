@@ -36,7 +36,7 @@ export class RestClient {
      * @param {ifm.IRequestHandler[]} handlers - handlers are typically auth handlers (basic, bearer, ntlm supplied)
      * @param {ifm.IRequestOptions} requestOptions - options for each http requests (http proxy setting, socket timeout)
      */
-    constructor(userAgent: string,
+    constructor(userAgent: string | null | undefined,
                 baseUrl?: string,
                 handlers?: ifm.IRequestHandler[],
                 requestOptions?: ifm.IRequestOptions) {
