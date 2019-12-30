@@ -159,6 +159,59 @@ describe('Http Tests', function () {
         assert(obj.success, "Authentication should succeed");
     });
 
+    it('does basic http get request with bearer token authentication', async() => {
+        const url: string = 'http://microsoft.com';
+        const bearerToken: string = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.' +
+            'eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.' +
+            'SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
+
+        const expectedAuthHeader: string = `Bearer ${bearerToken}`
+        const bearerTokenAuthHandler: hm.BearerCredentialHandler = new hm.BearerCredentialHandler(bearerToken)
+
+        //Nock request with expecting/matching Authorization header(s)
+        const successAuthScope = nock(url)
+            .matchHeader('Authorization', expectedAuthHeader)
+            .matchHeader('X-TFS-FedAuthRedirect', 'Suppress')
+            .get('/')
+            .reply(httpm.HttpCodes.OK, {
+                success: true,
+                source: "nock"
+            });
+
+        //Nock request without Authentication header
+        const failureAuthScope = nock(url)
+            .get('/')
+            .reply(httpm.HttpCodes.Unauthorized, {
+                success: false,
+                source: "nock"
+        });
+
+        /**
+         * Assertions for Success Authentication
+         * with Bearer Token Handler
+         */
+        let httpClient: httpm.HttpClient = new httpm.HttpClient(undefined, [bearerTokenAuthHandler])
+        let httpResponse: httpm.HttpClientResponse = await httpClient.get(url)
+        let responseBodyAsJSON = await httpResponse.readBody().then(JSON.parse)
+
+        assert(successAuthScope.isDone())
+        assert(responseBodyAsJSON.success)
+        assert(httpResponse.message.statusCode == httpm.HttpCodes.OK)
+
+        /**
+         * Assertions for Failure Scope,
+         * Should return Unauthorized (401) and
+         * Success set to false
+         */
+        httpClient = new httpm.HttpClient(undefined)
+        httpResponse = await httpClient.get(url)
+        responseBodyAsJSON = await httpResponse.readBody().then(JSON.parse)
+
+        assert(failureAuthScope.isDone()) //nock test for failure auth is done
+        assert(! responseBodyAsJSON.success) // success: false
+        assert(httpResponse.message.statusCode === httpm.HttpCodes.Unauthorized) //statusCode is 401 - Unauthorized
+    });
+
     it('does basic http get request with default headers', async() => {
         //Set nock for correct credentials
         nock('http://microsoft.com', {
