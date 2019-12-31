@@ -6,7 +6,7 @@ import http = require("http");
 import https = require("https");
 
 const _ = require("underscore");
-const ntlm = require("../opensource/node-http-ntlm/ntlm");
+const ntlm = require("../opensource/Node-SMB/lib/ntlm");
 
 interface INtlmOptions {
     username?: string,
@@ -109,7 +109,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
             res.readBody().then(() => {
                 // It is critical that we have setImmediate here due to how connection requests are queued.
                 // If setImmediate is removed then the NTLM handshake will not work.
-                // setImmediate allows us to queue a second request on the same connection. If this second 
+                // setImmediate allows us to queue a second request on the same connection. If this second
                 // request is not queued on the connection when the first request finishes then node closes
                 // the connection. NTLM requires both requests to be on the same connection so we need this.
                 setImmediate(function () {
@@ -121,7 +121,8 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
 
     // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
     private sendType1Message(httpClient: ifm.IHttpClient, requestInfo: ifm.IRequestInfo, objs: any, finalCallback): void {
-        const type1msg = ntlm.createType1Message(this._ntlmOptions);
+        const type1HexBuffer: Buffer = ntlm.encodeType1(this._ntlmOptions.workstation, this._ntlmOptions.domain);
+        const type1msg: string = `NTLM ${type1HexBuffer.toString('base64')}`;
 
         const type1options: http.RequestOptions = {
             headers: {
@@ -146,12 +147,20 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
             throw new Error('www-authenticate not found on response of second request');
         }
 
-        const type2msg = ntlm.parseType2Message(res.message.headers['www-authenticate']);
-        const type3msg = ntlm.createType3Message(type2msg, this._ntlmOptions);
+        const serverNonce: Buffer = new Buffer((res.message.headers['www-authenticate'].match(/^NTLM\s+(.+?)(,|\s+|$)/) || [])[1], 'base64');
+        const type2msg: Buffer = ntlm.decodeType2(serverNonce);
+
+        const type3msg: string = ntlm.encodeType3(
+            this._ntlmOptions.username,
+            this._ntlmOptions.workstation,
+            this._ntlmOptions.domain,
+            type2msg,
+            this._ntlmOptions.password
+        ).toString('base64');
 
         const type3options: http.RequestOptions = {
             headers: {
-                'Authorization': type3msg,
+                'Authorization': `NTLM ${type3msg}`,
                 'Connection': 'Close'
             },
             agent: requestInfo.httpModule,
