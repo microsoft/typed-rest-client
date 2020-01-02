@@ -145,7 +145,7 @@ describe('Authentication Handlers Tests', function () {
         responseBody = await httpResponse.readBody();
         asJson = JSON.parse(responseBody);
 
-        assert(failureAuthScope.isDone());
+        assert(failureAuthScope.isDone(), "failureAuth nock scope should be intercepted");
         assert(httpResponse.message.statusCode == httpm.HttpCodes.Unauthorized, "status code should be 401 - Unauthorized");
         assert(asJson.source === "nock", "http get request should be intercepted by nock");
         assert(! asJson.success, "success = false; Authentication should fail");
@@ -186,9 +186,9 @@ describe('Authentication Handlers Tests', function () {
         let httpResponse: httpm.HttpClientResponse = await httpClient.get(url);
         let responseBodyAsJSON = await httpResponse.readBody().then(JSON.parse);
 
-        assert(successAuthScope.isDone());
-        assert(responseBodyAsJSON.success);
-        assert(httpResponse.message.statusCode == httpm.HttpCodes.OK);
+        assert(successAuthScope.isDone(), "Nock Scope with Successful Bearer Auth Intercepted and Done");
+        assert(responseBodyAsJSON.success, "Success att. should be set to true");
+        assert(httpResponse.message.statusCode == httpm.HttpCodes.OK, "statusCode should be 200 - OK");
 
         /**
          * Assertions for Failure Scope,
@@ -199,9 +199,9 @@ describe('Authentication Handlers Tests', function () {
         httpResponse = await httpClient.get(url);
         responseBodyAsJSON = await httpResponse.readBody().then(JSON.parse);
 
-        assert(failureAuthScope.isDone()); //nock test for failure auth is done
-        assert(! responseBodyAsJSON.success); // success: false
-        assert(httpResponse.message.statusCode === httpm.HttpCodes.Unauthorized); //statusCode is 401 - Unauthorized
+        assert(failureAuthScope.isDone(), "Nock Scope of failureAuth should be intercepted/done"); //nock test for failure auth is done
+        assert(! responseBodyAsJSON.success, "Success should be set to false"); // success: false
+        assert(httpResponse.message.statusCode === httpm.HttpCodes.Unauthorized, "statusCode returned should be 401 - Unauthorized"); //statusCode is 401 - Unauthorized
     });
 
     it('[NTLM] - does basic http get request with NTLM Authentication', async() => {
