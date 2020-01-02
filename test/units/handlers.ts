@@ -234,8 +234,13 @@ describe('Authentication Handlers Tests', function () {
             .get('/')
             .reply(httpm.HttpCodes.OK);
 
-        const { username, password, workstation, domain } = _ntlmOptions; // NTLM Options
-        const ntlmAuthHandler: hm.NtlmCredentialHandler = new hm.NtlmCredentialHandler(username, password, workstation, domain);
+        const ntlmAuthHandler: hm.NtlmCredentialHandler = new hm.NtlmCredentialHandler(
+            _ntlmOptions.username,
+            _ntlmOptions.password,
+            _ntlmOptions.workstation,
+            _ntlmOptions.domain
+        );
+
         const httpClient: httpm.HttpClient = new httpm.HttpClient(undefined, [ntlmAuthHandler]);
         const httpResponse: httpm.HttpClientResponse = await httpClient.get(url);
 
