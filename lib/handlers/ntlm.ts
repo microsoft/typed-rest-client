@@ -23,19 +23,8 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
 
         this._ntlmOptions.username = username;
         this._ntlmOptions.password = password;
-
-        if (domain !== undefined) {
-            this._ntlmOptions.domain = domain;
-        }
-        else {
-            this._ntlmOptions.domain = '';
-        }
-        if (workstation !== undefined) {
-            this._ntlmOptions.workstation = workstation;
-        }
-        else {
-            this._ntlmOptions.workstation = '';
-        }
+        this._ntlmOptions.domain = domain || '';
+        this._ntlmOptions.workstation = workstation || '';
     }
 
     public prepareRequest(options: http.RequestOptions): void {
@@ -52,13 +41,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
             // Once we have the www-authenticate header, split it so we can ensure we can talk NTLM
             const wwwAuthenticate = response.message.headers['www-authenticate'];
 
-            if (wwwAuthenticate) {
-                const mechanisms = wwwAuthenticate.split(', ');
-                const index = mechanisms.indexOf("NTLM");
-                if (index >= 0) {
-                    return true;
-                }
-            }
+            return wwwAuthenticate && (wwwAuthenticate.split(', ').indexOf("NTLM") >= 0)
         }
 
         return false;
@@ -89,11 +72,9 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
             workstation: this._ntlmOptions.workstation
         });
 
-        if (httpClient.isSsl === true) {
-            requestInfo.options.agent = new https.Agent({ keepAlive: true });
-        } else {
-            requestInfo.options.agent = new http.Agent({ keepAlive: true });
-        }
+        requestInfo.options.agent = httpClient.isSsl ?
+            new https.Agent({ keepAlive: true }):
+            new http.Agent({ keepAlive: true });
 
         let self = this;
 
@@ -150,9 +131,9 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
         /**
          * Server will respond with challenge/nonce
          * assigned to response's "WWW-AUTHENTICATE" header
-         * and should be starting with NTLM
+         * and should adhere to RegExp /^NTLM\s+(.+?)(,|\s+|$)/
          */
-        const serverNonceRegex = /^NTLM\s+(.+?)(,|\s+|$)/;
+        const serverNonceRegex: RegExp = /^NTLM\s+(.+?)(,|\s+|$)/;
         const serverNonce: Buffer = Buffer.from(
             (res.message.headers['www-authenticate'].match(serverNonceRegex) || [])[1],
             'base64'
