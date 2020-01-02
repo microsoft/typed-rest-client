@@ -147,7 +147,17 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
             throw new Error('www-authenticate not found on response of second request');
         }
 
-        const serverNonce: Buffer = new Buffer((res.message.headers['www-authenticate'].match(/^NTLM\s+(.+?)(,|\s+|$)/) || [])[1], 'base64');
+        /**
+         * Server will respond with challenge/nonce
+         * assigned to response's "WWW-AUTHENTICATE" header
+         * and should be starting with NTLM
+         */
+        const serverNonceRegex = /^NTLM\s+(.+?)(,|\s+|$)/;
+        const serverNonce: Buffer = Buffer.from(
+            (res.message.headers['www-authenticate'].match(serverNonceRegex) || [])[1],
+            'base64'
+        );
+
         const type2msg: Buffer = ntlm.decodeType2(serverNonce);
 
         const type3msg: string = ntlm.encodeType3(

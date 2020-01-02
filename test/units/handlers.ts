@@ -107,7 +107,7 @@ describe('Authentication Handlers Tests', function () {
     it('[Personal Access Token] - does basic http get request with PAT token auth', async() => {
         const url: string = 'http://microsoft.com';
         const secret: string = 'scbfb44vxzku5l4xgc3qfazn3lpk4awflfryc76esaiq7aypcbhs';
-        const personalAccessToken: string = new Buffer(`PAT:${secret}`).toString('base64');
+        const personalAccessToken: string = Buffer.from(`PAT:${secret}`).toString('base64');
         const expectedAuthHeader: string = `Basic ${personalAccessToken}`;
         const patAuthHandler: hm.PersonalAccessTokenCredentialHandler =
             new hm.PersonalAccessTokenCredentialHandler(secret);
@@ -204,7 +204,7 @@ describe('Authentication Handlers Tests', function () {
         assert(httpResponse.message.statusCode === httpm.HttpCodes.Unauthorized); //statusCode is 401 - Unauthorized
     });
 
-    it('does basic http get request with NTLM Authentication', async() => {
+    it('[NTLM] - does basic http get request with NTLM Authentication', async() => {
         /**
          * Following NTLM Authentication Example on:
          * https://www.innovation.ch/personal/ronald/ntlm.html
