@@ -139,7 +139,18 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
             'base64'
         );
 
-        const type2msg: Buffer = ntlm.decodeType2(serverNonce);
+        let type2msg: Buffer;
+
+        /**
+         * Wrap decoding the Server's challenge/nonce in
+         * try-catch block to throw more comprehensive
+         * Error with clear message to consumer
+         */
+        try {
+            type2msg = ntlm.decodeType2(serverNonce);
+        } catch (error) {
+            throw new Error(`Decoding Server's Challenge to Obtain Type2Message failed with error: ${error.message}`)
+        }
 
         const type3msg: string = ntlm.encodeType3(
             this._ntlmOptions.username,
