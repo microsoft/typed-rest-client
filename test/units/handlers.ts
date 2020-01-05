@@ -7,14 +7,28 @@ import * as httpm from 'typed-rest-client/HttpClient';
 import * as hm from 'typed-rest-client/Handlers';
 
 describe('Authentication Handlers Tests', function () {
-    let _ntlmOptions: any;
+    let _authHandlersOptions: any;
 
     before(() => {
-        _ntlmOptions = {
-            username: 'Zaphod',
-            password: 'Beeblebrox',
-            domain: 'Ursa-Minor',
-            workstation: 'LightCity'
+        _authHandlersOptions = {
+            basicAuth: {
+                username: 'johndoe',
+                password: 'password'
+            },
+            bearer: {
+                token: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.' +
+                'eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.' +
+                'SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
+            },
+            personalAccessToken: {
+                secret: 'scbfb44vxzku5l4xgc3qfazn3lpk4awflfryc76esaiq7aypcbhs'
+            },
+            ntlm: {
+                username: 'Zaphod',
+                password: 'Beeblebrox',
+                domain: 'Ursa-Minor',
+                workstation: 'LightCity'
+            }
         }
     });
 
@@ -24,8 +38,8 @@ describe('Authentication Handlers Tests', function () {
 
     it('[Basic Auth] - does basic http get request with basic auth', async() => {
         const url: string = 'http://microsoft.com';
-        const user: string = 'johndoe';
-        const pass: string = 'password';
+        const user: string = _authHandlersOptions.basicAuth.username;
+        const pass: string = _authHandlersOptions.basicAuth.password;
 
         //Set nock for correct credentials
         const successAuthScope = nock(url)
@@ -68,8 +82,8 @@ describe('Authentication Handlers Tests', function () {
 
     it('[Basic Auth - Presigned] doesnt use auth when presigned', async() => {
         const url: string = 'http://microsoft.com';
-        const user: string = 'johndoe';
-        const pass: string = 'password';
+        const user: string = _authHandlersOptions.basicAuth.username;
+        const pass: string = _authHandlersOptions.basicAuth.password;
 
         //Set nock for correct credentials
         const withAuthCredentialsScope = nock(url)
@@ -106,7 +120,7 @@ describe('Authentication Handlers Tests', function () {
 
     it('[Personal Access Token] - does basic http get request with PAT token auth', async() => {
         const url: string = 'http://microsoft.com';
-        const secret: string = 'scbfb44vxzku5l4xgc3qfazn3lpk4awflfryc76esaiq7aypcbhs';
+        const secret: string = _authHandlersOptions.personalAccessToken.secret;
         const personalAccessToken: string = Buffer.from(`PAT:${secret}`).toString('base64');
         const expectedAuthHeader: string = `Basic ${personalAccessToken}`;
         const patAuthHandler: hm.PersonalAccessTokenCredentialHandler =
@@ -153,9 +167,7 @@ describe('Authentication Handlers Tests', function () {
 
     it('[Bearer Token] - does basic http get request with bearer token authentication', async() => {
         const url: string = 'http://microsoft.com';
-        const bearerToken: string = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.' +
-            'eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.' +
-            'SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c';
+        const bearerToken: string = _authHandlersOptions.bearer.token;
 
         const expectedAuthHeader: string = `Bearer ${bearerToken}`;
         const bearerTokenAuthHandler: hm.BearerCredentialHandler = new hm.BearerCredentialHandler(bearerToken);
@@ -213,7 +225,7 @@ describe('Authentication Handlers Tests', function () {
          */
         const url: string = 'http://microsoft.com';
         const base64EncodedType1Message = 'NTLM TlRMTVNTUAABAAAAA7IAAAoACgApAAAACQAJACAAAABMSUdIVENJVFlVUlNBLU1JTk9S';
-        const base64EncodedType2Message = 'NTLM TlRMTVNTUAACAAAAAAAAACgAAAABggAAU3J2Tm9uY2UAAAAAAAAAAA==';
+        const serverChallengeOrNonce = 'NTLM TlRMTVNTUAACAAAAAAAAACgAAAABggAAU3J2Tm9uY2UAAAAAAAAAAA==';
         const base64EncodedType3Message = 'NTLM TlRMTVNTUAADAAAAGAAYAHIAAAAYABgAigAAABQAFABAAAAADAAMAFQAAAASABIAYAAA' +
             'AAAAAACiAAAAAYIAAFUAUgBTAEEALQBNAEkATgBPAFIAWgBhAHAAaABvAGQATABJAEcA' +
             'SABUAEMASQBUAFkArYfKbe/jRoW5xDxHeoxC1gBmfWiS5+iX4OAN4xBKG/IFPwfH3agtPEia6YnhsADT'
@@ -226,7 +238,7 @@ describe('Authentication Handlers Tests', function () {
             .matchHeader('Connection', 'keep-alive')
             .matchHeader('Authorization', base64EncodedType1Message)
             .get('/')
-            .reply(httpm.HttpCodes.Unauthorized, {}, {'WWW-Authenticate': base64EncodedType2Message});
+            .reply(httpm.HttpCodes.Unauthorized, {}, {'WWW-Authenticate': serverChallengeOrNonce});
 
         const ntlmScopeType3 = nock(url)
             .matchHeader('Connection', 'Close')
@@ -235,10 +247,10 @@ describe('Authentication Handlers Tests', function () {
             .reply(httpm.HttpCodes.OK);
 
         const ntlmAuthHandler: hm.NtlmCredentialHandler = new hm.NtlmCredentialHandler(
-            _ntlmOptions.username,
-            _ntlmOptions.password,
-            _ntlmOptions.workstation,
-            _ntlmOptions.domain
+            _authHandlersOptions.ntlm.username,
+            _authHandlersOptions.ntlm.password,
+            _authHandlersOptions.ntlm.workstation,
+            _authHandlersOptions.ntlm.domain
         );
 
         const httpClient: httpm.HttpClient = new httpm.HttpClient(undefined, [ntlmAuthHandler]);
