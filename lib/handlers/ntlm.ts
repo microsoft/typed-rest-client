@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-// This handler has been deprecated and new enhancements beyond basic bug fixes will not be taken.
+// This handler has been deprecated.
 // Our recommendation is to use one of the other supported handlers due to security concerns around NTLM protocol.
 // See these articles for more info:
 // * https://securiteam.com/securityreviews/5op0b2kgac/
