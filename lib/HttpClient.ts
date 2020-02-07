@@ -68,10 +68,11 @@ export class HttpClientResponse implements ifm.IHttpClientResponse {
             }).on('end', async function() {
                 if (isGzippedEncoded) { // Process GZipped Response Body HERE
                     const gunzippedBody = await util.decompressGzippedContent(buffer, encodingCharset);
-                    resolve(gunzippedBody);
-                }
 
-                resolve(buffer.toString(encodingCharset));
+                    resolve(gunzippedBody);
+                } else {
+                    resolve(buffer.toString(encodingCharset));
+                }
             }).on('error', function(err) {
                 reject(err);
             });

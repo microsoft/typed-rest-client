@@ -6,7 +6,7 @@ import http = require("http");
 import https = require("https");
 
 const _ = require("underscore");
-const ntlm = require("../opensource/node-http-ntlm/ntlm");
+const ntlm = require("../opensource/Node-SMB/lib/ntlm");
 
 interface INtlmOptions {
     username?: string,
@@ -23,19 +23,8 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
 
         this._ntlmOptions.username = username;
         this._ntlmOptions.password = password;
-
-        if (domain !== undefined) {
-            this._ntlmOptions.domain = domain;
-        }
-        else {
-            this._ntlmOptions.domain = '';
-        }
-        if (workstation !== undefined) {
-            this._ntlmOptions.workstation = workstation;
-        }
-        else {
-            this._ntlmOptions.workstation = '';
-        }
+        this._ntlmOptions.domain = domain || '';
+        this._ntlmOptions.workstation = workstation || '';
     }
 
     public prepareRequest(options: http.RequestOptions): void {
@@ -52,13 +41,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
             // Once we have the www-authenticate header, split it so we can ensure we can talk NTLM
             const wwwAuthenticate = response.message.headers['www-authenticate'];
 
-            if (wwwAuthenticate) {
-                const mechanisms = wwwAuthenticate.split(', ');
-                const index = mechanisms.indexOf("NTLM");
-                if (index >= 0) {
-                    return true;
-                }
-            }
+            return wwwAuthenticate && (wwwAuthenticate.split(', ').indexOf("NTLM") >= 0)
         }
 
         return false;
@@ -89,11 +72,9 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
             workstation: this._ntlmOptions.workstation
         });
 
-        if (httpClient.isSsl === true) {
-            requestInfo.options.agent = new https.Agent({ keepAlive: true });
-        } else {
-            requestInfo.options.agent = new http.Agent({ keepAlive: true });
-        }
+        requestInfo.options.agent = httpClient.isSsl ?
+            new https.Agent({ keepAlive: true }):
+            new http.Agent({ keepAlive: true });
 
         let self = this;
 
@@ -109,7 +90,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
             res.readBody().then(() => {
                 // It is critical that we have setImmediate here due to how connection requests are queued.
                 // If setImmediate is removed then the NTLM handshake will not work.
-                // setImmediate allows us to queue a second request on the same connection. If this second 
+                // setImmediate allows us to queue a second request on the same connection. If this second
                 // request is not queued on the connection when the first request finishes then node closes
                 // the connection. NTLM requires both requests to be on the same connection so we need this.
                 setImmediate(function () {
@@ -121,7 +102,8 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
 
     // The following method is an adaptation of code found at https://github.com/SamDecrock/node-http-ntlm/blob/master/httpntlm.js
     private sendType1Message(httpClient: ifm.IHttpClient, requestInfo: ifm.IRequestInfo, objs: any, finalCallback): void {
-        const type1msg = ntlm.createType1Message(this._ntlmOptions);
+        const type1HexBuffer: Buffer = ntlm.encodeType1(this._ntlmOptions.workstation, this._ntlmOptions.domain);
+        const type1msg: string = `NTLM ${type1HexBuffer.toString('base64')}`;
 
         const type1options: http.RequestOptions = {
             headers: {
@@ -146,12 +128,41 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
             throw new Error('www-authenticate not found on response of second request');
         }
 
-        const type2msg = ntlm.parseType2Message(res.message.headers['www-authenticate']);
-        const type3msg = ntlm.createType3Message(type2msg, this._ntlmOptions);
+        /**
+         * Server will respond with challenge/nonce
+         * assigned to response's "WWW-AUTHENTICATE" header
+         * and should adhere to RegExp /^NTLM\s+(.+?)(,|\s+|$)/
+         */
+        const serverNonceRegex: RegExp = /^NTLM\s+(.+?)(,|\s+|$)/;
+        const serverNonce: Buffer = Buffer.from(
+            (res.message.headers['www-authenticate'].match(serverNonceRegex) || [])[1],
+            'base64'
+        );
+
+        let type2msg: Buffer;
+
+        /**
+         * Wrap decoding the Server's challenge/nonce in
+         * try-catch block to throw more comprehensive
+         * Error with clear message to consumer
+         */
+        try {
+            type2msg = ntlm.decodeType2(serverNonce);
+        } catch (error) {
+            throw new Error(`Decoding Server's Challenge to Obtain Type2Message failed with error: ${error.message}`)
+        }
+
+        const type3msg: string = ntlm.encodeType3(
+            this._ntlmOptions.username,
+            this._ntlmOptions.workstation,
+            this._ntlmOptions.domain,
+            type2msg,
+            this._ntlmOptions.password
+        ).toString('base64');
 
         const type3options: http.RequestOptions = {
             headers: {
-                'Authorization': type3msg,
+                'Authorization': `NTLM ${type3msg}`,
                 'Connection': 'Close'
             },
             agent: requestInfo.httpModule,
