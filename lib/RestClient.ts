@@ -60,7 +60,7 @@ export class RestClient {
         let url: string = util.getUrl(requestUrl, this._baseUrl);
         let res: httpm.HttpClientResponse = await this.client.options(url,
             this._headersFromOptions(options));
-        return this._processResponse<T>(res, options);
+        return this.processResponse<T>(res, options);
     }
 
     /**
@@ -75,7 +75,7 @@ export class RestClient {
         let url: string = util.getUrl(resource, this._baseUrl, (options || {}).queryParameters);
         let res: httpm.HttpClientResponse = await this.client.get(url,
             this._headersFromOptions(options));
-        return this._processResponse<T>(res, options);
+        return this.processResponse<T>(res, options);
     }
 
     /**
@@ -90,7 +90,7 @@ export class RestClient {
         let url: string = util.getUrl(resource, this._baseUrl);
         let res: httpm.HttpClientResponse = await this.client.del(url,
             this._headersFromOptions(options));
-        return this._processResponse<T>(res, options);
+        return this.processResponse<T>(res, options);
     }
 
     /**
@@ -109,7 +109,7 @@ export class RestClient {
 
         let data: string = JSON.stringify(resources, null, 2);
         let res: httpm.HttpClientResponse = await this.client.post(url, data, headers);
-        return this._processResponse<T>(res, options);
+        return this.processResponse<T>(res, options);
     }
 
     /**
@@ -128,7 +128,7 @@ export class RestClient {
 
         let data: string = JSON.stringify(resources, null, 2);
         let res: httpm.HttpClientResponse = await this.client.patch(url, data, headers);
-        return this._processResponse<T>(res, options);
+        return this.processResponse<T>(res, options);
     }
 
     /**
@@ -147,7 +147,7 @@ export class RestClient {
 
         let data: string = JSON.stringify(resources, null, 2);
         let res: httpm.HttpClientResponse = await this.client.put(url, data, headers);
-        return this._processResponse<T>(res, options);
+        return this.processResponse<T>(res, options);
     }
 
     public async uploadStream<T>(verb: string,
@@ -159,7 +159,7 @@ export class RestClient {
         let headers: ifm.IHeaders = this._headersFromOptions(options, true);
 
         let res: httpm.HttpClientResponse = await this.client.sendStream(verb, url, stream, headers);
-        return this._processResponse<T>(res, options);
+        return this.processResponse<T>(res, options);
     }
 
     private _headersFromOptions(options: IRequestOptions, contentType?: boolean): ifm.IHeaders {
@@ -195,7 +195,7 @@ export class RestClient {
         return value;
     }
 
-    private async _processResponse<T>(res: httpm.HttpClientResponse, options: IRequestOptions): Promise<IRestResponse<T>> {
+    protected async processResponse<T>(res: httpm.HttpClientResponse, options: IRequestOptions): Promise<IRestResponse<T>> {
         return new Promise<IRestResponse<T>>(async (resolve, reject) => {
             const statusCode: number = res.message.statusCode;
 
