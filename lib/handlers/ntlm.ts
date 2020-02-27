@@ -1,6 +1,14 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
+// This handler has been deprecated.
+// Our recommendation is to use one of the other supported handlers due to security concerns around NTLM protocol.
+// See these articles for more info:
+// * https://securiteam.com/securityreviews/5op0b2kgac/
+// * https://www.bleepingcomputer.com/news/security/new-microsoft-ntlm-flaws-may-allow-full-domain-compromise/
+// * https://docs.microsoft.com/en-us/archive/blogs/miriamxyra/stop-using-lan-manager-and-ntlmv1 - this one is us (MS) telling people to stop using NTLMV1, and pointing to some issues surrounding V2 that have since been discovered to be worse than thought
+// * https://www.helpnetsecurity.com/2019/10/10/ntlm-vulnerabilities/
+
 import ifm = require('../Interfaces');
 import http = require("http");
 import https = require("https");
