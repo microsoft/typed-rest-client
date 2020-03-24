@@ -234,6 +234,28 @@ describe('Http Tests', function () {
     assert(obj.source === "nock", "request should redirect to mocked missing");
     });
 
+    it('does basic http get request with server response having encoding supported by nodejs', async() => {
+        nock('http://microsoft.com')
+            .get('/')
+            .reply(200, 'Microsoft', {
+                'Content-Type': 'text/plain;charset=utf-8'
+            });
+        let res: httpm.HttpClientResponse = await _http.get('http://microsoft.com');
+        let body = await res.readBody();
+        assert(body == 'Microsoft', "response should be 'Microsoft'");
+    });
+
+    it('does basic http get request with server response having encoding not supported by nodejs', async() => {
+        nock('http://microsoft.com')
+            .get('/')
+            .reply(200, 'Microsoft', {
+                'Content-Type': 'text/plain;charset=us-ascii'
+            });
+        let res: httpm.HttpClientResponse = await _http.get('http://microsoft.com');
+        let body = await res.readBody();
+        assert(body == 'Microsoft', "response should be 'Microsoft'");
+    });
+
     it('does not follow redirects if disabled', async() => {
         nock('http://microsoft.com')
         .get('/redirect-to')
