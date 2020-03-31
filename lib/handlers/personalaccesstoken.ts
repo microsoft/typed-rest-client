@@ -5,6 +5,7 @@ import ifm = require('../Interfaces');
 
 export class PersonalAccessTokenCredentialHandler implements ifm.IRequestHandler {
     token: string;
+    host: string;
 
     constructor(token: string) {
         this.token = token;
@@ -13,7 +14,11 @@ export class PersonalAccessTokenCredentialHandler implements ifm.IRequestHandler
     // currently implements pre-authorization
     // TODO: support preAuth = false where it hooks on 401
     prepareRequest(options:any): void {
-        options.headers['Authorization'] = `Basic ${Buffer.from(`PAT:${this.token}`).toString('base64')}`;
+        // If this is a redirection, don't set the Authorization header
+        if (!this.host || this.host === options.host) {
+            options.headers['Authorization'] = `Basic ${Buffer.from(`PAT:${this.token}`).toString('base64')}`;
+            this.host = options.host;
+        }
         options.headers['X-TFS-FedAuthRedirect'] = 'Suppress';
     }
 

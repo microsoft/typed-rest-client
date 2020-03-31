@@ -5,6 +5,7 @@ import ifm = require('../Interfaces');
 
 export class BearerCredentialHandler implements ifm.IRequestHandler {
     token: string;
+    host: string;
 
     constructor(token: string) {
         this.token = token;
@@ -13,7 +14,11 @@ export class BearerCredentialHandler implements ifm.IRequestHandler {
     // currently implements pre-authorization
     // TODO: support preAuth = false where it hooks on 401
     prepareRequest(options:any): void {
-        options.headers['Authorization'] = `Bearer ${this.token}`;
+        // If this is a redirection, don't set the Authorization header
+        if (!this.host || this.host === options.host) {
+            options.headers['Authorization'] = `Bearer ${this.token}`;
+            this.host = options.host;
+        }
         options.headers['X-TFS-FedAuthRedirect'] = 'Suppress';
     }
 
