@@ -5,19 +5,23 @@ import ifm = require('../Interfaces');
 
 export class BearerCredentialHandler implements ifm.IRequestHandler {
     token: string;
-    host: string;
+    allowCrossOriginAuthentication: boolean;
+    origin: string;
 
-    constructor(token: string) {
+    constructor(token: string, allowCrossOriginAuthentication?: boolean) {
         this.token = token;
+        this.allowCrossOriginAuthentication = allowCrossOriginAuthentication;
     }
 
     // currently implements pre-authorization
     // TODO: support preAuth = false where it hooks on 401
     prepareRequest(options:any): void {
+        if (!this.origin) {
+            this.origin = options.host;
+        }
         // If this is a redirection, don't set the Authorization header
-        if (!this.host || this.host === options.host) {
+        if (this.origin === options.host || this.allowCrossOriginAuthentication) {
             options.headers['Authorization'] = `Bearer ${this.token}`;
-            this.host = options.host;
         }
         options.headers['X-TFS-FedAuthRedirect'] = 'Suppress';
     }

@@ -6,20 +6,24 @@ import ifm = require('../Interfaces');
 export class BasicCredentialHandler implements ifm.IRequestHandler {
     username: string;
     password: string;
-    host: string;
+    allowCrossOriginAuthentication: boolean;
+    origin: string;
 
-    constructor(username: string, password: string) {
+    constructor(username: string, password: string, allowCrossOriginAuthentication?: boolean) {
         this.username = username;
         this.password = password;
+        this.allowCrossOriginAuthentication = allowCrossOriginAuthentication;
     }
 
     // currently implements pre-authorization
     // TODO: support preAuth = false where it hooks on 401
     prepareRequest(options:any): void {
+        if (!this.origin) {
+            this.origin = options.host;
+        }
         // If this is a redirection, don't set the Authorization header
-        if (!this.host || this.host === options.host) {
+        if (this.origin === options.host || this.allowCrossOriginAuthentication) {
             options.headers['Authorization'] = `Basic ${Buffer.from(`${this.username}:${this.password}`).toString('base64')}`;
-            this.host = options.host;
         }
         options.headers['X-TFS-FedAuthRedirect'] = 'Suppress';
     }
