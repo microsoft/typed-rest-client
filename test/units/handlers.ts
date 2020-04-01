@@ -80,6 +80,50 @@ describe('Authentication Handlers Tests', function () {
         assert(! asJson.success, "success = false; Authentication should fail");
     });
 
+    it('[Basic Auth] - does redirection request with basic auth', async() => {
+        const url: string = 'http://microsoft.com';
+        const redirectionUrl: string = 'http://jfrog.com';
+        const user: string = _authHandlersOptions.basicAuth.username;
+        const pass: string = _authHandlersOptions.basicAuth.password;
+
+        //Set nock for redirection with credentials
+        const redirectAuthScope = nock(url)
+            .get('/')
+            .basicAuth({ user, pass })
+            .reply(httpm.HttpCodes.MovedPermanently, undefined, {
+                location: redirectionUrl
+            });
+
+        //Set nock for request without expecting/matching Authorization header(s)
+        nock(redirectionUrl)
+            .matchHeader('authorization', (val: string | undefined) => !val )
+            .get('/')
+            .reply(httpm.HttpCodes.OK, {
+                success: true,
+                source: "nock"
+            });
+
+        //Set nock for request with expecting/matching Authorization header(s)
+        nock(redirectionUrl)
+            .matchHeader('authorization', (val: string | undefined) => val )
+            .get('/')
+            .reply(httpm.HttpCodes.BadRequest, {
+                success: false,
+                source: "nock"
+            });
+
+        const basicAuthHandler: hm.BasicCredentialHandler = new hm.BasicCredentialHandler(user, pass);
+        let httpClient: httpm.HttpClient = new httpm.HttpClient('typed-rest-client-tests', [basicAuthHandler]);
+        let httpResponse: httpm.HttpClientResponse = await httpClient.get(url);
+        let body: string = await httpResponse.readBody();
+        let asJson: any = JSON.parse(body);
+
+        assert(redirectAuthScope.isDone());
+        assert(httpResponse.message.statusCode == httpm.HttpCodes.OK, "status code should be 200 - OK");
+        assert(asJson.source === "nock", "http get request should be intercepted by nock");
+        assert(asJson.success, "Authentication should not occur in redirection to other hosts");
+    });
+
     it('[Basic Auth - Presigned] doesnt use auth when presigned', async() => {
         const url: string = 'http://microsoft.com';
         const user: string = _authHandlersOptions.basicAuth.username;
@@ -165,6 +209,53 @@ describe('Authentication Handlers Tests', function () {
         assert(! asJson.success, "success = false; Authentication should fail");
     });
 
+    it('[Personal Access Token] - does redirection request with PAT token auth', async() => {
+        const url: string = 'http://microsoft.com';
+        const redirectionUrl: string = 'http://jfrog.com';
+        const secret: string = _authHandlersOptions.personalAccessToken.secret;
+        const personalAccessToken: string = Buffer.from(`PAT:${secret}`).toString('base64');
+        const expectedAuthHeader: string = `Basic ${personalAccessToken}`;
+        const patAuthHandler: hm.PersonalAccessTokenCredentialHandler =
+        new hm.PersonalAccessTokenCredentialHandler(secret);
+
+        //Nock request for redirection with expecting/matching Authorization header(s)
+        const redirectAuthScope = nock(url)
+            .matchHeader('Authorization', expectedAuthHeader)
+            .matchHeader('X-TFS-FedAuthRedirect', 'Suppress')
+            .get('/')
+            .reply(httpm.HttpCodes.MovedPermanently, undefined, {
+                location: redirectionUrl
+            });
+
+        //Set nock for request without expecting/matching Authorization header(s)
+        nock(redirectionUrl)
+            .matchHeader('authorization', (val: string | undefined) => !val )
+            .get('/')
+            .reply(httpm.HttpCodes.OK, {
+                success: true,
+                source: "nock"
+            });
+
+        //Set nock for request with expecting/matching Authorization header(s)
+        nock(redirectionUrl)
+            .matchHeader('authorization', (val: string | undefined) => val )
+            .get('/')
+            .reply(httpm.HttpCodes.BadRequest, {
+                success: false,
+                source: "nock"
+            });
+
+        let httpClient: httpm.HttpClient = new httpm.HttpClient('typed-rest-client-tests', [patAuthHandler]);
+        let httpResponse: httpm.HttpClientResponse = await httpClient.get(url);
+        let body: string = await httpResponse.readBody();
+        let asJson: any = JSON.parse(body);
+
+        assert(redirectAuthScope.isDone());
+        assert(httpResponse.message.statusCode == httpm.HttpCodes.OK, "status code should be 200 - OK");
+        assert(asJson.source === "nock", "http get request should be intercepted by nock");
+        assert(asJson.success, "Authentication should not occur in redirection to other hosts");
+    });
+
     it('[Bearer Token] - does basic http get request with bearer token authentication', async() => {
         const url: string = 'http://microsoft.com';
         const bearerToken: string = _authHandlersOptions.bearer.token;
@@ -214,6 +305,52 @@ describe('Authentication Handlers Tests', function () {
         assert(failureAuthScope.isDone(), "Nock Scope of failureAuth should be intercepted/done"); //nock test for failure auth is done
         assert(! responseBodyAsJSON.success, "Success should be set to false"); // success: false
         assert(httpResponse.message.statusCode === httpm.HttpCodes.Unauthorized, "statusCode returned should be 401 - Unauthorized"); //statusCode is 401 - Unauthorized
+    });
+
+    it('[Bearer Token] - does redirection request with bearer token authentication', async() => {
+        const url: string = 'http://microsoft.com';
+        const redirectionUrl: string = 'http://jfrog.com';
+        const bearerToken: string = _authHandlersOptions.bearer.token;
+
+        const expectedAuthHeader: string = `Bearer ${bearerToken}`;
+        const bearerTokenAuthHandler: hm.BearerCredentialHandler = new hm.BearerCredentialHandler(bearerToken);
+
+        //Nock request for redirection with expecting/matching Authorization header(s)
+        const redirectAuthScope = nock(url)
+            .matchHeader('Authorization', expectedAuthHeader)
+            .matchHeader('X-TFS-FedAuthRedirect', 'Suppress')
+            .get('/')
+            .reply(httpm.HttpCodes.MovedPermanently, undefined, {
+                location: redirectionUrl
+            });
+
+        //Set nock for request without expecting/matching Authorization header(s)
+        nock(redirectionUrl)
+            .matchHeader('authorization', (val: string | undefined) => !val )
+            .get('/')
+            .reply(httpm.HttpCodes.OK, {
+                success: true,
+                source: "nock"
+            });
+
+        //Set nock for request with expecting/matching Authorization header(s)
+        nock(redirectionUrl)
+            .matchHeader('authorization', (val: string | undefined) => val )
+            .get('/')
+            .reply(httpm.HttpCodes.BadRequest, {
+                success: false,
+                source: "nock"
+            });
+
+        let httpClient: httpm.HttpClient = new httpm.HttpClient('typed-rest-client-tests', [bearerTokenAuthHandler]);
+        let httpResponse: httpm.HttpClientResponse = await httpClient.get(url);
+        let body: string = await httpResponse.readBody();
+        let asJson: any = JSON.parse(body);
+
+        assert(redirectAuthScope.isDone());
+        assert(httpResponse.message.statusCode == httpm.HttpCodes.OK, "status code should be 200 - OK");
+        assert(asJson.source === "nock", "http get request should be intercepted by nock");
+        assert(asJson.success, "Authentication should not occur in redirection to other hosts");
     });
 
     it('[NTLM] - does basic http get request with NTLM Authentication', async() => {
