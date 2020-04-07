@@ -17,15 +17,6 @@ steps:
 - script: npm run units
   displayName: npm run units
 
-# test using node 4.8.6
-- task: NodeTool@0
-  inputs:
-    versionSpec: "4.8.6"
-  displayName: Install node 4.8.6
-
-- script: npm run units
-  displayName: npm run units
-
 # test using node 6.12.0
 - task: NodeTool@0
   inputs:
