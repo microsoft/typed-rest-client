@@ -14,7 +14,7 @@ import http = require("http");
 import https = require("https");
 
 const _ = require("underscore");
-const ntlm = require("../opensource/Node-SMB/lib/ntlm");
+const ntlm = require("ntlm");
 
 interface INtlmOptions {
     username?: string,

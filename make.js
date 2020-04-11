@@ -56,8 +56,6 @@ target.build = function () {
     enforceMinimumVersions();
     run(path.join(__dirname, 'node_modules/.bin/tsc') + ' --outDir ' + buildPath);
     
-    cp('-Rf', rp('lib/opensource'), buildPath);
-
     cp(rp('LICENSE'), buildPath);
     cp(rp('package.json'), buildPath);
     cp(rp('package-lock.json'), buildPath);
