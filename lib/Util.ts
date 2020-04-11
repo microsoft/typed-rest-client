@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 import * as qs from 'qs';
-import * as url from 'url';
 import * as path from 'path';
 import zlib = require('zlib');
 import { IRequestQueryParams, IHttpClientResponse } from './Interfaces';
@@ -25,12 +24,13 @@ export function getUrl(resource: string, baseUrl?: string, queryParams?: IReques
         requestUrl = baseUrl;
     }
     else {
-        const base: url.Url = url.parse(baseUrl);
-        const resultantUrl: url.Url = url.parse(resource);
+        const base: URL = new URL(baseUrl);
+        const resultantUrl: URL = new URL(resource, base);
 
         // resource (specific per request) elements take priority
         resultantUrl.protocol = resultantUrl.protocol || base.protocol;
-        resultantUrl.auth = resultantUrl.auth || base.auth;
+        resultantUrl.username = resultantUrl.username || base.username;
+        resultantUrl.password = resultantUrl.password || base.password;
         resultantUrl.host = resultantUrl.host || base.host;
 
         resultantUrl.pathname = pathApi.resolve(base.pathname, resultantUrl.pathname);
@@ -39,7 +39,7 @@ export function getUrl(resource: string, baseUrl?: string, queryParams?: IReques
             resultantUrl.pathname += '/';
         }
 
-        requestUrl = url.format(resultantUrl);
+        requestUrl = resultantUrl.toString();
     }
 
     return queryParams ?
