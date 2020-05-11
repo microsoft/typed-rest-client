@@ -87,7 +87,7 @@ export class RestClient {
     public async del<T>(resource: string,
         options?: IRequestOptions): Promise<IRestResponse<T>> {
 
-        let url: string = util.getUrl(resource, this._baseUrl);
+        let url: string = util.getUrl(resource, this._baseUrl, (options || {}).queryParameters);
         let res: httpm.HttpClientResponse = await this.client.del(url,
             this._headersFromOptions(options));
         return this.processResponse<T>(res, options);

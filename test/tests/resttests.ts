@@ -147,6 +147,35 @@ describe('Rest Tests', function () {
         assert(restRes.result && restRes.result.url === 'https://httpbin.org/delete');
     });
 
+    it('deletes a resource passing Query Parameters', async () => {
+        this.timeout(3000);
+        const response: restm.IRestResponse<HttpBinData> = await _rest.del<HttpBinData>('https://httpbin.org/delete', _options);
+
+        assert(response.statusCode == 200, "statusCode should be 200");
+        assert(response.result.url === 'https://httpbin.org/delete?id=1&type=compact');
+
+        Object.keys(_options.queryParameters.params).forEach(key => {
+            const actual = response.result.args[key];
+            const expected = _options.queryParameters.params[key];
+
+            assert(expected == actual);
+        })
+    });
+
+    it('deletes a resource with baseUrl passing Query Parameters', async () => {
+        const response: restm.IRestResponse<HttpBinData> = await _restBin.del<HttpBinData>('delete', _options);
+
+        assert(response.statusCode == 200, "statusCode should be 200");
+        assert(response.result.url === 'https://httpbin.org/delete?id=1&type=compact');
+
+        Object.keys(_options.queryParameters.params).forEach(key => {
+            const actual = response.result.args[key];
+            const expected = _options.queryParameters.params[key];
+
+            assert(expected == actual);
+        })
+    });
+
     it('does an options request', async() => {
         let restRes: restm.IRestResponse<HttpBinData> = await _rest.options<HttpBinData>('https://httpbin.org');
         assert(restRes.statusCode == 200, "statusCode should be 200");
