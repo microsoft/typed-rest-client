@@ -9,7 +9,9 @@
     "bt": "node make.js buildtest",
     "samples": "node make.js samples",
     "units": "node make.js units",
-    "validate": "node make.js validate"
+    "validate": "node make.js validate",
+    "postinstall": "build"
+  
   },
   "repository": {
     "type": "git",
