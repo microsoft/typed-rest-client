@@ -249,7 +249,7 @@ export class HttpClient implements ifm.IHttpClient {
             }
             catch (err) {
                 if(err && err.code && NetworkRetryErrors.indexOf(err.code) !== 1){
-                    continue
+                    continue;
                 }
                 throw err;
             }
