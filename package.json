@@ -10,7 +10,7 @@
     "samples": "node make.js samples",
     "units": "node make.js units",
     "validate": "node make.js validate",
-    "postinstall": "build"
+    "postinstall": "npm build"
   
   },
   "repository": {
