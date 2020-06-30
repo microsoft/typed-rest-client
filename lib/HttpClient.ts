@@ -248,7 +248,7 @@ export class HttpClient implements ifm.IHttpClient {
                 response = await this.requestRaw(info, data);
             }
             catch (err) {
-                if(err && err.code && NetworkRetryErrors.indexOf(err.code) !== 1){
+                if(err && err.code && NetworkRetryErrors.indexOf(err.code) > -1){
                     continue;
                 }
                 throw err;
