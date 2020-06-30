@@ -41,6 +41,7 @@ export enum HttpCodes {
 
 const HttpRedirectCodes: number[] = [HttpCodes.MovedPermanently, HttpCodes.ResourceMoved, HttpCodes.SeeOther, HttpCodes.TemporaryRedirect, HttpCodes.PermanentRedirect];
 const HttpResponseRetryCodes: number[] = [HttpCodes.BadGateway, HttpCodes.ServiceUnavailable, HttpCodes.GatewayTimeout];
+const NetworkRetryErrors: string[] = ['ECONNRESET', 'ENOTFOUND', 'ESOCKETTIMEDOUT', 'ETIMEDOUT', 'ECONNREFUSED'];
 const RetryableHttpVerbs: string[] = ['OPTIONS', 'GET', 'DELETE', 'HEAD'];
 const ExponentialBackoffCeiling = 10;
 const ExponentialBackoffTimeSlice = 5;
@@ -243,8 +244,15 @@ export class HttpClient implements ifm.IHttpClient {
 
         let response: HttpClientResponse;
         while (numTries < maxTries) {
-            response = await this.requestRaw(info, data);
-
+            try{
+                response = await this.requestRaw(info, data);
+            }
+            catch (err) {
+                if(err && err.code && NetworkRetryErrors.indexOf(err.code) > -1){
+                    continue;
+                }
+                throw err;
+            }
             // Check if it's an authentication challenge
             if (response && response.message && response.message.statusCode === HttpCodes.Unauthorized) {
                 let authenticationHandler: ifm.IRequestHandler;
