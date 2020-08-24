@@ -108,7 +108,7 @@ export class RestClient {
         let headers: ifm.IHeaders = this._headersFromOptions(options, true);
         let data: string;
 
-        if (headers["Content-Type"] !== "application/json") {
+        if (!headers["Content-Type"].includes("application/json")) {
             data = resources;
         }
 
