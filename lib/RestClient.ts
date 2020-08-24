@@ -108,12 +108,12 @@ export class RestClient {
         let headers: ifm.IHeaders = this._headersFromOptions(options, true);
         let data: string;
 
-        if (!headers["Content-Type"].includes("application/json")) {
-            data = resources;
+        if (headers["Content-Type"].includes("application/json")) {
+            data = JSON.stringify(resources, null, 2);
         }
 
         else {
-            data = JSON.stringify(resources, null, 2);
+            data = resources;
         }
 
         let res: httpm.HttpClientResponse = await this.client.post(url, data, headers);
