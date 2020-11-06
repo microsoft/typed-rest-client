@@ -418,6 +418,7 @@ export class HttpClient implements ifm.IHttpClient {
         info.options.port = info.parsedUrl.port ? parseInt(info.parsedUrl.port) : defaultPort;
         info.options.path = (info.parsedUrl.pathname || '') + (info.parsedUrl.search || '');
         info.options.method = method;
+        info.options.timeout = this.requestOptions && this.requestOptions.socketTimeout
 
         info.options.headers = this._mergeHeaders(headers);
         if (this.userAgent != null) {
