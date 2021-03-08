@@ -107,8 +107,17 @@ export async function decompressGzippedContent(buffer: Buffer, charset?: string)
  * @return {RegExp}
  */
 export function buildProxyBypassRegexFromEnv(bypass : string) : RegExp {
-    let wildcardEscaped = bypass.replace('*', '(.*)');
-    return new RegExp(wildcardEscaped, 'i');
+    try {
+        // We need to keep this around for back-compat purposes
+        return new RegExp(bypass, 'i')    
+    }
+    catch(err) {
+        if (err instanceof SyntaxError && (bypass || "").startsWith("*")) {            
+            let wildcardEscaped = bypass.replace('*', '(.*)');
+            return new RegExp(wildcardEscaped, 'i');
+        }
+        throw err;
+    }
 }
 
 /**
