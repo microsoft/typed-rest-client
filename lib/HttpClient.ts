@@ -128,7 +128,7 @@ export class HttpClient implements ifm.IHttpClient {
         if (no_proxy) {
             this._httpProxyBypassHosts = [];
             no_proxy.split(',').forEach(bypass => {
-                this._httpProxyBypassHosts.push(new RegExp(bypass, 'i'));
+                this._httpProxyBypassHosts.push(util.buildProxyBypassRegexFromEnv(bypass));
             });
         }
 

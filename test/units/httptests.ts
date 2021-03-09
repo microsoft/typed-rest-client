@@ -462,3 +462,43 @@ describe('Http Tests with keepAlive', function () {
         assert(res.message.statusCode == 501, "status code should be 501");
     });
 });
+
+describe('Http Tests with NO_PROXY environment variable', function () {
+    let noProxyBeforeTest = undefined;
+    before(() => {
+
+    });
+
+    after(() => {
+
+    });
+
+    beforeEach(() => {
+        noProxyBeforeTest = process.env["NO_PROXY"];
+    });
+
+    afterEach(() => {
+        if (undefined !== noProxyBeforeTest) {
+            process.env["NO_PROXY"] = noProxyBeforeTest;
+        } else {
+            delete process.env["NO_PROXY"];
+        }
+    })
+
+    it('constructs with NO_PROXY', () => {
+        this.timeout(1000);
+        process.env["NO_PROXY"] = "microsoft.com";
+        let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests');
+        assert(http, 'http client should not be null');
+        assert(http.userAgent, 'user-agent should not be null')
+    });
+
+    it('constructs with wildcard in NO_PROXY', () => {
+        this.timeout(1000);
+        process.env["NO_PROXY"] = "*.microsoft.com";
+        let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests');
+        assert(http, 'http client should not be null');
+        assert(http.userAgent, 'user-agent should not be null')
+    });
+
+});
