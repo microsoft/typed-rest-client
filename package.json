@@ -42,6 +42,6 @@
   "dependencies": {
     "qs": "^6.9.1",
     "tunnel": "0.0.6",
-    "underscore": "1.8.3"
+    "underscore": "^1.12.1"
   }
 }
