@@ -99,6 +99,28 @@ export async function decompressGzippedContent(buffer: Buffer, charset?: string)
 }
 
 /**
+ * Builds a RegExp to test urls against for deciding
+ * wether to bypass proxy from an entry of the
+ * environment variable setting NO_PROXY
+ *
+ * @param {string} bypass
+ * @return {RegExp}
+ */
+export function buildProxyBypassRegexFromEnv(bypass : string) : RegExp {
+    try {
+        // We need to keep this around for back-compat purposes
+        return new RegExp(bypass, 'i')    
+    }
+    catch(err) {
+        if (err instanceof SyntaxError && (bypass || "").startsWith("*")) {            
+            let wildcardEscaped = bypass.replace('*', '(.*)');
+            return new RegExp(wildcardEscaped, 'i');
+        }
+        throw err;
+    }
+}
+
+/**
  * Obtain Response's Content Charset.
  * Through inspecting `content-type` response header.
  * It Returns 'utf-8' if NO charset specified/matched.
