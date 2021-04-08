@@ -1,6 +1,6 @@
 {
   "name": "typed-rest-client",
-  "version": "1.8.3",
+  "version": "1.8.4",
   "description": "Node Rest and Http Clients for use with TypeScript",
   "main": "./RestClient.js",
   "scripts": {
@@ -42,6 +42,6 @@
   "dependencies": {
     "qs": "^6.9.1",
     "tunnel": "0.0.6",
-    "underscore": "1.8.3"
+    "underscore": "^1.12.1"
   }
 }
