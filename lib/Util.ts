@@ -109,20 +109,15 @@ export async function decompressGzippedContent(buffer: Buffer, charset?: string)
 export function buildProxyBypassRegexFromEnv(bypass : string) : RegExp {
     let searchRegExpToReplaceSpecialChars = new RegExp('([.])', 'g');
 
-    let safeRegex = bypass.replace(searchRegExpToReplaceSpecialChars, '\\$1').replace('*', '.*?');
+    // replace all the . symbols in string by \. because point is a special character
+    let safeRegex = (bypass || "").replace(searchRegExpToReplaceSpecialChars, '\\$1');
+    
+    // check if expression starts with asterisk and replace it with .*
+    if (safeRegex && safeRegex.startsWith("*")) {
+        safeRegex = safeRegex.replace("*", ".*");
+    }
 
     return new RegExp(safeRegex, 'i');
-    // try {
-    //     // We need to keep this around for back-compat purposes
-    //     return new RegExp(bypass, 'i')    
-    // }
-    // catch(err) {
-    //     if (err instanceof SyntaxError && (bypass || "").startsWith("*")) {            
-    //         let wildcardEscaped = bypass.replace('*', '(.*)');
-    //         return new RegExp(wildcardEscaped, 'i');
-    //     }
-    //     throw err;
-    // }
 }
 
 /**
