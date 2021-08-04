@@ -131,7 +131,7 @@ describe('Http Tests', function () {
             .reply(200, {
                 url: "http://microsoft.com"
             });
-        return new Promise<string | void>(async (resolve, reject) => {
+        return new Promise<string>(async (resolve, reject) => {
             let file: NodeJS.WritableStream = fs.createWriteStream(sampleFilePath);
             (await _http.get('http://microsoft.com')).message.pipe(file).on('close', () => {
                 let body: string = fs.readFileSync(sampleFilePath).toString();
