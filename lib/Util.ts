@@ -115,7 +115,7 @@ export function buildProxyBypassRegexFromEnv(bypass : string) : RegExp {
     }
 
     // replace all . symbols in string by \. because point is a special character
-    var safeRegex = (bypass || "").replace(searchRegExpToReplaceSpecialChars, '\\$1');
+    const safeRegex = (bypass || "").replace(searchRegExpToReplaceSpecialChars, '\\$1');
 
     return new RegExp(safeRegex, 'i');
 }
