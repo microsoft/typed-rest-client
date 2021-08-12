@@ -6,6 +6,7 @@ import * as url from 'url';
 import * as path from 'path';
 import zlib = require('zlib');
 import { IRequestQueryParams, IHttpClientResponse } from './Interfaces';
+import { searchRegExpToReplaceSpecialChars } from './Constants';
 
 /**
  * creates an url from a request url and optional base url (http://server:8080)
@@ -107,17 +108,15 @@ export async function decompressGzippedContent(buffer: Buffer, charset?: string)
  * @return {RegExp}
  */
 export function buildProxyBypassRegexFromEnv(bypass : string) : RegExp {
-    try {
-        // We need to keep this around for back-compat purposes
-        return new RegExp(bypass, 'i')    
+    // check if expression starts with asterisk and replace it with .*
+    if (bypass && bypass.startsWith("*")) {
+        bypass = bypass.replace("*", ".*");
     }
-    catch(err) {
-        if (err instanceof SyntaxError && (bypass || "").startsWith("*")) {            
-            let wildcardEscaped = bypass.replace('*', '(.*)');
-            return new RegExp(wildcardEscaped, 'i');
-        }
-        throw err;
-    }
+
+    // replace all . symbols in string by \. because point is a special character
+    const safeRegex = (bypass || "").replace(searchRegExpToReplaceSpecialChars, '\\$1');
+
+    return new RegExp(safeRegex, 'i');
 }
 
 /**

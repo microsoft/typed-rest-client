@@ -41,6 +41,28 @@ describe('Util Tests', function () {
             assert.equal(bypassed, true);
         });       
 
-    });
+        it('not bypasses if domain pattern starts with .', () => {
+            let regExp = util.buildProxyBypassRegexFromEnv('.intranet');
+            assert(regExp, 'regExp should not be null');
+            let parsedUrl = url.parse("https://keyvault.vault.azure.net/secrets/test-secret1-intranet");
+            let bypassed = regExp.test(parsedUrl.href);
+            assert.equal(bypassed, false);
+        });
 
+        it('bypasses if domain pattern starts with .', () => {
+            let regExp = util.buildProxyBypassRegexFromEnv('.net');
+            assert(regExp, 'regExp should not be null');
+            let parsedUrl = url.parse("https://keyvault.vault.azure.net/secrets/test-secret1-intranet");
+            let bypassed = regExp.test(parsedUrl.href);
+            assert.equal(bypassed, true);
+        });
+
+        it('bypasses if domain pattern starts with . and contains complex domain', () => {
+            let regExp = util.buildProxyBypassRegexFromEnv('.azure.net');
+            assert(regExp, 'regExp should not be null');
+            let parsedUrl = url.parse("https://keyvault.vault.azure.net/secrets/test-secret1-intranet");
+            let bypassed = regExp.test(parsedUrl.href);
+            assert.equal(bypassed, true);
+        });
+    });
 });
