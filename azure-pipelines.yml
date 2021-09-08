@@ -9,11 +9,10 @@ strategy:
     'Node 14': 
       versionSpec: '14.x'
 steps:
-# use node 8.9.1 this is the recommended version for building the typed rest client
 - task: NodeTool@0
   inputs:
     versionSpec: $(versionSpec)
-  displayName: Install node 8.9.1
+  displayName: Install node
 
 # install dependencies
 - script: npm install
