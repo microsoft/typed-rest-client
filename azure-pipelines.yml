@@ -1,9 +1,20 @@
+strategy:
+  matrix:
+    'Node 6': 
+      versionSpec: '6.x'
+    'Node 8': 
+      versionSpec: '8.x'
+    'Node 10': 
+      versionSpec: '10.x'
+    'Node 12': 
+      versionSpec: '12.x'
+    'Node 14': 
+      versionSpec: '14.x'
 steps:
-# use node 8.9.1 this is the recommended version for building the typed rest client
 - task: NodeTool@0
   inputs:
-    versionSpec: "8.9.1"
-  displayName: Install node 8.9.1
+    versionSpec: $(versionSpec)
+  displayName: Install node
 
 # install dependencies
 - script: npm install
@@ -12,25 +23,6 @@ steps:
 # build
 - script: npm run build
   displayName: npm run build
-
-# test using node 8.9.1
-- script: npm run units
-  displayName: npm run units
-
-# test using node 4.8.6
-- task: NodeTool@0
-  inputs:
-    versionSpec: "4.8.6"
-  displayName: Install node 4.8.6
-
-- script: npm run units
-  displayName: npm run units
-
-# test using node 6.12.0
-- task: NodeTool@0
-  inputs:
-    versionSpec: "6.12.0"
-  displayName: Install node 6.12.0
 
 - script: npm run units
   displayName: npm run units
