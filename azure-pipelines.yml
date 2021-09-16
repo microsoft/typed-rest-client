@@ -10,6 +10,7 @@ strategy:
       versionSpec: '12.x'
     'Node 14': 
       versionSpec: '14.x'
+      
 steps:
 - task: NodeTool@0
   inputs:
