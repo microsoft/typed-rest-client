@@ -31,7 +31,7 @@ jobs:
       displayName: npm run test
 
   - job: build_and_publish
-    condition: and(succeeded(), in(variables['publishBuild'], 'true'))
+    condition: and(succeeded(), in(variables['publishBuild'], 'true'), in(dependencies.unit_tests.result, 'Succeeded'))
     steps:
     - task: NodeTool@0
       inputs:
