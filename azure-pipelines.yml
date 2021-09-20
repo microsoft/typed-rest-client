@@ -30,6 +30,7 @@
     displayName: npm run test
 
 - job: Build and publish
+  condition: and(succeeded(), in(variables['publishBuild'], 'true'))
   steps:
   - task: NodeTool@0
     inputs:
@@ -53,5 +54,4 @@
       PathtoPublish: "_build"
       ArtifactName: "drop"
       ArtifactType: "Container"
-    condition: and(succeeded(), in(variables['publishBuild'], 'true'))
     displayName: Publish build artifacts
