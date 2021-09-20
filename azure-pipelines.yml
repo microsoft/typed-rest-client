@@ -1,5 +1,5 @@
 jobs:
-  - job: Unit tests
+  - job: unit_tests
     strategy:
       matrix:
         'Node 6': 
@@ -30,7 +30,7 @@ jobs:
     - script: npm run test
       displayName: npm run test
 
-  - job: Build and publish
+  - job: build_and_publish
     condition: and(succeeded(), in(variables['publishBuild'], 'true'))
     steps:
     - task: NodeTool@0
