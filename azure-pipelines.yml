@@ -35,5 +35,5 @@ steps:
     PathtoPublish: "_build"
     ArtifactName: $(versionSpec)
     ArtifactType: "Container"
-  condition: and(succeeded(), in(variables['build.sourcebranchname'], 'publishBuild'), eq(variables['build.sourcebranchname'], 'master'))
+  condition: and(succeeded(), in(variables['publishBuild'], 'true'))
   displayName: Publish build artifacts
