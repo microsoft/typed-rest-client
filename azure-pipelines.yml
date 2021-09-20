@@ -2,14 +2,14 @@ strategy:
   matrix:
     'Node 6': 
       versionSpec: '6.x'
-    'Node 8': 
-      versionSpec: '8.x'
     'Node 10': 
       versionSpec: '10.x'
     'Node 12': 
       versionSpec: '12.x'
     'Node 14': 
       versionSpec: '14.x'
+    'Node 8': 
+      versionSpec: '8.x'
       
 steps:
 - task: NodeTool@0
@@ -33,7 +33,7 @@ steps:
 - task: PublishBuildArtifacts@1
   inputs:
     PathtoPublish: "_build"
-    ArtifactName: $(versionSpec)
+    ArtifactName: "drop"
     ArtifactType: "Container"
   condition: and(succeeded(), in(variables['publishBuild'], 'true'))
   displayName: Publish build artifacts
