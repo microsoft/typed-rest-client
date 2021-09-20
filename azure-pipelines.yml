@@ -33,6 +33,6 @@ steps:
 - task: PublishBuildArtifacts@1
   inputs:
     PathtoPublish: "_build"
-    ArtifactName: "drop"
+    ArtifactName: $(versionSpec)
     ArtifactType: "Container"
   displayName: Publish build artifacts
