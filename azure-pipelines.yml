@@ -44,12 +44,6 @@ jobs:
     - script: npm run build
       displayName: npm run build
 
-    - script: npm run units
-      displayName: npm run units
-
-    - script: npm run test
-      displayName: npm run test
-
     - task: PublishBuildArtifacts@1
       inputs:
         PathtoPublish: "_build"
