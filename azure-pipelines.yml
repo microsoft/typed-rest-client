@@ -8,18 +8,6 @@ parameters:
       - '10.x'
       - '12.x'
       - '14.x'
-  - name: testSteps
-    type: stepList
-    default: 
-      - task: NodeTool@0
-        inputs:
-          versionSpec: ${{ parameters.versionSpec }}
-        displayName: Install node
-      - script: npm run units
-        displayName: npm run units
-      - script: npm run test
-        displayName: npm run test
-
 jobs:
 #build client on Node 8.x
   - job: build_and_publish
@@ -34,10 +22,21 @@ jobs:
 
     - script: npm run build
       displayName: npm run build
+      
+  #test client on different node versions
+  - ${{each thing in parameters.versionSpec}}:
+    - job: unit_tests
+      steps: 
+      - task: NodeTool@0
+        inputs:
+          versionSpec: ${{ parameters.versionSpec }}
+        displayName: Install node
+      - script: npm run units
+        displayName: npm run units
+      - script: npm run test
+        displayName: npm run test
 
-  - job: unit_tests
-    steps: ${{ parameters.testSteps }}
-
+  #build and publish
   - job: build_and_publish
     dependsOn: unit_tests
     condition: and(succeeded(), eq(dependencies.unit_tests.result, 'Succeeded'), in(variables['publishBuild'], 'true'))
