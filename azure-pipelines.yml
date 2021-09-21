@@ -1,36 +1,43 @@
-strategy:
-  matrix:
-    'Node 6': 
-      versionSpec: '6.x'
-    'Node 8': 
-      versionSpec: '8.x'
-    'Node 10': 
-      versionSpec: '10.x'
-    'Node 12': 
-      versionSpec: '12.x'
-    'Node 14': 
-      versionSpec: '14.x'
-steps:
-- task: NodeTool@0
-  inputs:
-    versionSpec: $(versionSpec)
-  displayName: Install node
+parameters:
+  - name: versionSpec
+    type: object
+    default:
+    - '6.x'
+    - '8.x'
+    - '10.x'
+    - '12.x'
+    - '14.x'
 
-# install dependencies
-- script: npm install
-  displayName: npm install
+jobs:
+  - job: build_test_and_publish
+    displayName: Build, test and publish
+    steps:
+    #build on node 8.x
+    - task: NodeTool@0
+      inputs:
+        versionSpec: '8.x'
+      displayName: Install node
 
-# build
-- script: npm run build
-  displayName: npm run build
+    - script: npm install
+      displayName: npm install
 
-- script: npm run units
-  displayName: npm run units
-
-# publish build artifacts to drop folder so we can use them for release
-- task: PublishBuildArtifacts@1
-  inputs:
-    PathtoPublish: "_build"
-    ArtifactName: "drop"
-    ArtifactType: "Container"
-  displayName: Publish build artifacts
+    - script: npm run build
+      displayName: npm run build
+    #run unit tests on different node versions
+    - ${{ each version in parameters.versionSpec }}:
+      - task: NodeTool@0
+        inputs:
+          versionSpec: ${{ version }}
+        displayName: Install node
+      - script: npm run units
+        displayName: npm run units
+      - script: npm run test
+        displayName: npm run test
+    #publish if needed
+    - task: PublishBuildArtifacts@1
+      condition: and(succeeded(), in(variables['publishBuild'], 'true'))
+      inputs:
+        PathtoPublish: "_build"
+        ArtifactName: "drop"
+        ArtifactType: "Container"
+      displayName: Publish build artifacts

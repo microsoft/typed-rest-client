@@ -1,6 +1,4 @@
 
-<a href="https://github.com/microsoft/typed-rest-client"><img alt="GitHub Actions status" src="https://github.com/microsoft/typed-rest-client/workflows/all-tests/badge.svg"></a>
-
 [![Build Status](https://dev.azure.com/ms/typed-rest-client/_apis/build/status/Microsoft.typed-rest-client?branchName=master)](https://dev.azure.com/ms/typed-rest-client/_build/latest?definitionId=42&branchName=master)
 
 
