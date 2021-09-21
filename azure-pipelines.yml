@@ -25,6 +25,7 @@ jobs:
 
   #test client on different node versions
   - job: unit_tests
+    dependsOn: build
     steps: 
     - ${{ each version in parameters.versionSpec }}:
       - task: NodeTool@0
