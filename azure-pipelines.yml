@@ -1,15 +1,16 @@
 parameters:
   - name: versionSpec
-    type: string    
-    default: 
-      - 6.x
-      - 8.x
-      - 10.x
-      - 12.x
-      - 14.x
+    type: object
+    default:
+    - '6.x'
+    - '8.x'
+    - '10.x'
+    - '12.x'
+    - '14.x'
+
 jobs:
 #build client on Node 8.x
-  - job: build_and_publish
+  - job: build
     steps:
     - task: NodeTool@0
       inputs:
@@ -28,7 +29,7 @@ jobs:
     - ${{ each version in parameters.versionSpec }}:
       - task: NodeTool@0
         inputs:
-          versionSpec: ${{ parameters.versionSpec }}
+          versionSpec: ${{ version }}
         displayName: Install node
       - script: npm run units
         displayName: npm run units
@@ -36,7 +37,7 @@ jobs:
         displayName: npm run test
 
   #build and publish
-  - job: build_and_publish
+  - job: publish
     dependsOn: unit_tests
     condition: and(succeeded(), eq(dependencies.unit_tests.result, 'Succeeded'), in(variables['publishBuild'], 'true'))
     steps:
