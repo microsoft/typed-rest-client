@@ -22,19 +22,19 @@ jobs:
 
     - script: npm run build
       displayName: npm run build
-      
+
   #test client on different node versions
-  - ${{each thing in parameters.versionSpec}}:
     - job: unit_tests
       steps: 
-      - task: NodeTool@0
-        inputs:
-          versionSpec: ${{ parameters.versionSpec }}
-        displayName: Install node
-      - script: npm run units
-        displayName: npm run units
-      - script: npm run test
-        displayName: npm run test
+      - ${{ each version in parameters.versionSpec }}:
+        - task: NodeTool@0
+          inputs:
+            versionSpec: ${{ parameters.versionSpec }}
+          displayName: Install node
+        - script: npm run units
+          displayName: npm run units
+        - script: npm run test
+          displayName: npm run test
 
   #build and publish
   - job: build_and_publish
