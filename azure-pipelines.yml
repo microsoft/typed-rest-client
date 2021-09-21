@@ -31,6 +31,8 @@ jobs:
         inputs:
           versionSpec: ${{ version }}
         displayName: Install node
+      - script: npm install
+        фвв displayName: npm install
       - script: npm run units
         displayName: npm run units
       - script: npm run test
