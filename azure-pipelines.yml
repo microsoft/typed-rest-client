@@ -9,9 +9,10 @@ parameters:
     - '14.x'
 
 jobs:
-#build client on Node 8.x
-  - job: build
+  - job: build_test_and_publish
+    displayName: Build, test and publish
     steps:
+    #build on node 8.x
     - task: NodeTool@0
       inputs:
         versionSpec: '8.x'
@@ -22,11 +23,7 @@ jobs:
 
     - script: npm run build
       displayName: npm run build
-
-  #test client on different node versions
-  - job: unit_tests
-    dependsOn: build
-    steps: 
+    #run unit tests on different node versions
     - ${{ each version in parameters.versionSpec }}:
       - task: NodeTool@0
         inputs:
@@ -38,12 +35,7 @@ jobs:
         displayName: npm run units
       - script: npm run test
         displayName: npm run test
-
-  #build and publish
-  - job: publish
-    dependsOn: unit_tests
-    condition: and(succeeded(), eq(dependencies.unit_tests.result, 'Succeeded'), in(variables['publishBuild'], 'true'))
-    steps:
+    #publish if needed
     - task: PublishBuildArtifacts@1
       condition: and(succeeded(), in(variables['publishBuild'], 'true'))
       inputs:
