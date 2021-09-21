@@ -1,8 +1,7 @@
 parameters:
   - name: versionSpec
-    type: string
-    default: '8.x'
-    values: 
+    type: string    
+    default: 
       - '6.x'
       - '8.x'
       - '10.x'
