@@ -128,7 +128,7 @@ export class HttpClient implements ifm.IHttpClient {
         if (no_proxy) {
             this._httpProxyBypassHosts = [];
             no_proxy.split(',').forEach(bypass => {
-                this._httpProxyBypassHosts.push(new RegExp(bypass, 'i'));
+                this._httpProxyBypassHosts.push(util.buildProxyBypassRegexFromEnv(bypass));
             });
         }
 
@@ -248,7 +248,9 @@ export class HttpClient implements ifm.IHttpClient {
                 response = await this.requestRaw(info, data);
             }
             catch (err) {
-                if(err && err.code && NetworkRetryErrors.indexOf(err.code) > -1){
+                numTries++;
+                if(err && err.code && NetworkRetryErrors.indexOf(err.code) > -1 && numTries < maxTries){
+                    await this._performExponentialBackoff(numTries);
                     continue;
                 }
                 throw err;
@@ -418,6 +420,8 @@ export class HttpClient implements ifm.IHttpClient {
         info.options.port = info.parsedUrl.port ? parseInt(info.parsedUrl.port) : defaultPort;
         info.options.path = (info.parsedUrl.pathname || '') + (info.parsedUrl.search || '');
         info.options.method = method;
+        info.options.timeout = (this.requestOptions && this.requestOptions.socketTimeout) || this._socketTimeout;
+        this._socketTimeout = info.options.timeout;
 
         info.options.headers = this._mergeHeaders(headers);
         if (this.userAgent != null) {
