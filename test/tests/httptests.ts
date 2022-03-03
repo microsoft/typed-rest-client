@@ -9,6 +9,11 @@ import * as path from 'path';
 
 let sampleFilePath: string = path.join(__dirname, 'testoutput.txt');
 
+if (process.version.startsWith('v8')) {
+    console.log('Setting NODE_TLS_REJECT_UNAUTHORIZED = 0 to avoid certificate errors on node 8');
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+}
+
 describe('Http Tests', function () {
     let _http: httpm.HttpClient;
     let _httpbin: httpm.HttpClient;
