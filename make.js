@@ -26,7 +26,7 @@ var enforceMinimumVersions = function () {
 
     // enforce minimum npm version
     // NOTE: We are enforcing this version of npm because we use package-lock.json
-    var minimumNpmVersion = '5.5.1';
+    var minimumNpmVersion = '3.10.10';
     var currentNpmVersion = ncp.execSync('npm -v', { encoding: 'utf-8' });
     if (semver.lt(currentNpmVersion, minimumNpmVersion)) {
         fail('requires npm >= ' + minimumNpmVersion + '.  installed: ' + currentNpmVersion);
