@@ -55,7 +55,7 @@ export class HttpClientResponse implements ifm.IHttpClientResponse {
     public message: http.IncomingMessage;
     readBody(): Promise<string> {
         return new Promise<string>(async (resolve, reject) => {
-            let buffer: Buffer = Buffer.alloc(0);
+            const chunks = [];
             const encodingCharset = util.obtainContentCharset(this);
 
             // Extract Encoding from header: 'content-encoding'
@@ -65,8 +65,9 @@ export class HttpClientResponse implements ifm.IHttpClientResponse {
 
             this.message.on('data', function(data: string|Buffer) {
                 const chunk = (typeof data === 'string') ? Buffer.from(data, encodingCharset) : data;
-                buffer = Buffer.concat([buffer, chunk]);
+                chunks.push(chunk);
             }).on('end', async function() {
+                const buffer: Buffer = Buffer.concat(chunks);
                 if (isGzippedEncoded) { // Process GZipped Response Body HERE
                     const gunzippedBody = await util.decompressGzippedContent(buffer, encodingCharset);
 
