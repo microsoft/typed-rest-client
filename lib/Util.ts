@@ -91,9 +91,9 @@ export async function decompressGzippedContent(buffer: Buffer, charset?: string)
         zlib.gunzip(buffer, function (error, buffer) {
             if (error) {
                 reject(error);
+            } else {
+                resolve(buffer.toString(charset || 'utf-8'));
             }
-
-            resolve(buffer.toString(charset || 'utf-8'));
         });
     })
 }
