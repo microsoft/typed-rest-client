@@ -82,7 +82,8 @@ target.test = function() {
 
     console.log("-------Integration Tests-------");
     run('tsc -p ./test/tests');
-    run('mocha test/tests');
+    // Increases timeout for each test, which fixes flaky errors in integration tests.
+    run('mocha test/tests --timeout 60000');
 }
 
 //Deprecated since we automatically build in units before testing, keeping for back compat
