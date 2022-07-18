@@ -71,11 +71,9 @@ or
 set NODE_DEBUG=http
 ```
 
-
-
 ## Node support
 
-The typed-rest-client is built using the latest LTS version of Node 8. We also support the latest LTS for Node 4 and Node 6.
+The typed-rest-client is built using the latest LTS version of Node 8. We also support the latest LTS for Node 6 and newer.
 
 ## Contributing
 
