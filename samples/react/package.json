@@ -7,7 +7,7 @@
     "react": "16.5.0",
     "react-dom": "16.5.0",
     "react-scripts": "1.1.5",
-    "typed-rest-client": "file:../_build"
+    "typed-rest-client": "file:../../_build"
   },
   "devDependencies": {
     "typescript": "2.4.2",
