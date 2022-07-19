@@ -1,24 +1,17 @@
 {
-  "name": "typed-rest-client-samples",
+  "name": "typed-rest-client-react-sample",
   "version": "1.0.0",
-  "description": "Typed Rest Client Samples",
-  "main": "samples.js",
+  "description": "Typed Rest Client React Sample",
+  "private": true,
   "dependencies": {
     "react": "16.5.0",
     "react-dom": "16.5.0",
     "react-scripts": "1.1.5",
     "typed-rest-client": "file:../../_build"
   },
-  "devDependencies": {
-    "typescript": "2.4.2",
-    "node": "^8.0.19",
-    "@types/node": "^8.0.19",
-    "q": "1.5.1",
-    "@types/q": "1.0.5"
-  },
+  "devDependencies": {},
   "scripts": {
-    "react": "react-scripts start",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "react-scripts start"
   },
   "author": "Microsoft Corporation",
   "license": "MIT"
