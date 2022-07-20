@@ -1,19 +1,17 @@
 import * as rm from 'typed-rest-client/RestClient';
-import * as fs from 'fs';
-import * as path from 'path';
 import * as cm from './common';
 
 let baseUrl: string = 'https://httpbin.org';
-let restc: rm.RestClient = new rm.RestClient('rest-samples', 
+let restc: rm.RestClient = new rm.RestClient('rest-samples',
                                              baseUrl);
 
 export async function run() {
-    
+
     try {
         cm.banner('Rest Samples');
 
         //
-        // Get Resource: strong typing of resource(s) via generics.  
+        // Get Resource: strong typing of resource(s) via generics.
         // In this case httpbin.org has a response structure
         // response.result carries the resource(s)
         //
@@ -31,7 +29,7 @@ export async function run() {
         let hello: HelloObj = <HelloObj>{ message: "Hello World!" };
         let options: rm.IRequestOptions = cm.httpBinOptions();
 
-        cm.heading('create rest obj'); 
+        cm.heading('create rest obj');
         let hres: rm.IRestResponse<HelloObj> = await restc.create<HelloObj>('/post', hello, options);
         console.log(hres.result);
 
