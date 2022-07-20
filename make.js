@@ -92,12 +92,9 @@ target.buildtest = function() {
 }
 
 target.samples = function () {
-    pushd('samples');
-    run('npm install ../_build');
-    run('tsc');
-    run('node samples.js');
+    pushd('samples/basic');
     run('npm install');
-    run('npm run react');
+    run('npm start');
     popd();
     console.log('done');
 }
