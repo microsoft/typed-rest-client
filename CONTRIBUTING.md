@@ -15,7 +15,7 @@ $ npm run build
 
 ## Test
 
-You should test with node 6.x and 8.x LTS.  We recommend using nvm ([linux](https://github.com/creationix/nvm) / [windows](https://github.com/coreybutler/nvm-windows))
+You should test with node 6.x, 8.x and 16.x LTS.  We recommend using nvm ([linux](https://github.com/creationix/nvm) / [windows](https://github.com/coreybutler/nvm-windows))
 
 ```
 npm test
