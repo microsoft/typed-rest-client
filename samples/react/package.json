@@ -4,15 +4,41 @@
   "description": "Typed Rest Client React Sample",
   "private": true,
   "dependencies": {
+    "assert": "^2.0.0",
+    "browserify-zlib": "^0.2.0",
+    "buffer": "^6.0.3",
+    "https-browserify": "^1.0.0",
+    "path-browserify": "^1.0.1",
     "react": "16.5.0",
     "react-dom": "16.5.0",
     "react-scripts": "^5.0.1",
-    "typed-rest-client": "file:../../_build"
+    "stream-browserify": "^3.0.0",
+    "stream-http": "^3.2.0",
+    "typed-rest-client": "file:../../_build",
+    "url": "^0.11.0",
+    "util": "^0.12.4"
   },
-  "devDependencies": {},
   "scripts": {
-    "start": "react-scripts start"
+    "start": "react-app-rewired start",
+    "build": "react-app-rewired build"
   },
   "author": "Microsoft Corporation",
-  "license": "MIT"
+  "license": "MIT",
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "process": "^0.11.10",
+    "react-app-rewired": "^2.2.1",
+    "webpack": "^5.73.0"
+  }
 }
