@@ -4,7 +4,7 @@
 import React from 'react';
 import { ClassExample } from './ClassExample';
 
-function App() {
+function App(): JSX.Element {
     return (
         <div className='app'>
             <ClassExample />

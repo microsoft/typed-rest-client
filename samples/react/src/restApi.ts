@@ -8,11 +8,11 @@ export async function exampleGetWithRest() {
     const client = new restc.RestClient('vsts-node-api');
 
     try {
-        const response = await client.get('https://httpbin.org/get');
+        const response = await client.get<any>('https://httpbin.org/get');
 
         result = 'Received response from: ' + response.result.url + ' using REST client'
     }
-    catch (e) {
+    catch (e: any) {
         result = 'REST client request failed with reason: ' + e.toString();
     }
 

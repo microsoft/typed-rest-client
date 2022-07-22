@@ -14,7 +14,7 @@ export async function exampleGetWithHttp() {
 
         result = 'Received response from: ' + json.url + ' using HTTP client'
     }
-    catch (e) {
+    catch (e: any) {
         result = 'HTTP client request failed with reason: ' + e.toString();
     }
 

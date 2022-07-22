@@ -8,7 +8,7 @@ module.exports = function override(config, env) {
 
     config.resolve = {
         ...config.resolve,
-        extensions: ['.ts', '.js'],
+        extensions: ['.ts', '.js', '.jsx', '.tsx'],
         fallback: {
             fs: false,
             "http": require.resolve("stream-http"),
