@@ -10,6 +10,8 @@ It uses `react-scripts` library (basically, it's a `webpack` under the hood) to 
 
 It requires `nodejs` >= `14.x` to run.
 
+It's recommended to use `npm 8.x` to in order to minimize the friction between package-lock formatting.
+
 ## Usage
 
 To run this sample, enter following commands at the command line:
