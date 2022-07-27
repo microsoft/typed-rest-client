@@ -2,8 +2,16 @@
   "name": "nodejs-web-app",
   "version": "0.0.0",
   "description": "NodejsWebApp",
-  "main": "server.js",
+  "private": true,
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "start": "node build/server.js"
+  },
+  "dependencies": {
+    "typed-rest-client": "file:../../_build"
+  },
   "devDependencies": {
-    "@types/node": "8.0.14"
+    "@types/node": "^10.17.60",
+    "typescript": "^4.0.2"
   }
 }

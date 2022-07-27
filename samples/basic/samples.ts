@@ -11,7 +11,7 @@ async function run() {
     catch (err) {
         console.error('Failed');
         console.error(err.message);
-    }  
+    }
 }
 
 run();

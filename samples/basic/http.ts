@@ -36,10 +36,10 @@ export async function run() {
             proxyUrl: cm.getEnv('PROXY_URL'),
             proxyUsername: cm.getEnv('PROXY_USERNAME'),
             proxyPassword: cm.getEnv('PROXY_PASSWORD'),
-            proxyBypassHosts: cm.getEnv('PROXY_BYPASS_HOSTS') ? cm.getEnv('PROXY_BYPASS_HOSTS').split(', ') : null
+            proxyBypassHosts: cm.getEnv('PROXY_BYPASS_HOSTS') ? cm.getEnv('PROXY_BYPASS_HOSTS').split(', ') : undefined
         }
         if (proxySettings.proxyUrl) {
-            httpc = new httpm.HttpClient('vsts-node-api', null, { proxy: proxySettings });
+            httpc = new httpm.HttpClient('vsts-node-api', undefined, { proxy: proxySettings });
             body = await (await httpc.get('https://httpbin.org/get')).readBody();
             cm.outputHttpBinResponse(body);
         }
@@ -51,7 +51,7 @@ export async function run() {
         // Http get request disabling redirects
         //
         cm.heading('get request disabling redirects');
-        httpc = new httpm.HttpClient('vsts-node-api', null, { allowRedirects: false });
+        httpc = new httpm.HttpClient('vsts-node-api', undefined, { allowRedirects: false });
         res = await httpc.get("http://httpbin.org/redirect-to?url=" + encodeURIComponent("http://httpbin.org/get"))
         body = await res.readBody();
         cm.outputHttpBinResponse(body, res.message);

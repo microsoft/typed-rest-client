@@ -1,6 +1,5 @@
 import * as hm from 'typed-rest-client/Handlers'
 import * as cm from './common';
-import * as httpm from 'typed-rest-client/HttpClient';
 
 export async function run() {
     cm.banner('Handler Samples');

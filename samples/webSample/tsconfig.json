@@ -3,7 +3,9 @@
     "module": "commonjs",
     "target": "es6",
     "lib": ["es6"],
-    "sourceMap": true
+    "sourceMap": true,
+    "outDir": "build",
+    "esModuleInterop": true
   },
   "exclude": [
     "node_modules"

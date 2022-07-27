@@ -1,4 +1,4 @@
-import http = require("http");
+import * as http from "http";
 import * as restm from 'typed-rest-client/RestClient';
 
 // using httpbin.org.
