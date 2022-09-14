@@ -238,7 +238,7 @@ describe('Rest Tests', function () {
         catch(err) {
             assert(err['statusCode'] == 500, "statusCode should be 500");
             assert(err.message && err.message.length > 0, "should have error message");
-            assert(err['responseHeaders'], "err must contain responseHeaders" + err['responseHeaders']);
+            assert(err['responseHeaders'], "err must contain responseHeaders");
         }
     });
 
