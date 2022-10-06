@@ -257,6 +257,10 @@ export class RestClient {
                     err['result'] = response.result;
                 }
 
+                if (response.headers) {
+                    err['responseHeaders'] = response.headers;
+                }
+
                 reject(err);
             } else {
                 resolve(response);
