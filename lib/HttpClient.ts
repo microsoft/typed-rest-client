@@ -125,7 +125,10 @@ export class HttpClient implements ifm.IHttpClient {
     constructor(userAgent: string | null | undefined, handlers?: ifm.IRequestHandler[], requestOptions?: ifm.IRequestOptions) {
         this.userAgent = userAgent;
         this.handlers = handlers || [];
-        let no_proxy: string = process.env[EnvironmentVariables.NO_PROXY];
+        let no_proxy: string = process.env[EnvironmentVariables.NO_PROXY]
+        if (!no_proxy) {
+            no_proxy = process.env[EnvironmentVariables.NO_PROXY.toLowerCase()];
+        }
         if (no_proxy) {
             this._httpProxyBypassHosts = [];
             no_proxy.split(',').forEach(bypass => {
@@ -552,7 +555,13 @@ export class HttpClient implements ifm.IHttpClient {
 
         // fallback to http_proxy and https_proxy env
         let https_proxy: string = process.env[EnvironmentVariables.HTTPS_PROXY];
+        if (!https_proxy) {
+            https_proxy = process.env[EnvironmentVariables.HTTPS_PROXY.toLowerCase()];
+        }
         let http_proxy: string = process.env[EnvironmentVariables.HTTP_PROXY];
+        if (!http_proxy) {
+            http_proxy = process.env[EnvironmentVariables.HTTP_PROXY.toLowerCase()];
+        }
 
         if (!proxyConfig) {
             if (https_proxy && usingSsl) {
