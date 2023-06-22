@@ -14,8 +14,8 @@ parameters:
 
 jobs:
 - ${{ each nodeVersion in parameters.versionSpec }}:
-  - job: build_test_and_publish
-    displayName: Build, test and publish {{ nodeVersion }}
+  - job: build_test_and_publish_${{ nodeVersion }}
+    displayName: Build, test and publish ${{ nodeVersion }}
     steps:
       - script: echo {{ nodeVersion }}
     # steps:
