@@ -14,8 +14,8 @@ parameters:
 
 jobs:
 - ${{ each version in parameters.versionSpec }}:
-  - job: build_test_and_publish
-    displayName: Build, test and publish
+  - job: build_test_and_publish_${{ version }}
+    displayName: Build, test and publish ${{ version }}
     steps:
     #build on node 8.x
     - task: NodeTool@0
@@ -28,16 +28,16 @@ jobs:
 
     - script: npm run build
       displayName: npm run build
+
     #run unit tests on different node versions
-    - ${{ each version in parameters.versionSpec }}:
-      - task: NodeTool@0
-        inputs:
-          versionSpec: ${{ version }}.x
-        displayName: Install node
-      - script: npm run units
-        displayName: npm run units
-      - script: npm run test
-        displayName: npm run test
+    - task: NodeTool@0
+      inputs:
+        versionSpec: ${{ version }}.x
+      displayName: Install node
+    - script: npm run units
+      displayName: npm run units
+    - script: npm run test
+      displayName: npm run test
     # #publish if needed
     # - task: PublishBuildArtifacts@1
     #   condition: and(succeeded(), in(variables['publishBuild'], 'true'))
