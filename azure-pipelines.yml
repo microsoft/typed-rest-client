@@ -2,20 +2,22 @@ pool:
   vmImage: ubuntu-20.04
 
 parameters:
-  - name: versionSpec
-    type: object
-    default:
-    - '6'
-    - '8'
-    - '10'
-    - '12'
-    - '14'
-    - '16'
+- name: versionSpec
+  type: object
+  default:
+  - '6'
+  - '8'
+  - '10'
+  - '12'
+  - '14'
+  - '16'
 
-jobs:
-- ${{ each nodeVersion in parameters.versionSpec }}:
-  - job: Node_${{ nodeVersion }}
-    displayName: Node.js ${{ nodeVersion }}
+stages:
+- stage: Build
+  displayName: Build typed-rest-client
+  jobs:
+  - job: Build_and_Publish
+    displayName: Build and Publish artifact
     steps:
     #build on node 8.x
     - task: NodeTool@0
@@ -29,22 +31,49 @@ jobs:
     - script: npm run build
       displayName: npm run build
 
-    #run unit tests on different node versions
-    - task: NodeTool@0
+    #publish if needed
+    # - task: PublishBuildArtifacts@1
+    #   condition: and(succeeded(), in(variables['publishBuild'], 'true'))
+    #   inputs:
+    #     PathtoPublish: "_build"
+    #     ArtifactName: "drop"
+    #     ArtifactType: "Container"
+    #   displayName: Publish build artifacts
+
+    - task: PublishPipelineArtifact@1
       inputs:
-        versionSpec: ${{ nodeVersion }}.x
-      displayName: Install node ${{ nodeVersion }}
-    - script: npm run units
-      displayName: npm run units
-    - script: npm run test
-      displayName: npm run test
-    
-    - ${{ if eq(nodeVersion , 8) }}:
-      #publish if needed
-      - task: PublishBuildArtifacts@1
-        condition: and(succeeded(), in(variables['publishBuild'], 'true'))
-        inputs:
-          PathtoPublish: "_build"
-          ArtifactName: "drop"
-          ArtifactType: "Container"
-        displayName: Publish build artifacts
+        targetPath: _build
+        artifactType: pipeline
+        artifactName: _build
+
+    - task: DownloadPipelineArtifact@2
+      inputs:
+        artifact: _build
+        path: $(Build.SourcesDirectory)/samples
+
+    - script: |
+        cd $(Build.SourcesDirectory)/samples
+        ls
+
+# - stage: Test
+#   jobs:
+#   - ${{ each nodeVersion in parameters.versionSpec }}:
+#     - job: Node_${{ nodeVersion }}
+#       displayName: Node.js ${{ nodeVersion }}
+#       steps:
+#       - task: DownloadBuildArtifacts@1
+#         inputs:
+#           buildType: 'current'
+#           downloadType: 'single'
+#           artifactName: # string. Required when downloadType == single. Artifact name. 
+#           #itemPattern: '**' # string. Matching pattern. Default: **.
+#           downloadPath: '$(System.ArtifactsDirectory)' 
+#       #run unit tests on different node versions
+#       - task: NodeTool@0
+#         inputs:
+#           versionSpec: ${{ nodeVersion }}.x
+#         displayName: Install node ${{ nodeVersion }}
+#       - script: npm run units
+#         displayName: npm run units
+#       - script: npm run test
+#         displayName: npm run test
