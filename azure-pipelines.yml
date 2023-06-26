@@ -50,6 +50,7 @@ stages:
       inputs:
         artifact: _build
         path: $(Build.SourcesDirectory)/_build2
+        patterns: '!package-lock.json'
 
     - script: |
         cd $(Build.SourcesDirectory)/_build2
