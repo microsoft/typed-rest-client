@@ -37,12 +37,12 @@ stages:
 
 # run unit tests on different platforms and node versions
 - stage: Test
-  displayName: Test package
+  displayName: Test typed-rest-client
   jobs:
   - ${{ each image in parameters.imageList }}:
     - ${{ each nodeVersion in parameters.nodeVersionList }}:
       - job: Node_os_${{ nodeVersion }}_${{ replace(image,'-','_') }}
-        displayName: Node.js ${{ nodeVersion }} on {{ image }}
+        displayName: Node.js ${{ nodeVersion }} on ${{ image }}
         pool:
           vmImage: ${{ image }}
         steps:
