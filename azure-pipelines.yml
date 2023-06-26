@@ -58,6 +58,9 @@ stages:
           path: $(Build.SourcesDirectory)/_build
           patterns: '!package-lock.json' #Exclude package-lock.json
 
+      - script: npm install
+        displayName: npm install
+
       #run unit tests on different node versions
       - task: NodeTool@0
         inputs:
