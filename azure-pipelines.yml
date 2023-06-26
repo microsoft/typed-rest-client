@@ -49,7 +49,7 @@ stages:
   jobs:
   - ${{ each image in parameters.imageList }}:
     - ${{ each nodeVersion in parameters.nodeVersionList }}:
-      - job: Node_os_${{ nodeVersion }}
+      - job: Node_os_${{ nodeVersion }}_${{ image }}
         displayName: Node.js ${{ nodeVersion }} on {{ image }}
         pool:
           vmImage: ${{ image }}
