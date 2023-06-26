@@ -9,13 +9,6 @@ import * as path from 'path';
 
 let sampleFilePath: string = path.join(__dirname, 'testoutput.txt');
 
-// const nodeVersionsWithCertificateErrors = [6, 8];
-// let redirectProtocol = 'https';
-// if (nodeVersionsWithCertificateErrors.find((nodeVersion) => process.version.startsWith(`v${nodeVersion}.`))) {
-//     console.log('Using protocol HTTP for redirect tests to avoid certificate errors on this node version');
-//     redirectProtocol = 'http';
-// }
-
 describe('Http Tests', function () {
     let _http: httpm.HttpClient;
     let _httpbin: httpm.HttpClient;
