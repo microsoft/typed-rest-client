@@ -49,10 +49,10 @@ stages:
     - task: DownloadPipelineArtifact@2
       inputs:
         artifact: _build
-        path: $(Build.SourcesDirectory)/samples
+        path: $(Build.SourcesDirectory)/_build2
 
     - script: |
-        cd $(Build.SourcesDirectory)/samples
+        cd $(Build.SourcesDirectory)/_build2
         ls
 
 # - stage: Test
