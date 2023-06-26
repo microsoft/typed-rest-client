@@ -1,19 +1,11 @@
 parameters:
 - name: nodeVersionList
   type: object
-  default:
-  - '6'
-  - '8'
-  - '10'
-  - '12'
-  - '14'
-  - '16'
+  default: [ 6, 8, 10, 12, 14, 16]
 
 - name: imageList
   type: object
-  default:
-  - 'windows-latest'
-  - 'ubuntu-latest'
+  default: ['windows-latest', 'ubuntu-latest']
 
 stages:
 - stage: Build
@@ -49,7 +41,7 @@ stages:
   jobs:
   - ${{ each image in parameters.imageList }}:
     - ${{ each nodeVersion in parameters.nodeVersionList }}:
-      - job: Node_os_${{ nodeVersion }}_${{ image }}
+      - job: Node_os_${{ nodeVersion }}_${{ replace(image,'-','_') }}
         displayName: Node.js ${{ nodeVersion }} on {{ image }}
         pool:
           vmImage: ${{ image }}
