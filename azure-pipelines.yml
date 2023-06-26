@@ -1,47 +1,68 @@
-pool:
-  vmImage: ubuntu-20.04
-
 parameters:
-  - name: versionSpec
+  - name: nodeVersionList
     type: object
-    default:
-    - '6.x'
-    - '8.x'
-    - '10.x'
-    - '12.x'
-    - '14.x'
-    - '16.x'
+    default: [6, 8, 10, 12, 14, 16]
 
-jobs:
-  - job: build_test_and_publish
-    displayName: Build, test and publish
-    steps:
-    #build on node 8.x
-    - task: NodeTool@0
-      inputs:
-        versionSpec: '8.x'
-      displayName: Install node
+  - name: imageList
+    type: object
+    default: ['windows-latest', 'ubuntu-latest']
 
-    - script: npm install
-      displayName: npm install
+stages:
+  - stage: Build
+    displayName: Build typed-rest-client
+    jobs:
+      - job: Build_and_Publish
+        displayName: Build and Publish artifact
+        pool:
+          vmImage: 'ubuntu-20.04'
+        steps:
+          #build on node 8.x
+          - task: NodeTool@0
+            inputs:
+              versionSpec: '8.x'
+            displayName: Install node 8
 
-    - script: npm run build
-      displayName: npm run build
-    #run unit tests on different node versions
-    - ${{ each version in parameters.versionSpec }}:
-      - task: NodeTool@0
-        inputs:
-          versionSpec: ${{ version }}
-        displayName: Install node
-      - script: npm run units
-        displayName: npm run units
-      - script: npm run test
-        displayName: npm run test
-    #publish if needed
-    - task: PublishBuildArtifacts@1
-      condition: and(succeeded(), in(variables['publishBuild'], 'true'))
-      inputs:
-        PathtoPublish: "_build"
-        ArtifactName: "drop"
-        ArtifactType: "Container"
-      displayName: Publish build artifacts
+          - script: npm install
+            displayName: npm install
+
+          - script: npm run build
+            displayName: npm run build
+
+          - task: PublishPipelineArtifact@1
+            displayName: Publish _build artifact
+            inputs:
+              targetPath: _build
+              artifactType: pipeline
+              artifactName: _build
+
+  # run unit tests on different platforms and node versions
+  - stage: Test
+    displayName: Test typed-rest-client
+    jobs:
+      - ${{ each image in parameters.imageList }}:
+          - ${{ each nodeVersion in parameters.nodeVersionList }}:
+              - job: Node_os_${{ nodeVersion }}_${{ replace(image,'-','_') }}
+                displayName: Node.js ${{ nodeVersion }} on ${{ image }}
+                pool:
+                  vmImage: ${{ image }}
+                steps:
+                  - task: DownloadPipelineArtifact@2
+                    displayName: Download built typed-rest-client package
+                    inputs:
+                      artifact: _build
+                      path: $(Build.SourcesDirectory)/_build
+                      patterns: '!package-lock.json' #Exclude package-lock.json
+
+                  - script: npm install
+                    displayName: npm install
+
+                  - task: NodeTool@0
+                    inputs:
+                      versionSpec: ${{ nodeVersion }}.x
+                    displayName: Install node ${{ nodeVersion }}
+
+                  - script: npm run units
+                    displayName: npm run units
+
+                  - script: npm run test
+                    displayName: npm run test
