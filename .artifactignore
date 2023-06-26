@@ -1,2 +1,2 @@
-node_modules/
-package-lock.json
+_build/node_modules/
+_build/package-lock.json
