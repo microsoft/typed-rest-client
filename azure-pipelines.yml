@@ -90,5 +90,5 @@ stages:
               command: publish
               workingDir: '_build'
               publishRegistry: useExternalRegistry
-              publishEndpoint: NPM-Automation-Token-test
+              publishEndpoint: NPM-Automation-Token
             continueOnError: true 
