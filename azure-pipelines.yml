@@ -1,5 +1,5 @@
 variables:
-  isMaster: $[eq(variables['Build.SourceBranch'], 'refs/heads/users/max-zaytsev/test-npm-task')]
+  isMaster: $[eq(variables['Build.SourceBranch'], 'users/max-zaytsev/test-npm-task')]
 
 parameters:
   - name: nodeVersionList
