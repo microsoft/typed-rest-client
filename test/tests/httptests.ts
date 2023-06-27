@@ -9,13 +9,6 @@ import * as path from 'path';
 
 let sampleFilePath: string = path.join(__dirname, 'testoutput.txt');
 
-const nodeVersionsWithCertificateErrors = [6, 8];
-let redirectProtocol = 'https';
-if (nodeVersionsWithCertificateErrors.find((nodeVersion) => process.version.startsWith(`v${nodeVersion}.`))) {
-    console.log('Using protocol HTTP for redirect tests to avoid certificate errors on this node version');
-    redirectProtocol = 'http';
-}
-
 describe('Http Tests', function () {
     let _http: httpm.HttpClient;
     let _httpbin: httpm.HttpClient;
@@ -186,30 +179,30 @@ describe('Http Tests', function () {
     });
     
     it('does basic get request with redirects', async() => {
-        let res: httpm.HttpClientResponse = await _http.get(`${redirectProtocol}://httpbingo.org/redirect-to?url=` + encodeURIComponent("https://httpbin.org/get"))
+        let res: httpm.HttpClientResponse = await _http.get(`https://httpbin.org/redirect-to?url=` + encodeURIComponent("https://httpbin.org/anything"))
         assert(res.message.statusCode == 200, "status code should be 200");
         let body: string = await res.readBody();
         let obj:any = JSON.parse(body);
-        assert(obj.url === "https://httpbin.org/get");
+        assert(obj.url === "https://httpbin.org/anything");
     });
 
     it('does basic get request with redirects (303)', async() => {
-        let res: httpm.HttpClientResponse = await _http.get(`${redirectProtocol}://httpbingo.org/redirect-to?url=` + encodeURIComponent("https://httpbin.org/get") + '&status_code=303')
+        let res: httpm.HttpClientResponse = await _http.get(`https://httpbin.org/redirect-to?url=` + encodeURIComponent("https://httpbin.org/anything") + '&status_code=303')
         assert(res.message.statusCode == 200, "status code should be 200");
         let body: string = await res.readBody();
         let obj:any = JSON.parse(body);
-        assert(obj.url === "https://httpbin.org/get");
+        assert(obj.url === "https://httpbin.org/anything");
     });
 
     it('returns 404 for not found get request on redirect', async() => {
-        let res: httpm.HttpClientResponse = await _http.get(`${redirectProtocol}://httpbingo.org/redirect-to?url=` + encodeURIComponent("https://httpbin.org/status/404") + '&status_code=303')
+        let res: httpm.HttpClientResponse = await _http.get(`https://httpbin.org/redirect-to?url=` + encodeURIComponent("https://httpbin.org/status/404") + '&status_code=303')
         assert(res.message.statusCode == 404, "status code should be 404");
         let body: string = await res.readBody();
     });
 
     it('does not follow redirects if disabled', async() => {
         let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests', null, { allowRedirects: false });
-        let res: httpm.HttpClientResponse = await http.get(`${redirectProtocol}://httpbingo.org/redirect-to?url=` + encodeURIComponent("https://httpbin.org/get"))
+        let res: httpm.HttpClientResponse = await http.get(`https://httpbin.org/redirect-to?url=` + encodeURIComponent("https://httpbin.org/anything"))
         assert(res.message.statusCode == 302, "status code should be 302");
         let body: string = await res.readBody();
     });
