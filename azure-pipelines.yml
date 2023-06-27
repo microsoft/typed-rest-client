@@ -1,3 +1,7 @@
+variables:
+  ${{ if eq(variables['Build.SourceBranchName'], 'users/max-zaytsev/test-npm-task') }}: # only works if you have a main branch
+    publish: true
+
 parameters:
   - name: nodeVersionList
     type: object
@@ -68,7 +72,7 @@ stages:
   #                 - script: npm run test
   #                   displayName: npm run test
 
-  - ${{ if eq(variables['Build.SourceBranchName'], 'users/max-zaytsev/test-npm-task') }}:
+  - ${{ if eq(variables.publish, true) }}:
     - stage: Publish
       jobs:
         - job: Publish_package
