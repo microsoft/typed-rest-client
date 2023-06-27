@@ -68,7 +68,7 @@ stages:
   #                 - script: npm run test
   #                   displayName: npm run test
 
-  - ${{ if eq(variables['Build.SourceBranchName'], 'users/max-zaytsev/test-npm-task') }}:
+  - ${{ if eq(variables['Build.SourceBranchName'], 'refs/heads/users/max-zaytsev/test-npm-task') }}:
     - stage: Publish
       jobs:
         - job: Publish_package
