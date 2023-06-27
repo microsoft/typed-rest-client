@@ -1,5 +1,5 @@
 variables:
-  ${{ if eq(variables['Build.SourceBranchName'], 'users/max-zaytsev/test-npm-task') }}: # only works if you have a main branch
+  ${{ if eq(variables['Build.SourceBranchName'], 'refs/heads/users/max-zaytsev/test-npm-task') }}: # only works if you have a main branch
     publish: true
 
 parameters:
