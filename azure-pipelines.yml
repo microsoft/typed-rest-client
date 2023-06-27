@@ -28,13 +28,6 @@ stages:
           - script: npm run build
             displayName: npm run build
 
-          - task: Npm@1
-            inputs:
-              command: publish
-              workingDir: '_build'
-              publishRegistry: useExternalRegistry
-              publishEndpoint: NPM-Automation-Token-test
-
           - task: PublishPipelineArtifact@1
             displayName: Publish _build artifact
             inputs:
@@ -75,20 +68,20 @@ stages:
   #                 - script: npm run test
   #                   displayName: npm run test
 
-  # - stage: Publish
-  #   jobs:
-  #     - job: Publish_package
-  #       steps:
-  #         - task: DownloadPipelineArtifact@2
-  #           displayName: Download built typed-rest-client package
-  #           inputs:
-  #             artifact: _build
-  #             path: $(Build.SourcesDirectory)/_build
-  #             patterns: '!package-lock.json' #Exclude package-lock.json
+  - stage: Publish
+    jobs:
+      - job: Publish_package
+        steps:
+          - task: DownloadPipelineArtifact@2
+            displayName: Download built typed-rest-client package
+            inputs:
+              artifact: _build
+              path: $(Build.SourcesDirectory)/_build
 
-  #         - task: Npm@1
-  #           inputs:
-  #             command: publish
-  #             workingDir: '_build'
-  #             publishRegistry: useExternalRegistry
-  #             publishEndpoint: NPM-Automation-Token-test
+          - task: Npm@1
+            displayName: Publish typed-rest-client to npm
+            inputs:
+              command: publish
+              workingDir: '_build'
+              publishRegistry: useExternalRegistry
+              publishEndpoint: NPM-Automation-Token-test
