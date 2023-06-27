@@ -1,6 +1,6 @@
 variables:
-  ${{ if eq(variables['Build.SourceBranchName'], 'refs/heads/users/max-zaytsev/test-npm-task') }}: # only works if you have a main branch
-    publish: true
+  isMaster: $[eq(variables['Build.SourceBranch'], 'refs/heads/master')]
+  isRelease: $[startsWith(variables['Build.SourceBranch'], 'refs/heads/users/max-zaytsev/test-npm-task')]
 
 parameters:
   - name: nodeVersionList
@@ -72,23 +72,23 @@ stages:
   #                 - script: npm run test
   #                   displayName: npm run test
 
-  - ${{ if eq(variables.publish, true) }}:
-    - stage: Publish
-      jobs:
-        - job: Publish_package
-          displayName: Publish npm package
-          steps:
-            - task: DownloadPipelineArtifact@2
-              displayName: Download built typed-rest-client package
-              inputs:
-                artifact: _build
-                path: $(Build.SourcesDirectory)/_build
+  - stage: Publish
+    jobs:
+      - job: Publish_package
+        displayName: Publish npm package
+        condition: eq(variables.isRelease, true)
+        steps:
+          - task: DownloadPipelineArtifact@2
+            displayName: Download built typed-rest-client package
+            inputs:
+              artifact: _build
+              path: $(Build.SourcesDirectory)/_build
 
-            - task: Npm@1
-              displayName: Publish typed-rest-client to npm
-              inputs:
-                command: publish
-                workingDir: '_build'
-                publishRegistry: useExternalRegistry
-                publishEndpoint: NPM-Automation-Token-test
-              continueOnError: true 
+          - task: Npm@1
+            displayName: Publish typed-rest-client to npm
+            inputs:
+              command: publish
+              workingDir: '_build'
+              publishRegistry: useExternalRegistry
+              publishEndpoint: NPM-Automation-Token-test
+            continueOnError: true 
