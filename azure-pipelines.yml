@@ -1,6 +1,3 @@
-variables:
-  isMaster: $[eq(variables['Build.SourceBranch'], 'users/max-zaytsev/test-npm-task')]
-
 parameters:
   - name: nodeVersionList
     type: object
@@ -72,6 +69,7 @@ stages:
   #                   displayName: npm run test
 
   - ${{ if eq(variables['isMaster'], 'true') }}:
+  - ${{ if eq(variables['Build.SourceBranchName'], 'users/max-zaytsev/test-npm-task') }}:
     - stage: Publish
       jobs:
         - job: Publish_package
