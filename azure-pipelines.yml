@@ -72,10 +72,10 @@ stages:
                     displayName: npm run test
 
   - stage: Publish
+    condition: or(eq(variables.isRelease, true), eq(variables.isMaster, true))
     jobs:
       - job: Publish_package
         displayName: Publish npm package
-        condition: or(eq(variables.isRelease, true), eq(variables.isMaster, true))
         steps:
           - task: DownloadPipelineArtifact@2
             displayName: Download built typed-rest-client package
