@@ -68,7 +68,6 @@ stages:
   #                 - script: npm run test
   #                   displayName: npm run test
 
-  - ${{ if eq(variables['isMaster'], 'true') }}:
   - ${{ if eq(variables['Build.SourceBranchName'], 'users/max-zaytsev/test-npm-task') }}:
     - stage: Publish
       jobs:
