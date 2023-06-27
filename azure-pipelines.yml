@@ -1,3 +1,7 @@
+variables:
+  isMainBranch: $[startsWith(variables['Build.SourceBranch'], 'refs/heads/master')]
+  isReleaseBranch: $[startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')]
+
 parameters:
   - name: nodeVersionList
     type: object
@@ -68,7 +72,7 @@ stages:
   #                 - script: npm run test
   #                   displayName: npm run test
 
-  - ${{ if eq(variables['Build.SourceBranchName'], 'refs/heads/users/max-zaytsev/test-npm-task') }}:
+  - ${{ if eq(variables['isMainBranch'], 'true') }}:
     - stage: Publish
       jobs:
         - job: Publish_package
