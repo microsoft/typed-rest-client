@@ -4,7 +4,7 @@ trigger:
 
 variables:
   isMaster: $[eq(variables['Build.SourceBranch'], 'refs/heads/master')]
-  isRelease: $[startsWith(variables['Build.SourceBranch'], 'refs/heads/releases')]
+  isRelease: $[startsWith(variables['Build.SourceBranch'], 'refs/heads/users/max-zaytsev/check-stage-condition')]
 
 parameters:
   - name: nodeVersionList
@@ -84,29 +84,29 @@ stages:
 
                   - script: |
                       exit 0
+  - ${{ if eq(variables.isRelease, true) }}:
+    - stage: Publish
+      condition: and(succeeded(), or(eq('${{ parameters.publishToNpm }}', true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
+      jobs:
+        - job: Publish_package
+          displayName: Publish npm package
+          pool:
+            vmImage: 'ubuntu-20.04'
+          steps:
+            - script: |
+                echo hi
 
-  - stage: Publish
-    condition: and(succeeded(), or(eq('${{ parameters.publishToNpm }}', true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
-    jobs:
-      - job: Publish_package
-        displayName: Publish npm package
-        pool:
-          vmImage: 'ubuntu-20.04'
-        steps:
-          - script: |
-              echo hi
+            # - task: DownloadPipelineArtifact@2
+            #   displayName: Download built typed-rest-client package
+            #   inputs:
+            #     artifact: _build
+            #     path: $(Build.SourcesDirectory)/_build
 
-          # - task: DownloadPipelineArtifact@2
-          #   displayName: Download built typed-rest-client package
-          #   inputs:
-          #     artifact: _build
-          #     path: $(Build.SourcesDirectory)/_build
-
-          # - task: Npm@1
-          #   displayName: Publish typed-rest-client to npm
-          #   inputs:
-          #     command: publish
-          #     workingDir: '_build'
-          #     publishRegistry: useExternalRegistry
-          #     publishEndpoint: NPM-Automation-Token
-          #   continueOnError: true
+            # - task: Npm@1
+            #   displayName: Publish typed-rest-client to npm
+            #   inputs:
+            #     command: publish
+            #     workingDir: '_build'
+            #     publishRegistry: useExternalRegistry
+            #     publishEndpoint: NPM-Automation-Token
+            #   continueOnError: true
