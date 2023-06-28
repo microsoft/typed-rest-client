@@ -1,6 +1,6 @@
 trigger:
-- main
-- releases/*
+  - main
+  - releases/*
 
 variables:
   isMaster: $[eq(variables['Build.SourceBranch'], 'refs/heads/master')]
@@ -97,4 +97,4 @@ stages:
               workingDir: '_build'
               publishRegistry: useExternalRegistry
               publishEndpoint: NPM-Automation-Token
-            continueOnError: true 
+            continueOnError: true
