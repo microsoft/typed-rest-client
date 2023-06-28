@@ -5,7 +5,6 @@ trigger:
 variables:
   isMaster: $[eq(variables['Build.SourceBranch'], 'refs/heads/master')]
   isRelease: $[startsWith(variables['Build.SourceBranch'], 'refs/heads/releases')]
-  isManual: $[in(variables['build.reason'], 'Manual')]
 
 parameters:
   - name: nodeVersionList
@@ -15,6 +14,11 @@ parameters:
   - name: imageList
     type: object
     default: ['windows-latest', 'ubuntu-latest']
+
+  - name: publishToNpm
+    displayName: Publish to npm
+    type: boolean
+    default: false
 
 stages:
   - stage: Build
@@ -77,7 +81,7 @@ stages:
                     displayName: npm run test
 
   - stage: Publish
-    condition: and(succeeded(), eq(variables.isManual, true), or(eq(variables.isRelease, true), eq(variables.isMaster, true)))
+    condition: and(succeeded(), or(eq(parameters.publishToNpm, true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
     jobs:
       - job: Publish_package
         displayName: Publish npm package
