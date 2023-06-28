@@ -1,3 +1,7 @@
+variables:
+  isMaster: $[eq(variables['Build.SourceBranch'], 'refs/heads/master')]
+  isRelease: $[startsWith(variables['Build.SourceBranch'], 'refs/heads/releases')]
+
 parameters:
   - name: nodeVersionList
     type: object
@@ -66,3 +70,24 @@ stages:
 
                   - script: npm run test
                     displayName: npm run test
+
+  - stage: Publish
+    condition: or(eq(variables.isRelease, true), eq(variables.isMaster, true))
+    jobs:
+      - job: Publish_package
+        displayName: Publish npm package
+        steps:
+          - task: DownloadPipelineArtifact@2
+            displayName: Download built typed-rest-client package
+            inputs:
+              artifact: _build
+              path: $(Build.SourcesDirectory)/_build
+
+          - task: Npm@1
+            displayName: Publish typed-rest-client to npm
+            inputs:
+              command: publish
+              workingDir: '_build'
+              publishRegistry: useExternalRegistry
+              publishEndpoint: NPM-Automation-Token
+            continueOnError: true 
