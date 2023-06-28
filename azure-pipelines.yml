@@ -29,24 +29,26 @@ stages:
         pool:
           vmImage: 'ubuntu-20.04'
         steps:
-          #build on node 8.x
-          - task: NodeTool@0
-            inputs:
-              versionSpec: '8.x'
-            displayName: Install node 8
+          # #build on node 8.x
+          # - task: NodeTool@0
+          #   inputs:
+          #     versionSpec: '8.x'
+          #   displayName: Install node 8
 
-          - script: npm install
-            displayName: npm install
+          # - script: npm install
+          #   displayName: npm install
 
-          - script: npm run build
-            displayName: npm run build
+          # - script: npm run build
+          #   displayName: npm run build
 
-          - task: PublishPipelineArtifact@1
-            displayName: Publish _build artifact
-            inputs:
-              targetPath: _build
-              artifactType: pipeline
-              artifactName: _build
+          # - task: PublishPipelineArtifact@1
+          #   displayName: Publish _build artifact
+          #   inputs:
+          #     targetPath: _build
+          #     artifactType: pipeline
+          #     artifactName: _build
+          - script: |
+              echo 1
 
   # run unit tests on different platforms and node versions
   - stage: Test
@@ -59,26 +61,29 @@ stages:
                 pool:
                   vmImage: ${{ image }}
                 steps:
-                  - task: DownloadPipelineArtifact@2
-                    displayName: Download built typed-rest-client package
-                    inputs:
-                      artifact: _build
-                      path: $(Build.SourcesDirectory)/_build
-                      patterns: '!package-lock.json' #Exclude package-lock.json
+                  # - task: DownloadPipelineArtifact@2
+                  #   displayName: Download built typed-rest-client package
+                  #   inputs:
+                  #     artifact: _build
+                  #     path: $(Build.SourcesDirectory)/_build
+                  #     patterns: '!package-lock.json' #Exclude package-lock.json
 
-                  - script: npm install
-                    displayName: npm install
+                  # - script: npm install
+                  #   displayName: npm install
 
-                  - task: NodeTool@0
-                    inputs:
-                      versionSpec: ${{ nodeVersion }}.x
-                    displayName: Install node ${{ nodeVersion }}
+                  # - task: NodeTool@0
+                  #   inputs:
+                  #     versionSpec: ${{ nodeVersion }}.x
+                  #   displayName: Install node ${{ nodeVersion }}
 
-                  - script: npm run units
-                    displayName: npm run units
+                  # - script: npm run units
+                  #   displayName: npm run units
 
-                  - script: npm run test
-                    displayName: npm run test
+                  # - script: npm run test
+                  #   displayName: npm run test
+
+                  - script: |
+                      exit 1
 
   - stage: Publish
     condition: and(succeeded(), or(eq('${{ parameters.publishToNpm }}', true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
@@ -88,17 +93,20 @@ stages:
         pool:
           vmImage: 'ubuntu-20.04'
         steps:
-          - task: DownloadPipelineArtifact@2
-            displayName: Download built typed-rest-client package
-            inputs:
-              artifact: _build
-              path: $(Build.SourcesDirectory)/_build
+          - script: |
+              echo hi
 
-          - task: Npm@1
-            displayName: Publish typed-rest-client to npm
-            inputs:
-              command: publish
-              workingDir: '_build'
-              publishRegistry: useExternalRegistry
-              publishEndpoint: NPM-Automation-Token
-            continueOnError: true
+          # - task: DownloadPipelineArtifact@2
+          #   displayName: Download built typed-rest-client package
+          #   inputs:
+          #     artifact: _build
+          #     path: $(Build.SourcesDirectory)/_build
+
+          # - task: Npm@1
+          #   displayName: Publish typed-rest-client to npm
+          #   inputs:
+          #     command: publish
+          #     workingDir: '_build'
+          #     publishRegistry: useExternalRegistry
+          #     publishEndpoint: NPM-Automation-Token
+          #   continueOnError: true
