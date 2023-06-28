@@ -76,6 +76,8 @@ stages:
     jobs:
       - job: Publish_package
         displayName: Publish npm package
+        pool:
+          vmImage: 'ubuntu-20.04'
         steps:
           - task: DownloadPipelineArtifact@2
             displayName: Download built typed-rest-client package
