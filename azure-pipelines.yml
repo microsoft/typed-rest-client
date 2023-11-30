@@ -102,3 +102,16 @@ stages:
               publishRegistry: useExternalRegistry
               publishEndpoint: NPM-Automation-Token
             continueOnError: true
+          
+          - script: npm install
+            displayName: npm install
+            continueOnError: true
+            condition: and(succeeded(), eq(variables.isMaster, true))
+
+          - script: node ./ci/create-release-notes.js
+            continueOnError: true
+            condition: and(succeeded(), eq(variables.isMaster, true))
+            env: 
+              GH_TOKEN: $(githubToken)
+              branch: $(Build.SourceBranchName)
+            displayName: Create Release
