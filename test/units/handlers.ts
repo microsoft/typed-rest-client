@@ -357,7 +357,7 @@ describe('Authentication Handlers Tests', function () {
         /**
          * Following NTLM Authentication Example on:
          * https://www.innovation.ch/personal/ronald/ntlm.html
-         * With username: "Zaphod", password: "Beeblebrox" &
+         * With sampleUser: "Zaphod", samplePass: "Beeblebrox" &
          * workstation/hostname: "LightCity", domain: "Ursa-Minor"
          */
         const url: string = 'http://microsoft.com';
