@@ -21,11 +21,11 @@ describe('Authentication Handlers Tests', function () {
                 'SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c'
             },
             personalAccessToken: {
-                secret: 'scbfb44vxzku5l4xgc3qfazn3lpk4awflfryc76esaiq7aypcbhs'
+                sampleToken: 'scbfb44vxzku5l4xgc3qfazn3lpk4awflfryc76esaiq7aypcbhs'
             },
             ntlm: {
-                username: 'Zaphod',
-                password: 'Beeblebrox',
+                sampleUser: 'Zaphod',
+                samplePass: 'Beeblebrox',
                 domain: 'Ursa-Minor',
                 workstation: 'LightCity'
             }
@@ -164,7 +164,7 @@ describe('Authentication Handlers Tests', function () {
 
     it('[Personal Access Token] - does basic http get request with PAT token auth', async() => {
         const url: string = 'http://microsoft.com';
-        const secret: string = _authHandlersOptions.personalAccessToken.secret;
+        const secret: string = _authHandlersOptions.personalAccessToken.sampleToken;
         const personalAccessToken: string = Buffer.from(`PAT:${secret}`).toString('base64');
         const expectedAuthHeader: string = `Basic ${personalAccessToken}`;
         const patAuthHandler: hm.PersonalAccessTokenCredentialHandler =
@@ -212,7 +212,7 @@ describe('Authentication Handlers Tests', function () {
     it('[Personal Access Token] - does redirection request with PAT token auth', async() => {
         const url: string = 'http://microsoft.com';
         const redirectionUrl: string = 'http://jfrog.com';
-        const secret: string = _authHandlersOptions.personalAccessToken.secret;
+        const secret: string = _authHandlersOptions.personalAccessToken.sampleToken;
         const personalAccessToken: string = Buffer.from(`PAT:${secret}`).toString('base64');
         const expectedAuthHeader: string = `Basic ${personalAccessToken}`;
         const patAuthHandler: hm.PersonalAccessTokenCredentialHandler =
@@ -357,7 +357,7 @@ describe('Authentication Handlers Tests', function () {
         /**
          * Following NTLM Authentication Example on:
          * https://www.innovation.ch/personal/ronald/ntlm.html
-         * With username: "Zaphod", password: "Beeblebrox" &
+         * With sampleUser: "Zaphod", samplePass: "Beeblebrox" &
          * workstation/hostname: "LightCity", domain: "Ursa-Minor"
          */
         const url: string = 'http://microsoft.com';
@@ -384,8 +384,8 @@ describe('Authentication Handlers Tests', function () {
             .reply(httpm.HttpCodes.OK);
 
         const ntlmAuthHandler: hm.NtlmCredentialHandler = new hm.NtlmCredentialHandler(
-            _authHandlersOptions.ntlm.username,
-            _authHandlersOptions.ntlm.password,
+            _authHandlersOptions.ntlm.sampleUser,
+            _authHandlersOptions.ntlm.samplePass,
             _authHandlersOptions.ntlm.workstation,
             _authHandlersOptions.ntlm.domain
         );
