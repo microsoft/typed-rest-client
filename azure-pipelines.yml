@@ -115,7 +115,7 @@ extends:
             command: publish
             workingDir: '_build'
             publishRegistry: useExternalRegistry
-            publishEndpoint: typed-rest-client-npm-token
+            publishEndpoint: btt-npm-publish-token
           continueOnError: true
         - script: npm install
           displayName: npm install
