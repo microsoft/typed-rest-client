@@ -16,8 +16,8 @@ parameters:
 - name: imageList
   type: object
   default: 
-    windows: 'windows-latest'
-    ubuntu: 'ubuntu-latest'
+    windows: 'abtt-windows-2022'
+    ubuntu: 'abtt-ubuntu-2204'
 - name: publishToNpm
   displayName: Publish to npm
   type: boolean
@@ -32,9 +32,11 @@ extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
   parameters:
     sdl:
+      sbom:
+        enabled: false
       sourceAnalysisPool:
-        name: Azure-Pipelines-1ESPT-ExDShared
-        image: windows-2022
+        name: 1ES-ABTT-Shared-Pool
+        image: abtt-windows-2022
         os: windows
     customBuildTags:
     - ES365AIMigrationTooling
@@ -45,8 +47,8 @@ extends:
       - job: Build_and_Publish
         displayName: Build and Publish artifact
         pool:
-          name: Azure-Pipelines-1ESPT-ExDShared
-          image: ubuntu-latest
+          name: 1ES-ABTT-Shared-Pool
+          image: abtt-ubuntu-2204
           os: linux
         templateContext:
           outputs:
@@ -72,7 +74,7 @@ extends:
           - job: Node_os_${{ nodeVersion }}_${{ image.key }}
             displayName: Node.js ${{ nodeVersion }} on ${{ image.key }}
             pool:
-              name: Azure-Pipelines-1ESPT-ExDShared
+              name: 1ES-ABTT-Shared-Pool
               image: ${{ image.value }}
               os: ${{ image.key }}
             steps:
@@ -98,8 +100,8 @@ extends:
       - job: Publish_package
         displayName: Publish npm package
         pool:
-          name: Azure-Pipelines-1ESPT-ExDShared
-          image: ubuntu-latest
+          name: 1ES-ABTT-Shared-Pool
+          image: abtt-ubuntu-2204
           os: linux
         steps:
         - task: DownloadPipelineArtifact@2
