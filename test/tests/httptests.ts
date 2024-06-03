@@ -167,13 +167,13 @@ describe('Http Tests', function () {
     });
 
     it('pipes a get request', () => {
-        return new Promise<string>(async (resolve, reject) => {
+        return new Promise<void>(async (resolve, reject) => {
             let file: NodeJS.WritableStream = fs.createWriteStream(sampleFilePath);
             (await _http.get('https://httpbin.org/get')).message.pipe(file).on('close', () => {
                 let body: string = fs.readFileSync(sampleFilePath).toString();
                 let obj:any = JSON.parse(body);
                 assert(obj.url === "https://httpbin.org/get", "response from piped stream should have url");
-                resolve(void 0);
+                resolve();
             });
         });
     });

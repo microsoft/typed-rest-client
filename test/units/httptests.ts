@@ -131,13 +131,13 @@ describe('Http Tests', function () {
             .reply(200, {
                 url: "http://microsoft.com"
             });
-        return new Promise<string>(async (resolve, reject) => {
+        return new Promise<void>(async (resolve, reject) => {
             let file: NodeJS.WritableStream = fs.createWriteStream(sampleFilePath);
             (await _http.get('http://microsoft.com')).message.pipe(file).on('close', () => {
                 let body: string = fs.readFileSync(sampleFilePath).toString();
                 let obj:any = JSON.parse(body);
                 assert(obj.url === "http://microsoft.com", "response from piped stream should have url");
-                resolve(void 0);
+                resolve();
             });
         });
     });
