@@ -8,7 +8,7 @@ It uses `webpack 5` for build and run browser-ready bundle.
 
 ## Requirements
 
-It requires `nodejs` >= `14.x` to run.
+It requires `nodejs` >= `16.x` to run.
 
 It is recommended to use `npm 8.x` to minimize friction between package-lock formatting.
 

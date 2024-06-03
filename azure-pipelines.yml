@@ -10,7 +10,7 @@ variables:
 parameters:
 - name: nodeVersionList
   type: object
-  default: [14, 16, 18, 20]
+  default: [16, 18, 20]
 - name: imageList
   type: object
   default: 
