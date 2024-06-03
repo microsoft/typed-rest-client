@@ -105,7 +105,7 @@ describe('Authentication Handlers Tests', function () {
 
         //Set nock for request with expecting/matching Authorization header(s)
         nock(redirectionUrl)
-            .matchHeader('authorization', (val: string | undefined) => val )
+            .matchHeader('authorization', (val: string | undefined) => !!val )
             .get('/')
             .reply(httpm.HttpCodes.BadRequest, {
                 success: false,
@@ -238,7 +238,7 @@ describe('Authentication Handlers Tests', function () {
 
         //Set nock for request with expecting/matching Authorization header(s)
         nock(redirectionUrl)
-            .matchHeader('authorization', (val: string | undefined) => val )
+            .matchHeader('authorization', (val: string | undefined) => !!val )
             .get('/')
             .reply(httpm.HttpCodes.BadRequest, {
                 success: false,
@@ -335,7 +335,7 @@ describe('Authentication Handlers Tests', function () {
 
         //Set nock for request with expecting/matching Authorization header(s)
         nock(redirectionUrl)
-            .matchHeader('authorization', (val: string | undefined) => val )
+            .matchHeader('authorization', (val: string | undefined) => !!val )
             .get('/')
             .reply(httpm.HttpCodes.BadRequest, {
                 success: false,

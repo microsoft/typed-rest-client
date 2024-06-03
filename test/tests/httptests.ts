@@ -173,7 +173,7 @@ describe('Http Tests', function () {
                 let body: string = fs.readFileSync(sampleFilePath).toString();
                 let obj:any = JSON.parse(body);
                 assert(obj.url === "https://httpbin.org/get", "response from piped stream should have url");
-                resolve();
+                resolve(void 0);
             });
         });
     });

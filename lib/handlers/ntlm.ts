@@ -60,6 +60,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
             const callbackForResult = function (err: any, res: ifm.IHttpClientResponse) {
                 if (err) {
                     reject(err);
+                    return;
                 }
                 // We have to readbody on the response before continuing otherwise there is a hang.
                 res.readBody().then(() => {
