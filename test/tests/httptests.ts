@@ -167,7 +167,7 @@ describe('Http Tests', function () {
     });
 
     it('pipes a get request', () => {
-        return new Promise<string>(async (resolve, reject) => {
+        return new Promise<void>(async (resolve, reject) => {
             let file: NodeJS.WritableStream = fs.createWriteStream(sampleFilePath);
             (await _http.get('https://httpbin.org/get')).message.pipe(file).on('close', () => {
                 let body: string = fs.readFileSync(sampleFilePath).toString();

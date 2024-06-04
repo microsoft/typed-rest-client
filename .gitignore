@@ -1,6 +1,7 @@
 typings
 node_modules
 _build
+.vscode
 lib/*.js
 samples/*.js
 samples/*.txt

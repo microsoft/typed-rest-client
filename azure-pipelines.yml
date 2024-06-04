@@ -10,7 +10,7 @@ variables:
 parameters:
 - name: nodeVersionList
   type: object
-  default: [6, 8, 10, 12, 14, 16]
+  default: [16, 18, 20]
 - name: imageList
   type: object
   default: 
@@ -58,8 +58,8 @@ extends:
         steps:
         - task: NodeTool@0
           inputs:
-            versionSpec: '8.x'
-          displayName: Install node 8
+            versionSpec: '20.x'
+          displayName: Install node 20.x
         - script: npm install
           displayName: npm install
         - script: npm run build

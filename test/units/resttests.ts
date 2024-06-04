@@ -120,14 +120,14 @@ describe('Rest Tests', function () {
         nock('http://microsoft.com')
             .post('/')
             .reply(200, function(uri, requestBody) {
-                let body = JSON.parse(requestBody);
+                let body: Record<string, any> = typeof requestBody == "string" ? JSON.parse(requestBody.toString()) : requestBody;
                 return {
                     url: 'http://microsoft.com/post',
                     data: null,
                     json: body.name
                 };
             });
-        let res: any = { name: 'foo' };
+        let res: nock.Body = { name: 'foo' };
         let restRes: restm.IRestResponse<HttpData> = await _rest.create<HttpData>('http://microsoft.com', res);
         assert(restRes.statusCode == 200, "statusCode should be 200");
         assert(restRes.result && restRes.result.url === 'http://microsoft.com/post');
@@ -138,14 +138,14 @@ describe('Rest Tests', function () {
         nock('http://microsoft.com')
             .post('/')
             .reply(200, function(uri, requestBody) {
-                let body = JSON.parse(requestBody);
+                let body: Record<string, any> = typeof requestBody == "string" ? JSON.parse(requestBody.toString()) : requestBody;
                 return {
                     url: 'http://microsoft.com/post',
                     data: null,
                     json: body.name
                 };
             });
-        let res: any = { name: 'foo' };
+        let res: nock.Body = { name: 'foo' };
         let restRes: restm.IRestResponse<HttpData> = await _restMic.create<HttpData>('', res);
         assert(restRes.statusCode == 200, "statusCode should be 200");
         assert(restRes.result && restRes.result.url === 'http://microsoft.com/post');
@@ -156,14 +156,14 @@ describe('Rest Tests', function () {
         nock('http://microsoft.com')
             .put('/')
             .reply(200, function(uri, requestBody) {
-                let body = JSON.parse(requestBody);
+                let body: Record<string, any> = typeof requestBody == "string" ? JSON.parse(requestBody.toString()) : requestBody;
                 return {
                     url: 'http://microsoft.com/put',
                     data: null,
                     json: body.name
                 };
             });
-        let res: any = { name: 'foo' };
+        let res: nock.Body = { name: 'foo' };
         let restRes: restm.IRestResponse<HttpData> = await _rest.replace<HttpData>('http://microsoft.com', res);
         assert(restRes.statusCode == 200, "statusCode should be 200");
         assert(restRes.result && restRes.result.url === 'http://microsoft.com/put');
@@ -174,14 +174,14 @@ describe('Rest Tests', function () {
         nock('http://microsoft.com')
             .put('/')
             .reply(200, function(uri, requestBody) {
-                let body = JSON.parse(requestBody);
+                let body: Record<string, any> = typeof requestBody == "string" ? JSON.parse(requestBody.toString()) : requestBody;
                 return {
                     url: 'http://microsoft.com/put',
                     data: null,
                     json: body.name
                 };
             });
-        let res: any = { name: 'foo' };
+        let res: nock.Body = { name: 'foo' };
         let restRes: restm.IRestResponse<HttpData> = await _restMic.replace<HttpData>('', res);
         assert(restRes.statusCode == 200, "statusCode should be 200");
         assert(restRes.result && restRes.result.url === 'http://microsoft.com/put');
@@ -192,14 +192,14 @@ describe('Rest Tests', function () {
         nock('http://microsoft.com')
             .put('/')
             .reply(200, function(uri, requestBody) {
-                let body = JSON.parse(requestBody);
+                let body: Record<string, any> = typeof requestBody == "string" ? JSON.parse(requestBody.toString()) : requestBody;
                 return {
                     url: 'http://microsoft.com/put',
                     data: null,
                     json: body.name
                 };
             });
-        let res: any = { name: 'foo' };
+        let res: nock.Body = { name: 'foo' };
         let restRes: restm.IRestResponse<HttpData> = await _rest.replace<HttpData>('http://microsoft.com', res);
         assert(restRes.statusCode == 200, "statusCode should be 200");
         assert(restRes.result && restRes.result.url === 'http://microsoft.com/put');
@@ -210,14 +210,14 @@ describe('Rest Tests', function () {
         nock('http://microsoft.com')
             .put('/')
             .reply(200, function(uri, requestBody) {
-                let body = JSON.parse(requestBody);
+                let body: Record<string, any> = typeof requestBody == "string" ? JSON.parse(requestBody.toString()) : requestBody;
                 return {
                     url: 'http://microsoft.com/put',
                     data: null,
                     json: body.name
                 };
             });
-        let res: any = { name: 'foo' };
+        let res: nock.Body = { name: 'foo' };
         let restRes: restm.IRestResponse<HttpData> = await _restMic.replace<HttpData>('', res);
         assert(restRes.statusCode == 200, "statusCode should be 200");
         assert(restRes.result && restRes.result.url === 'http://microsoft.com/put');
