@@ -61,7 +61,7 @@ export class HttpClientResponse implements ifm.IHttpClientResponse {
             // Extract Encoding from header: 'content-encoding'
             // Match `gzip`, `gzip, deflate` variations of GZIP encoding
             const contentEncoding: string = this.message.headers['content-encoding'] || '';
-            const isGzippedEncoded: boolean = new RegExp('(gzip$)|(gzip, *deflate)').test(contentEncoding);
+            const isGzippedEncoded: boolean = util.isGzippedEncoded(contentEncoding);
 
             this.message.on('data', function(data: string|Buffer) {
                 const chunk = (typeof data === 'string') ? Buffer.from(data, encodingCharset) : data;
