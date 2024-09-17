@@ -529,7 +529,8 @@ export class HttpClient implements ifm.IHttpClient {
 
         // if not using private agent and tunnel agent isn't setup then use global agent
         if (!agent) {
-            agent = usingSsl ? https.globalAgent : http.globalAgent;
+            const globalAgentOptions: http.AgentOptions = { keepAlive: true, scheduling: "lifo", timeout: 30_000 };
+            agent = usingSsl ? new https.Agent(globalAgentOptions) : new http.Agent(globalAgentOptions);
         }
 
         if (usingSsl && this._ignoreSslError) {
