@@ -47,6 +47,7 @@ export interface IRequestOptions {
     ignoreSslError?: boolean;
     proxy?: IProxyConfiguration;
     cert?: ICertConfiguration;
+    globalAgentOptions?: IHttpGlobalAgentOptions;
     allowRedirects?: boolean;
     allowRedirectDowngrade?: boolean;
     maxRedirects?: number;
@@ -70,6 +71,11 @@ export interface ICertConfiguration {
     certFile?: string;
     keyFile?: string;
     passphrase?: string;
+}
+
+export interface IHttpGlobalAgentOptions {
+    keepAlive?: boolean;
+    timeout?: number;
 }
 
 export interface IRequestQueryParams {

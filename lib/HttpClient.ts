@@ -121,6 +121,10 @@ export class HttpClient implements ifm.IHttpClient {
     private _ca: string;
     private _cert: string;
     private _key: string;
+    private _httpGlobalAgentOptions: ifm.IHttpGlobalAgentOptions = {
+        keepAlive: false,
+        timeout: 30_000
+    };
 
     constructor(userAgent: string | null | undefined, handlers?: ifm.IRequestHandler[], requestOptions?: ifm.IRequestOptions) {
         this.userAgent = userAgent;
@@ -146,6 +150,10 @@ export class HttpClient implements ifm.IHttpClient {
                 requestOptions.proxy.proxyBypassHosts.forEach(bypass => {
                     this._httpProxyBypassHosts.push(new RegExp(bypass, 'i'));
                 });
+            }
+
+            if (requestOptions.globalAgentOptions) {
+                this._httpGlobalAgentOptions = requestOptions.globalAgentOptions;
             }
 
             this._certConfig = requestOptions.cert;
@@ -529,7 +537,10 @@ export class HttpClient implements ifm.IHttpClient {
 
         // if not using private agent and tunnel agent isn't setup then use global agent
         if (!agent) {
-            const globalAgentOptions: http.AgentOptions = { keepAlive: true, scheduling: "lifo", timeout: 30_000 };
+            const globalAgentOptions: http.AgentOptions = { 
+                keepAlive: this._httpGlobalAgentOptions.keepAlive,
+                timeout: this._httpGlobalAgentOptions.timeout
+            };
             agent = usingSsl ? new https.Agent(globalAgentOptions) : new http.Agent(globalAgentOptions);
         }
 
