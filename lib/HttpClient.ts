@@ -202,36 +202,36 @@ export class HttpClient implements ifm.IHttpClient {
         }
     }
 
-    public options(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
-        return this.request('OPTIONS', requestUrl, null, additionalHeaders || {});
+    public options(requestUrl: string, additionalHeaders?: ifm.IHeaders, signal?: AbortSignal): Promise<ifm.IHttpClientResponse> {
+        return this.request('OPTIONS', requestUrl, null, additionalHeaders || {}, signal);
     }
 
-    public get(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
-        return this.request('GET', requestUrl, null, additionalHeaders || {});
+    public get(requestUrl: string, additionalHeaders?: ifm.IHeaders, signal?: AbortSignal): Promise<ifm.IHttpClientResponse> {
+        return this.request('GET', requestUrl, null, additionalHeaders || {}, signal);
     }
 
-    public del(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
-        return this.request('DELETE', requestUrl, null, additionalHeaders || {});
+    public del(requestUrl: string, additionalHeaders?: ifm.IHeaders, signal?: AbortSignal): Promise<ifm.IHttpClientResponse> {
+        return this.request('DELETE', requestUrl, null, additionalHeaders || {}, signal);
     }
 
-    public post(requestUrl: string, data: string, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
-        return this.request('POST', requestUrl, data, additionalHeaders || {});
+    public post(requestUrl: string, data: string, additionalHeaders?: ifm.IHeaders, signal?: AbortSignal): Promise<ifm.IHttpClientResponse> {
+        return this.request('POST', requestUrl, data, additionalHeaders || {}, signal);
     }
 
-    public patch(requestUrl: string, data: string, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
-        return this.request('PATCH', requestUrl, data, additionalHeaders || {});
+    public patch(requestUrl: string, data: string, additionalHeaders?: ifm.IHeaders, signal?: AbortSignal): Promise<ifm.IHttpClientResponse> {
+        return this.request('PATCH', requestUrl, data, additionalHeaders || {}, signal);
     }
 
-    public put(requestUrl: string, data: string, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
-        return this.request('PUT', requestUrl, data, additionalHeaders || {});
+    public put(requestUrl: string, data: string, additionalHeaders?: ifm.IHeaders, signal?: AbortSignal): Promise<ifm.IHttpClientResponse> {
+        return this.request('PUT', requestUrl, data, additionalHeaders || {}, signal);
     }
 
-    public head(requestUrl: string, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
-        return this.request('HEAD', requestUrl, null, additionalHeaders || {});
+    public head(requestUrl: string, additionalHeaders?: ifm.IHeaders, signal?: AbortSignal): Promise<ifm.IHttpClientResponse> {
+        return this.request('HEAD', requestUrl, null, additionalHeaders || {}, signal);
     }
 
-    public sendStream(verb: string, requestUrl: string, stream: NodeJS.ReadableStream, additionalHeaders?: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
-        return this.request(verb, requestUrl, stream, additionalHeaders);
+    public sendStream(verb: string, requestUrl: string, stream: NodeJS.ReadableStream, additionalHeaders?: ifm.IHeaders, signal?: AbortSignal): Promise<ifm.IHttpClientResponse> {
+        return this.request(verb, requestUrl, stream, additionalHeaders, signal);
     }
 
     /**
@@ -239,13 +239,13 @@ export class HttpClient implements ifm.IHttpClient {
      * All other methods such as get, post, patch, and request ultimately call this.
      * Prefer get, del, post and patch
      */
-    public async request(verb: string, requestUrl: string, data: string | NodeJS.ReadableStream, headers: ifm.IHeaders): Promise<ifm.IHttpClientResponse> {
+    public async request(verb: string, requestUrl: string, data: string | NodeJS.ReadableStream, headers: ifm.IHeaders, signal?: AbortSignal): Promise<ifm.IHttpClientResponse> {
         if (this._disposed) {
             throw new Error("Client has already been disposed.");
         }
 
         let parsedUrl = url.parse(requestUrl);
-        let info: RequestInfo = this._prepareRequest(verb, parsedUrl, headers);
+        let info: RequestInfo = this._prepareRequest(verb, parsedUrl, headers, signal);
 
         // Only perform retries on reads since writes may not be idempotent.
         let maxTries: number = (this._allowRetries && RetryableHttpVerbs.indexOf(verb) != -1) ? this._maxRetries + 1 : 1;
@@ -305,7 +305,7 @@ export class HttpClient implements ifm.IHttpClient {
                 await response.readBody();
 
                 // let's make the request with the new redirectUrl
-                info = this._prepareRequest(verb, parsedRedirectUrl, headers);
+                info = this._prepareRequest(verb, parsedRedirectUrl, headers, signal);
                 response = await this.requestRaw(info, data);
                 redirectsRemaining--;
             }
@@ -416,7 +416,7 @@ export class HttpClient implements ifm.IHttpClient {
         }
     }
 
-    private _prepareRequest(method: string, requestUrl: url.Url, headers: ifm.IHeaders): ifm.IRequestInfo {
+    private _prepareRequest(method: string, requestUrl: url.Url, headers: ifm.IHeaders, signal?: AbortSignal): ifm.IRequestInfo {
         const info: ifm.IRequestInfo = <ifm.IRequestInfo>{};
 
         info.parsedUrl = requestUrl;
@@ -438,6 +438,7 @@ export class HttpClient implements ifm.IHttpClient {
         }
         
         info.options.agent = this._getAgent(info.parsedUrl);
+        info.options.signal = signal;
 
         // gives handlers an opportunity to participate
         if (this.handlers && !this._isPresigned(url.format(requestUrl))) {
