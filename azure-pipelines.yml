@@ -15,7 +15,7 @@ parameters:
   type: object
   default: 
     windows: 'abtt-windows-2022'
-    ubuntu: 'abtt-ubuntu-2204'
+    linux: 'abtt-ubuntu-2204'
 - name: publishToNpm
   displayName: Publish to npm
   type: boolean
