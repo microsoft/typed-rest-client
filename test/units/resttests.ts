@@ -6,6 +6,8 @@ import nock = require('nock');
 import * as ifm from 'typed-rest-client/Interfaces';
 import * as restm from 'typed-rest-client/RestClient';
 import * as util from 'typed-rest-client/Util';
+import {Readable} from 'stream';
+import {gzipSync} from 'zlib';
 
 export interface HttpData {
     url: string;
@@ -114,6 +116,68 @@ describe('Rest Tests', function () {
         assert(restRes.statusCode == 200, "statusCode should be 200");
         assert.equal(typeof(restRes.result.json.nonDateProperty), 'string');
         assert.equal(restRes.result.json.nonDateProperty, 'stringObject');
+    });
+
+    it('gets a resource and exposes its response stream', async() => {
+        //Arrange
+        nock('http://microsoft.com')
+            .get('/file')
+            .reply(200, () => {
+                return Readable.from(Buffer.from('test', 'utf-8'));
+            });
+
+        //Act
+        const restRes: restm.IRestResponse<HttpData> = await _rest.get<HttpData>('http://microsoft.com/file', {responseAsStream: true});
+        //Assert
+        assert(restRes.responseStream);
+        assert(restRes.statusCode == 200, "statusCode should be 200");
+        assert(restRes.responseStream instanceof Readable);
+        try {
+            const data = await new Promise((resolve, reject) => {
+                let data = '';
+                restRes.responseStream.on('data', (chunk) => {
+                    data += chunk;
+                });
+                restRes.responseStream.on('end', () => resolve(data));
+                restRes.responseStream.on('error', (err) => reject(err));
+            });
+            assert.equal(data, 'test');
+        } catch (err) {
+            assert(false, 'should not throw');
+        }
+    });
+
+    it('gets a resource and exposes its gunzipped response stream', async() => {
+        //Arrange
+        nock('http://microsoft.com')
+            .get('/file')
+            .reply(200, () => {
+                const gzipData = gzipSync(Buffer.from('test', 'utf-8'));
+                return Readable.from(gzipData);
+            }, {
+                'Content-Encoding': 'gzip'
+            });
+
+        //Act
+        const restRes: restm.IRestResponse<HttpData> = await _rest.get<HttpData>('http://microsoft.com/file', {responseAsStream: true});
+
+        //Assert
+        assert(restRes.responseStream);
+        assert(restRes.statusCode == 200, "statusCode should be 200");
+        assert(restRes.responseStream instanceof Readable);
+        try {
+            const data = await new Promise((resolve, reject) => {
+                let data = '';
+                restRes.responseStream.on('data', (chunk) => {
+                    data += chunk;
+                });
+                restRes.responseStream.on('end', () => resolve(data));
+                restRes.responseStream.on('error', (err) => reject(err));
+            });
+            assert.equal(data, 'test');
+        } catch (err) {
+            assert(false, 'should not throw');
+        }
     });
 
     it('creates a resource', async() => {
