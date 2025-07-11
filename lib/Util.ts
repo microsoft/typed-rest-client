@@ -4,6 +4,7 @@
 import * as qs from 'qs';
 import * as url from 'url';
 import * as path from 'path';
+import http = require('http');
 import zlib = require('zlib');
 import { IRequestQueryParams, IHttpClientResponse } from './Interfaces';
 
@@ -99,6 +100,18 @@ export async function decompressGzippedContent(buffer: Buffer, charset?: BufferE
 }
 
 /**
+ * Pipe a http response stream through a gunzip stream
+ * 
+ * @param message - http response stream
+ * @returns response stream piped through gunzip
+ */
+export function gunzippedBodyStream(message: http.IncomingMessage) {
+	const gunzip = zlib.createGunzip();
+	message.pipe(gunzip);
+	return gunzip;
+}
+
+/**
  * Builds a RegExp to test urls against for deciding
  * wether to bypass proxy from an entry of the
  * environment variable setting NO_PROXY
@@ -143,4 +156,14 @@ export function obtainContentCharset (response: IHttpClientResponse) : BufferEnc
   }
 
   return 'utf-8';
+}
+
+/**
+ * Test if the content encoding string matches gzip or deflate
+ * 
+ * @param {string} contentEncoding
+ * @returns {boolean}
+ */
+export function isGzippedEncoded(contentEncoding: string): boolean {
+    return new RegExp('(gzip$)|(gzip, *deflate)').test(contentEncoding);
 }

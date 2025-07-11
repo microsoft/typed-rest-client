@@ -8,7 +8,8 @@ import util = require("./Util");
 export interface IRestResponse<T> {
     statusCode: number,
     result: T | null,
-    headers: Object
+    headers: Object,
+    responseStream?: NodeJS.ReadableStream
 }
 
 export interface IRequestOptions {
@@ -19,6 +20,7 @@ export interface IRequestOptions {
     additionalHeaders?: ifm.IHeaders,
 
     responseProcessor?: Function,
+    responseAsStream?: boolean,
     //Dates aren't automatically deserialized by JSON, this adds a date reviver to ensure they aren't just left as strings
     deserializeDates?: boolean,
     queryParameters?: ifm.IRequestQueryParams
@@ -215,7 +217,17 @@ export class RestClient {
 
             // get the result from the body
             try {
-                contents = await res.readBody();
+                if (options?.responseAsStream) {
+                    const contentEncoding: string = res.message.headers['content-encoding'] || '';
+                    const isGzippedEncoded: boolean = util.isGzippedEncoded(contentEncoding);
+                    if (isGzippedEncoded) {
+                        response.responseStream = util.gunzippedBodyStream(res.message);
+                    } else {
+                        response.responseStream = res.message;
+                    }
+                } else {
+                    contents = await res.readBody();
+                }
                 if (contents && contents.length > 0) {
                     if (options && options.deserializeDates) {
                         obj = JSON.parse(contents, RestClient.dateTimeDeserializer);
