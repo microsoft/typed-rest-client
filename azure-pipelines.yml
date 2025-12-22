@@ -14,8 +14,8 @@ parameters:
 - name: imageList
   type: object
   default: 
-    windows: 'abtt-windows-2022'
-    linux: 'abtt-ubuntu-2204'
+    windows: 'abtt-windows-2025'
+    linux: 'abtt-ubuntu-2404'
 - name: publishToNpm
   displayName: Publish to npm
   type: boolean
@@ -34,7 +34,7 @@ extends:
         enabled: false
       sourceAnalysisPool:
         name: 1ES-ABTT-Shared-Pool
-        image: abtt-windows-2022
+        image: abtt-windows-2025
         os: windows
     customBuildTags:
     - ES365AIMigrationTooling
@@ -46,7 +46,7 @@ extends:
         displayName: Build and Publish artifact
         pool:
           name: 1ES-ABTT-Shared-Pool
-          image: abtt-ubuntu-2204
+          image: abtt-ubuntu-2404
           os: linux
         templateContext:
           outputs:
@@ -102,7 +102,7 @@ extends:
         displayName: Publish npm package
         pool:
           name: 1ES-ABTT-Shared-Pool
-          image: abtt-ubuntu-2204
+          image: abtt-ubuntu-2404
           os: linux
         steps:
         - task: DownloadPipelineArtifact@2
