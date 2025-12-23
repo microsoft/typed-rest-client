@@ -46,7 +46,7 @@ extends:
         displayName: Build and Publish artifact
         pool:
           name: 1ES-ABTT-Shared-Pool
-          image: abtt-ubuntu-2204
+          image: abtt-ubuntu-2404
           os: linux
         templateContext:
           outputs:
@@ -102,7 +102,7 @@ extends:
         displayName: Publish npm package
         pool:
           name: 1ES-ABTT-Shared-Pool
-          image: abtt-ubuntu-2204
+          image: abtt-ubuntu-2404
           os: linux
         steps:
         - task: DownloadPipelineArtifact@2
