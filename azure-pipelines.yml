@@ -15,7 +15,7 @@ parameters:
   type: object
   default: 
     windows: 'abtt-windows-2025'
-    linux: 'abtt-ubuntu-2404'
+    linux: 'abtt-ubuntu-2204'
 - name: publishToNpm
   displayName: Publish to npm
   type: boolean
@@ -46,7 +46,7 @@ extends:
         displayName: Build and Publish artifact
         pool:
           name: 1ES-ABTT-Shared-Pool
-          image: abtt-ubuntu-2404
+          image: abtt-ubuntu-2204
           os: linux
         templateContext:
           outputs:
@@ -102,7 +102,7 @@ extends:
         displayName: Publish npm package
         pool:
           name: 1ES-ABTT-Shared-Pool
-          image: abtt-ubuntu-2404
+          image: abtt-ubuntu-2204
           os: linux
         steps:
         - task: DownloadPipelineArtifact@2
