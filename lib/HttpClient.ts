@@ -84,13 +84,17 @@ export class HttpClientResponse implements ifm.IHttpClientResponse {
 
 export interface RequestInfo {
     options: http.RequestOptions;
-    parsedUrl: url.Url;
+    parsedUrl: URL;
     httpModule: any;
 }
 
 export function isHttps(requestUrl: string) {
-    let parsedUrl: url.Url = url.parse(requestUrl);
-    return parsedUrl.protocol === 'https:';
+    try {
+        let parsedUrl: URL = new URL(requestUrl);
+        return parsedUrl.protocol === 'https:';
+    } catch (err) {
+        throw new Error(`Invalid URL: ${requestUrl}. ${err.message}`);
+    }
 }
 
 enum EnvironmentVariables {
@@ -244,7 +248,12 @@ export class HttpClient implements ifm.IHttpClient {
             throw new Error("Client has already been disposed.");
         }
 
-        let parsedUrl = url.parse(requestUrl);
+        let parsedUrl: URL;
+        try {
+            parsedUrl = new URL(requestUrl);
+        } catch (err) {
+            throw new Error(`Invalid URL: ${requestUrl}. ${err.message}`);
+        }
         let info: RequestInfo = this._prepareRequest(verb, parsedUrl, headers);
 
         // Only perform retries on reads since writes may not be idempotent.
@@ -295,7 +304,12 @@ export class HttpClient implements ifm.IHttpClient {
                     // if there's no location to redirect to, we won't
                     break;
                 }
-                let parsedRedirectUrl = url.parse(redirectUrl);
+                let parsedRedirectUrl: URL;
+                try {
+                    parsedRedirectUrl = new URL(redirectUrl);
+                } catch (err) {
+                    throw new Error(`Invalid redirect URL: ${redirectUrl}. ${err.message}`);
+                }
                 if (parsedUrl.protocol == 'https:' && parsedUrl.protocol != parsedRedirectUrl.protocol && !this._allowRedirectDowngrade) {
                     throw new Error("Redirect from HTTPS to HTTP protocol. This downgrade is not allowed for security reasons. If you want to allow this behavior, set the allowRedirectDowngrade option to true.");
                 }
@@ -416,7 +430,7 @@ export class HttpClient implements ifm.IHttpClient {
         }
     }
 
-    private _prepareRequest(method: string, requestUrl: url.Url, headers: ifm.IHeaders): ifm.IRequestInfo {
+    private _prepareRequest(method: string, requestUrl: URL, headers: ifm.IHeaders): ifm.IRequestInfo {
         const info: ifm.IRequestInfo = <ifm.IRequestInfo>{};
 
         info.parsedUrl = requestUrl;
@@ -440,7 +454,7 @@ export class HttpClient implements ifm.IHttpClient {
         info.options.agent = this._getAgent(info.parsedUrl);
 
         // gives handlers an opportunity to participate
-        if (this.handlers && !this._isPresigned(url.format(requestUrl))) {
+        if (this.handlers && !this._isPresigned(requestUrl.href)) {
             this.handlers.forEach((handler) => {
                 handler.prepareRequest(info.options);
             });
@@ -476,7 +490,7 @@ export class HttpClient implements ifm.IHttpClient {
         return lowercaseKeys(headers || {});
     }
 
-    private _getAgent(parsedUrl: url.Url) {
+    private _getAgent(parsedUrl: URL) {
         let agent;
         let proxy = this._getProxy(parsedUrl);
         let useProxy = proxy.proxyUrl && proxy.proxyUrl.hostname && !this._isMatchInBypassProxyList(parsedUrl);
@@ -558,7 +572,7 @@ export class HttpClient implements ifm.IHttpClient {
         return agent;
     }
 
-    private _getProxy(parsedUrl: url.Url) {
+    private _getProxy(parsedUrl: URL) {
         let usingSsl = parsedUrl.protocol === 'https:';
         let proxyConfig: ifm.IProxyConfiguration = this._httpProxy;
 
@@ -578,11 +592,15 @@ export class HttpClient implements ifm.IHttpClient {
             }
         }
 
-        let proxyUrl: url.Url;
+        let proxyUrl: URL;
         let proxyAuth: string;
         if (proxyConfig) {
             if (proxyConfig.proxyUrl.length > 0) {
-                proxyUrl = url.parse(proxyConfig.proxyUrl);
+                try {
+                    proxyUrl = new URL(proxyConfig.proxyUrl);
+                } catch (err) {
+                    throw new Error(`Invalid proxy URL: ${proxyConfig.proxyUrl}. ${err.message}`);
+                }
             }
 
             if (proxyConfig.proxyUsername || proxyConfig.proxyPassword) {
@@ -593,7 +611,7 @@ export class HttpClient implements ifm.IHttpClient {
         return { proxyUrl: proxyUrl, proxyAuth: proxyAuth };
     }
 
-    private _isMatchInBypassProxyList(parsedUrl: url.Url): Boolean {
+    private _isMatchInBypassProxyList(parsedUrl: URL): Boolean {
         if (!this._httpProxyBypassHosts) {
             return false;
         }

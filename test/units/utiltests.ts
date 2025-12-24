@@ -28,7 +28,7 @@ describe('Util Tests', function () {
         it('bypasses same domain', () => {
             let regExp = util.buildProxyBypassRegexFromEnv('microsoft.com');
             assert(regExp, 'regExp should not be null');
-            let parsedUrl = url.parse("https://microsoft.com/api/resource");
+            let parsedUrl = new URL("https://microsoft.com/api/resource");
             let bypassed = regExp.test(parsedUrl.href);
             assert.equal(bypassed, true);
         });
@@ -36,7 +36,7 @@ describe('Util Tests', function () {
         it('bypasses subdomain using wildcard', () => {
             let regExp = util.buildProxyBypassRegexFromEnv('*.microsoft.com');
             assert(regExp, 'regExp should not be null');
-            let parsedUrl = url.parse("https://subdomain.microsoft.com/api/resource");
+            let parsedUrl = new URL("https://subdomain.microsoft.com/api/resource");
             let bypassed = regExp.test(parsedUrl.href);
             assert.equal(bypassed, true);
         });       
