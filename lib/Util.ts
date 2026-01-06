@@ -25,21 +25,54 @@ export function getUrl(resource: string, baseUrl?: string, queryParams?: IReques
         requestUrl = baseUrl;
     }
     else {
-        const base: url.Url = url.parse(baseUrl);
-        const resultantUrl: url.Url = url.parse(resource);
+        try {
+            let base: URL;
+            
+            // Parse base URL
+            try {
+                base = new URL(baseUrl);
+            } catch (err) {
+                throw new Error(`Invalid base URL: ${baseUrl}. ${err.message}`);
+            }
+            
+            // Check if resource is a full URL by attempting to parse it
+            let isFullUrl = false;
+            let resourceUrl: URL;
+            try {
+                resourceUrl = new URL(resource);
+                isFullUrl = true;
+            } catch {
+                // Resource is not a full URL, treat as relative path
+                isFullUrl = false;
+            }
+            
+            let resultantUrl: URL;
+            
+            if (isFullUrl) {
+                // Resource is a complete URL, use it entirely
+                resultantUrl = resourceUrl;
+            } else {
+                // Resource is a relative path - merge with base using path.resolve
+                const protocol = base.protocol;
+                const auth = base.username && base.password ? `${base.username}:${base.password}@` : base.username ? `${base.username}@` : '';
+                const host = base.host;
+                
+                // Use path.resolve for proper path merging (matches original behavior)
+                const basePath = base.pathname || '/';
+                const resolvedPath = pathApi.resolve(basePath, resource);
+                
+                resultantUrl = new URL(`${protocol}//${auth}${host}${resolvedPath}`);
+                
+                // Preserve trailing slash from original resource
+                if (!resultantUrl.pathname.endsWith('/') && resource.endsWith('/')) {
+                    resultantUrl.pathname += '/';
+                }
+            }
 
-        // resource (specific per request) elements take priority
-        resultantUrl.protocol = resultantUrl.protocol || base.protocol;
-        resultantUrl.auth = resultantUrl.auth || base.auth;
-        resultantUrl.host = resultantUrl.host || base.host;
-
-        resultantUrl.pathname = pathApi.resolve(base.pathname, resultantUrl.pathname);
-
-        if (!resultantUrl.pathname.endsWith('/') && resource.endsWith('/')) {
-            resultantUrl.pathname += '/';
+            requestUrl = resultantUrl.href;
+        } catch (err) {
+            throw new Error(`Invalid URL: resource="${resource}", baseUrl="${baseUrl}". ${err.message}`);
         }
-
-        requestUrl = url.format(resultantUrl);
     }
 
     return queryParams ?
