@@ -99,7 +99,7 @@ extends:
             - script: npm run test
               displayName: npm run test
     - stage: Publish
-      condition: and(succeeded(), or(eq('${{ parameters.publishToNpm }}', true), eq(variables.isRelease, true), eq(variables.isMaster, true)))
+      condition: and(succeeded(), eq(variables.isMaster, true), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'))
       jobs:
       - job: Publish_package
         displayName: Publish npm package
