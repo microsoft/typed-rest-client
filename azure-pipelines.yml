@@ -19,10 +19,6 @@ parameters:
   default: 
     windows: 'abtt-windows-2025'
     linux: 'abtt-ubuntu-2404'
-- name: publishToNpm
-  displayName: Publish to npm
-  type: boolean
-  default: false
 resources:
   repositories:
   - repository: 1ESPipelineTemplates
