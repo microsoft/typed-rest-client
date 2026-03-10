@@ -5,8 +5,11 @@ trigger:
 - master
 - releases/*
 variables:
-  isMaster: $[eq(variables['Build.SourceBranch'], 'refs/heads/master')]
-  isRelease: $[startsWith(variables['Build.SourceBranch'], 'refs/heads/releases')]
+- name: isMaster
+  value: $[eq(variables['Build.SourceBranch'], 'refs/heads/master')]
+- name: isRelease
+  value: $[startsWith(variables['Build.SourceBranch'], 'refs/heads/releases')]
+- group: npm-tokens
 parameters:
 - name: nodeVersionList
   type: object
@@ -110,13 +113,13 @@ extends:
           inputs:
             artifact: _build
             path: $(Build.SourcesDirectory)/_build
-        - task: Npm@1
+        - bash: |
+            echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc
+            npm publish --registry https://registry.npmjs.org/
           displayName: Publish typed-rest-client to npm
-          inputs:
-            command: publish
-            workingDir: '_build'
-            publishRegistry: useExternalRegistry
-            publishEndpoint: btt-npm-publish-token
+          workingDirectory: '_build'
+          env:
+            NPM_TOKEN: $(npm-automation.token)
           continueOnError: true
         - script: npm install
           displayName: npm install
@@ -126,6 +129,6 @@ extends:
           continueOnError: true
           condition: and(succeeded(), eq(variables.isMaster, true))
           env:
-            GH_TOKEN: $(githubToken)
+            GH_TOKEN: $(gh-automation.token)
             branch: $(Build.SourceBranchName)
           displayName: Create Release
