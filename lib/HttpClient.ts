@@ -306,7 +306,7 @@ export class HttpClient implements ifm.IHttpClient {
                 }
                 let parsedRedirectUrl: URL;
                 try {
-                    parsedRedirectUrl = new URL(redirectUrl);
+                    parsedRedirectUrl = new URL(redirectUrl, parsedUrl.href);
                 } catch (err) {
                     throw new Error(`Invalid redirect URL: ${redirectUrl}. ${err.message}`);
                 }
