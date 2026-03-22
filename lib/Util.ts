@@ -49,8 +49,23 @@ export function getUrl(resource: string, baseUrl?: string, queryParams?: IReques
             let resultantUrl: URL;
             
             if (isFullUrl) {
-                // Resource is a complete URL, use it entirely
-                resultantUrl = resourceUrl;
+                // Resource is a complete URL – merge missing components from base to preserve previous behavior
+                const mergedUrl = new URL(resourceUrl.href);
+                // Inherit auth if not specified on the resource URL
+                if (!mergedUrl.username && base.username) {
+                    mergedUrl.username = base.username;
+                }
+                if (!mergedUrl.password && base.password) {
+                    mergedUrl.password = base.password;
+                }
+                // Inherit protocol and host if somehow absent on the resource URL
+                if (!mergedUrl.protocol && base.protocol) {
+                    mergedUrl.protocol = base.protocol;
+                }
+                if (!mergedUrl.host && base.host) {
+                    mergedUrl.host = base.host;
+                }
+                resultantUrl = mergedUrl;
             } else {
                 // Resource is a relative path - merge with base using path.resolve
                 const protocol = base.protocol;
