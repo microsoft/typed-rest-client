@@ -54,7 +54,9 @@ export function getUrl(resource: string, baseUrl?: string, queryParams?: IReques
             } else {
                 // Resource is a relative path - merge with base using path.resolve
                 const protocol = base.protocol;
-                const auth = base.username && base.password ? `${base.username}:${base.password}@` : base.username ? `${base.username}@` : '';
+                const encodedUsername = base.username ? encodeURIComponent(base.username) : '';
+                const encodedPassword = base.password ? encodeURIComponent(base.password) : '';
+                const auth = encodedUsername && encodedPassword ? `${encodedUsername}:${encodedPassword}@` : encodedUsername ? `${encodedUsername}@` : '';
                 const host = base.host;
                 
                 // Use path.resolve for proper path merging (matches original behavior)
