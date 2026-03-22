@@ -25,21 +25,72 @@ export function getUrl(resource: string, baseUrl?: string, queryParams?: IReques
         requestUrl = baseUrl;
     }
     else {
-        const base: url.Url = url.parse(baseUrl);
-        const resultantUrl: url.Url = url.parse(resource);
+        try {
+            let base: URL;
+            
+            // Parse base URL
+            try {
+                base = new URL(baseUrl);
+            } catch (err) {
+                throw new Error(`Invalid base URL: ${err.message}`);
+            }
+            
+            // Check if resource is a full URL by attempting to parse it
+            let isFullUrl = false;
+            let resourceUrl: URL;
+            try {
+                resourceUrl = new URL(resource);
+                isFullUrl = true;
+            } catch {
+                // Resource is not a full URL, treat as relative path
+                isFullUrl = false;
+            }
+            
+            let resultantUrl: URL;
+            
+            if (isFullUrl) {
+                // Resource is a complete URL – merge missing components from base to preserve previous behavior
+                const mergedUrl = new URL(resourceUrl.href);
+                // Inherit auth if not specified on the resource URL
+                if (!mergedUrl.username && base.username) {
+                    mergedUrl.username = base.username;
+                }
+                if (!mergedUrl.password && base.password) {
+                    mergedUrl.password = base.password;
+                }
+                // Inherit protocol and host if somehow absent on the resource URL
+                if (!mergedUrl.protocol && base.protocol) {
+                    mergedUrl.protocol = base.protocol;
+                }
+                if (!mergedUrl.host && base.host) {
+                    mergedUrl.host = base.host;
+                }
+                resultantUrl = mergedUrl;
+            } else {
+                // Resource is a relative path - merge with base using path.resolve
+                const protocol = base.protocol;
+                const encodedUsername = base.username ? encodeURIComponent(base.username) : '';
+                const encodedPassword = base.password ? encodeURIComponent(base.password) : '';
+                const auth = encodedUsername && encodedPassword ? `${encodedUsername}:${encodedPassword}@` : encodedUsername ? `${encodedUsername}@` : '';
+                const host = base.host;
+                
+                // Use path.resolve for proper path merging (matches original behavior)
+                const basePath = base.pathname || '/';
+                const resolvedPath = pathApi.resolve(basePath, resource);
+                
+                resultantUrl = new URL(`${protocol}//${auth}${host}${resolvedPath}`);
+                
+                // Preserve trailing slash from original resource
+                if (!resultantUrl.pathname.endsWith('/') && resource.endsWith('/')) {
+                    resultantUrl.pathname += '/';
+                }
+            }
 
-        // resource (specific per request) elements take priority
-        resultantUrl.protocol = resultantUrl.protocol || base.protocol;
-        resultantUrl.auth = resultantUrl.auth || base.auth;
-        resultantUrl.host = resultantUrl.host || base.host;
-
-        resultantUrl.pathname = pathApi.resolve(base.pathname, resultantUrl.pathname);
-
-        if (!resultantUrl.pathname.endsWith('/') && resource.endsWith('/')) {
-            resultantUrl.pathname += '/';
+            requestUrl = resultantUrl.href;
+        } catch (err) {
+            const message = err instanceof Error ? err.message : String(err);
+            throw new Error(`Failed to construct URL ${message}`);
         }
-
-        requestUrl = url.format(resultantUrl);
     }
 
     return queryParams ?
