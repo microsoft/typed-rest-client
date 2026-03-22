@@ -73,7 +73,8 @@ export function getUrl(resource: string, baseUrl?: string, queryParams?: IReques
 
             requestUrl = resultantUrl.href;
         } catch (err) {
-            throw new Error(`Invalid URL: resource="${resource}", baseUrl="${baseUrl}". ${err.message}`);
+            const message = err instanceof Error ? err.message : String(err);
+            throw new Error(`Failed to construct URL from resource="${resource}" and baseUrl="${baseUrl}". ${message}`);
         }
     }
 
