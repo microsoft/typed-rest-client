@@ -32,7 +32,7 @@ export function getUrl(resource: string, baseUrl?: string, queryParams?: IReques
             try {
                 base = new URL(baseUrl);
             } catch (err) {
-                throw new Error(`Invalid base URL: ${baseUrl}. ${err.message}`);
+                throw new Error(`Invalid base URL: ${err.message}`);
             }
             
             // Check if resource is a full URL by attempting to parse it
@@ -89,7 +89,7 @@ export function getUrl(resource: string, baseUrl?: string, queryParams?: IReques
             requestUrl = resultantUrl.href;
         } catch (err) {
             const message = err instanceof Error ? err.message : String(err);
-            throw new Error(`Failed to construct URL from resource="${resource}" and baseUrl="${baseUrl}". ${message}`);
+            throw new Error(`Failed to construct URL ${message}`);
         }
     }
 
