@@ -253,7 +253,7 @@ export class HttpClient implements ifm.IHttpClient {
         try {
             parsedUrl = new URL(requestUrl);
         } catch (err) {
-            throw new Error(`Invalid URL: ${requestUrl}. ${err.message}`);
+            throw new Error(`Invalid URL: ${err.message}`);
         }
         let info: RequestInfo = this._prepareRequest(verb, parsedUrl, headers);
 
@@ -309,7 +309,7 @@ export class HttpClient implements ifm.IHttpClient {
                 try {
                     parsedRedirectUrl = new URL(redirectUrl, parsedUrl.href);
                 } catch (err) {
-                    throw new Error(`Invalid redirect URL: ${redirectUrl}. ${err.message}`);
+                    throw new Error(`Invalid redirect URL: ${err.message}`);
                 }
                 if (parsedUrl.protocol == 'https:' && parsedUrl.protocol != parsedRedirectUrl.protocol && !this._allowRedirectDowngrade) {
                     throw new Error("Redirect from HTTPS to HTTP protocol. This downgrade is not allowed for security reasons. If you want to allow this behavior, set the allowRedirectDowngrade option to true.");
@@ -600,7 +600,7 @@ export class HttpClient implements ifm.IHttpClient {
                 try {
                     proxyUrl = new URL(proxyConfig.proxyUrl);
                 } catch (err) {
-                    throw new Error(`Invalid proxy URL: ${proxyConfig.proxyUrl}. ${err.message}`);
+                    throw new Error(`Invalid proxy URL: ${err.message}`);
                 }
             }
 
