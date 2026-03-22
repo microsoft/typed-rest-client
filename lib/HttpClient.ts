@@ -92,8 +92,9 @@ export function isHttps(requestUrl: string) {
     try {
         let parsedUrl: URL = new URL(requestUrl);
         return parsedUrl.protocol === 'https:';
-    } catch (err) {
-        throw new Error(`Invalid URL: ${requestUrl}. ${err.message}`);
+    } catch {
+        // Preserve original boolean semantics: treat invalid/relative URLs as non-HTTPS.
+        return false;
     }
 }
 
