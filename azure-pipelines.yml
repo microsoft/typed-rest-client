@@ -110,17 +110,12 @@ extends:
             artifact: _build
             path: $(Build.SourcesDirectory)/_build
         - bash: |
-            echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > _build/.npmrc
-            echo "registry=https://registry.npmjs.org/" >> _build/.npmrc
-            echo "always-auth=false" >> _build/.npmrc
-          displayName: Configure npm auth
+            echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc
+            npm publish --registry https://registry.npmjs.org/ --cache $(Agent.TempDirectory)/.npm-cache
+          displayName: Publish typed-rest-client to npm
+          workingDirectory: '_build'
           env:
             NPM_TOKEN: $(npm-automation.token)
-        - task: Npm@1
-          inputs:
-            command: publish
-            workingDir: '_build'
-          displayName: Publish typed-rest-client to npm
           continueOnError: true
         - script: npm install
           displayName: npm install
