@@ -55,11 +55,12 @@ export class RestClient {
      * @param {IRequestOptions} requestOptions - (optional) requestOptions object
      */
     public async options<T>(requestUrl: string,
-        options?: IRequestOptions): Promise<IRestResponse<T>> {
+        options?: IRequestOptions,
+        signal?: AbortSignal): Promise<IRestResponse<T>> {
 
         let url: string = util.getUrl(requestUrl, this._baseUrl);
         let res: httpm.HttpClientResponse = await this.client.options(url,
-            this._headersFromOptions(options));
+            this._headersFromOptions(options), signal);
         return this.processResponse<T>(res, options);
     }
 
@@ -70,11 +71,12 @@ export class RestClient {
      * @param {IRequestOptions} requestOptions - (optional) requestOptions object
      */
     public async get<T>(resource: string,
-        options?: IRequestOptions): Promise<IRestResponse<T>> {
+        options?: IRequestOptions,
+        signal?: AbortSignal): Promise<IRestResponse<T>> {
 
         let url: string = util.getUrl(resource, this._baseUrl, (options || {}).queryParameters);
         let res: httpm.HttpClientResponse = await this.client.get(url,
-            this._headersFromOptions(options));
+            this._headersFromOptions(options), signal);
         return this.processResponse<T>(res, options);
     }
 
@@ -85,11 +87,12 @@ export class RestClient {
      * @param {IRequestOptions} requestOptions - (optional) requestOptions object
      */
     public async del<T>(resource: string,
-        options?: IRequestOptions): Promise<IRestResponse<T>> {
+        options?: IRequestOptions,
+        signal?: AbortSignal): Promise<IRestResponse<T>> {
 
         let url: string = util.getUrl(resource, this._baseUrl, (options || {}).queryParameters);
         let res: httpm.HttpClientResponse = await this.client.del(url,
-            this._headersFromOptions(options));
+            this._headersFromOptions(options), signal);
         return this.processResponse<T>(res, options);
     }
 
@@ -102,13 +105,14 @@ export class RestClient {
      */
     public async create<T>(resource: string,
         resources: any,
-        options?: IRequestOptions): Promise<IRestResponse<T>> {
+        options?: IRequestOptions,
+        signal?: AbortSignal): Promise<IRestResponse<T>> {
 
         let url: string = util.getUrl(resource, this._baseUrl);
         let headers: ifm.IHeaders = this._headersFromOptions(options, true);
 
         let data: string = JSON.stringify(resources, null, 2);
-        let res: httpm.HttpClientResponse = await this.client.post(url, data, headers);
+        let res: httpm.HttpClientResponse = await this.client.post(url, data, headers, signal);
         return this.processResponse<T>(res, options);
     }
 
@@ -121,13 +125,14 @@ export class RestClient {
      */
     public async update<T>(resource: string,
         resources: any,
-        options?: IRequestOptions): Promise<IRestResponse<T>> {
+        options?: IRequestOptions,
+        signal?: AbortSignal): Promise<IRestResponse<T>> {
 
         let url: string = util.getUrl(resource, this._baseUrl);
         let headers: ifm.IHeaders = this._headersFromOptions(options, true);
 
         let data: string = JSON.stringify(resources, null, 2);
-        let res: httpm.HttpClientResponse = await this.client.patch(url, data, headers);
+        let res: httpm.HttpClientResponse = await this.client.patch(url, data, headers, signal);
         return this.processResponse<T>(res, options);
     }
 
@@ -140,25 +145,27 @@ export class RestClient {
      */
     public async replace<T>(resource: string,
         resources: any,
-        options?: IRequestOptions): Promise<IRestResponse<T>> {
+        options?: IRequestOptions,
+        signal?: AbortSignal): Promise<IRestResponse<T>> {
 
         let url: string = util.getUrl(resource, this._baseUrl);
         let headers: ifm.IHeaders = this._headersFromOptions(options, true);
 
         let data: string = JSON.stringify(resources, null, 2);
-        let res: httpm.HttpClientResponse = await this.client.put(url, data, headers);
+        let res: httpm.HttpClientResponse = await this.client.put(url, data, headers, signal);
         return this.processResponse<T>(res, options);
     }
 
     public async uploadStream<T>(verb: string,
         requestUrl: string,
         stream: NodeJS.ReadableStream,
-        options?: IRequestOptions): Promise<IRestResponse<T>> {
+        options?: IRequestOptions,
+        signal?: AbortSignal): Promise<IRestResponse<T>> {
 
         let url: string = util.getUrl(requestUrl, this._baseUrl);
         let headers: ifm.IHeaders = this._headersFromOptions(options, true);
 
-        let res: httpm.HttpClientResponse = await this.client.sendStream(verb, url, stream, headers);
+        let res: httpm.HttpClientResponse = await this.client.sendStream(verb, url, stream, headers, signal);
         return this.processResponse<T>(res, options);
     }
 
