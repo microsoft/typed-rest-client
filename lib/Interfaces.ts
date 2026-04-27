@@ -37,7 +37,7 @@ export interface IHttpClientResponse {
 
 export interface IRequestInfo {
     options: http.RequestOptions;
-    parsedUrl: url.Url;
+    parsedUrl: URL;
     httpModule: any;
 }
 
