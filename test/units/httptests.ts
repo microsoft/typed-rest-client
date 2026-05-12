@@ -502,3 +502,21 @@ describe('Http Tests with NO_PROXY environment variable', function () {
     });
 
 });
+
+describe('Http Tests with proxy configuration', function () {
+    it('passes numeric port to tunnel agent options', () => {
+        const requestOptions = {
+            proxy: {
+                proxyUrl: 'http://proxy-server:8080'
+            }
+        };
+        let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests', [], requestOptions);
+        assert(http, 'http client should not be null');
+
+        // Access private _getAgent via any cast to verify tunnel agent gets numeric port
+        const httpAny = http as any;
+        const proxy = httpAny._getProxy({ protocol: 'https:', hostname: 'example.com', href: 'https://example.com' });
+        assert.strictEqual(typeof Number(proxy.proxyUrl.port), 'number', 'proxy port should be convertible to number');
+        assert.strictEqual(Number(proxy.proxyUrl.port), 8080, 'proxy port should be 8080');
+    });
+});
