@@ -512,7 +512,7 @@ export class HttpClient implements ifm.IHttpClient {
                 proxy: {
                     proxyAuth: proxy.proxyAuth,
                     host: proxy.proxyUrl.hostname,
-                    port: Number(proxy.proxyUrl.port)
+                    port: proxy.proxyUrl.port
                 },
             };
 
