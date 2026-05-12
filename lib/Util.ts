@@ -2,8 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 import * as qs from 'qs';
-import * as url from 'url';
-import * as path from 'path';
 import zlib = require('zlib');
 import { IRequestQueryParams, IHttpClientResponse } from './Interfaces';
 
@@ -15,7 +13,6 @@ import { IRequestQueryParams, IHttpClientResponse } from './Interfaces';
  * @return {string} - resultant url
  */
 export function getUrl(resource: string, baseUrl?: string, queryParams?: IRequestQueryParams): string  {
-    const pathApi = path.posix || path;
     let requestUrl = '';
 
     if (!baseUrl) {
@@ -25,21 +22,19 @@ export function getUrl(resource: string, baseUrl?: string, queryParams?: IReques
         requestUrl = baseUrl;
     }
     else {
-        const base: url.Url = url.parse(baseUrl);
-        const resultantUrl: url.Url = url.parse(resource);
-
-        // resource (specific per request) elements take priority
-        resultantUrl.protocol = resultantUrl.protocol || base.protocol;
-        resultantUrl.auth = resultantUrl.auth || base.auth;
-        resultantUrl.host = resultantUrl.host || base.host;
-
-        resultantUrl.pathname = pathApi.resolve(base.pathname, resultantUrl.pathname);
+        // Ensure baseUrl path is treated as a directory (trailing slash)
+        // so relative resource paths are appended rather than replacing the last segment
+        let effectiveBase = baseUrl;
+        if (!effectiveBase.endsWith('/')) {
+            effectiveBase += '/';
+        }
+        const resultantUrl: URL = new URL(resource, effectiveBase);
 
         if (!resultantUrl.pathname.endsWith('/') && resource.endsWith('/')) {
             resultantUrl.pathname += '/';
         }
 
-        requestUrl = url.format(resultantUrl);
+        requestUrl = resultantUrl.href;
     }
 
     return queryParams ?
