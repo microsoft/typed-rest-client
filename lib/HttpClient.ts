@@ -88,7 +88,12 @@ export interface RequestInfo {
 }
 
 export function isHttps(requestUrl: string) {
-    let parsedUrl: URL = new URL(requestUrl);
+    let parsedUrl: URL;
+    try {
+        parsedUrl = new URL(requestUrl);
+    } catch (e) {
+        throw new Error(`Invalid URL "${requestUrl}": ${e.message}`);
+    }
     return parsedUrl.protocol === 'https:';
 }
 
@@ -243,7 +248,12 @@ export class HttpClient implements ifm.IHttpClient {
             throw new Error("Client has already been disposed.");
         }
 
-        let parsedUrl = new URL(requestUrl);
+        let parsedUrl: URL;
+        try {
+            parsedUrl = new URL(requestUrl);
+        } catch (e) {
+            throw new Error(`Invalid URL "${requestUrl}": ${e.message}`);
+        }
         let info: RequestInfo = this._prepareRequest(verb, parsedUrl, headers);
 
         // Only perform retries on reads since writes may not be idempotent.
@@ -294,7 +304,12 @@ export class HttpClient implements ifm.IHttpClient {
                     // if there's no location to redirect to, we won't
                     break;
                 }
-                let parsedRedirectUrl = new URL(redirectUrl, parsedUrl.href);
+                let parsedRedirectUrl: URL;
+                try {
+                    parsedRedirectUrl = new URL(redirectUrl, parsedUrl.href);
+                } catch (e) {
+                    throw new Error(`Invalid redirect URL "${redirectUrl}": ${e.message}`);
+                }
                 if (parsedUrl.protocol == 'https:' && parsedUrl.protocol != parsedRedirectUrl.protocol && !this._allowRedirectDowngrade) {
                     throw new Error("Redirect from HTTPS to HTTP protocol. This downgrade is not allowed for security reasons. If you want to allow this behavior, set the allowRedirectDowngrade option to true.");
                 }
@@ -581,7 +596,11 @@ export class HttpClient implements ifm.IHttpClient {
         let proxyAuth: string;
         if (proxyConfig) {
             if (proxyConfig.proxyUrl.length > 0) {
-                proxyUrl = new URL(proxyConfig.proxyUrl);
+                try {
+                    proxyUrl = new URL(proxyConfig.proxyUrl);
+                } catch (e) {
+                    throw new Error(`Invalid proxy URL "${proxyConfig.proxyUrl}": ${e.message}`);
+                }
             }
 
             if (proxyConfig.proxyUsername || proxyConfig.proxyPassword) {
