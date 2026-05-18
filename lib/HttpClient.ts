@@ -441,6 +441,8 @@ export class HttpClient implements ifm.IHttpClient {
         
         info.options = <http.RequestOptions>{};
         info.options.host = info.parsedUrl.hostname;
+        // Note: WHATWG URL strips default ports (e.g., :80 for http, :443 for https),
+        // returning ''. The fallback to defaultPort handles this correctly.
         info.options.port = info.parsedUrl.port ? parseInt(info.parsedUrl.port) : defaultPort;
         info.options.path = (info.parsedUrl.pathname || '') + (info.parsedUrl.search || '');
         info.options.method = method;
@@ -527,7 +529,10 @@ export class HttpClient implements ifm.IHttpClient {
                 proxy: {
                     proxyAuth: proxy.proxyAuth,
                     host: proxy.proxyUrl.hostname,
-                    port: proxy.proxyUrl.port
+                    // WHATWG URL strips default ports (80/443) returning ''.
+                    // The tunnel library needs an explicit port number to connect,
+                    // so fall back to the protocol's default when .port is empty.
+                    port: proxy.proxyUrl.port || (proxy.proxyUrl.protocol === 'https:' ? '443' : '80')
                 },
             };
 
