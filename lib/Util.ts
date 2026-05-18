@@ -7,6 +7,25 @@ import * as path from 'path';
 import zlib = require('zlib');
 import { IRequestQueryParams, IHttpClientResponse } from './Interfaces';
 
+//helper function
+ /**
+  * Redacts username and password from a URL string to prevent credential
+  * leakage in error messages, logs, or telemetry.
+  */
+ function sanitizeUrlForError(urlStr: string): string {
+     try {
+         const u = new URL(urlStr);
+         if (u.username || u.password) {
+             u.username = '***';
+             u.password = '***';
+         }
+         return u.href;
+     } catch {
+         // Fallback regex redaction for strings that aren't parseable URLs.
+         return urlStr.replace(/\/\/[^@]+@/, '//***:***@');
+     }
+ }
+
 /**
  * creates an url from a request url and optional base url (http://server:8080)
  * @param {string} resource - a fully qualified url or relative path
@@ -39,13 +58,20 @@ export function getUrl(resource: string, baseUrl?: string, queryParams?: IReques
             let isFullUrl = false;
             let resourceUrl: URL;
             try {
-                resourceUrl = new URL(resource);
+                // Protocol-relative URLs (e.g., "//example.com/path") were treated as
+                // having a host by the old url.parse(). The WHATWG URL constructor
+                // rejects them without a base, so resolve against base.href to
+                // preserve the original merge semantics (inherit protocol from base).
+                if (resource.startsWith('//')) {
+                    resourceUrl = new URL(resource, base.href);
+                } else {
+                    resourceUrl = new URL(resource);
+                }
                 isFullUrl = true;
             } catch {
-                // Resource is not a full URL, treat as relative path
+                // Resource is not a full URL, treat as a relative path to merge with base.
                 isFullUrl = false;
             }
-            
             let resultantUrl: URL;
             
             if (isFullUrl) {
@@ -89,7 +115,10 @@ export function getUrl(resource: string, baseUrl?: string, queryParams?: IReques
             requestUrl = resultantUrl.href;
         } catch (err) {
             const message = err instanceof Error ? err.message : String(err);
-            throw new Error(`Failed to construct URL ${message}`);
+             throw new Error(
+                 `Failed to construct URL from resource="${sanitizeUrlForError(resource)}" ` +
+                 `and baseUrl="${sanitizeUrlForError(baseUrl)}". ${message}`
+             );
         }
     }
 

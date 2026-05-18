@@ -597,10 +597,19 @@ export class HttpClient implements ifm.IHttpClient {
         let proxyAuth: string;
         if (proxyConfig) {
             if (proxyConfig.proxyUrl.length > 0) {
+                // Normalize scheme-less proxy URLs (e.g., "proxy.com:8080") for backward
+                // compatibility. The old url.parse() accepted host-only strings, but the
+                // WHATWG URL constructor requires an absolute URL with a scheme.
+                const rawProxyUrl = proxyConfig.proxyUrl;
+                let normalizedProxyUrl = rawProxyUrl;
+                if (!/^[a-zA-Z][a-zA-Z\d+\-.]*:/.test(normalizedProxyUrl)) {
+                    // No scheme detected — default to http:// to preserve legacy behavior.
+                    normalizedProxyUrl = `http://${normalizedProxyUrl}`;
+                }
                 try {
-                    proxyUrl = new URL(proxyConfig.proxyUrl);
+                    proxyUrl = new URL(normalizedProxyUrl);
                 } catch (err) {
-                    throw new Error(`Invalid proxy URL: ${err.message}`);
+                    throw new Error(`Invalid proxy URL: ${rawProxyUrl}. ${err.message}`);
                 }
             }
 
