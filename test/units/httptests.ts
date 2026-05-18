@@ -505,7 +505,15 @@ describe('Http Tests with NO_PROXY environment variable', function () {
 
 describe('Http Proxy Tunnel Tests', function () {
 
+    before(() => {
+    });
+
+    after(() => {
+    });
+
     it('creates tunnel agent with numeric port from explicit proxy port', () => {
+        this.timeout(1000);
+
         let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests', [], {
             proxy: {
                 proxyUrl: 'http://proxy-server:8080'
@@ -521,6 +529,8 @@ describe('Http Proxy Tunnel Tests', function () {
     });
 
     it('creates tunnel agent defaulting to port 80 for HTTP proxy without explicit port', () => {
+        this.timeout(1000);
+
         let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests', [], {
             proxy: {
                 proxyUrl: 'http://proxy-server'
@@ -536,6 +546,8 @@ describe('Http Proxy Tunnel Tests', function () {
     });
 
     it('creates tunnel agent defaulting to port 443 for HTTPS proxy without explicit port', () => {
+        this.timeout(1000);
+
         let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests', [], {
             proxy: {
                 proxyUrl: 'https://secure-proxy'
@@ -551,6 +563,8 @@ describe('Http Proxy Tunnel Tests', function () {
     });
 
     it('creates tunnel agent for HTTPS target through HTTP proxy', () => {
+        this.timeout(1000);
+
         let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests', [], {
             proxy: {
                 proxyUrl: 'http://proxy-server:3128'
@@ -566,6 +580,8 @@ describe('Http Proxy Tunnel Tests', function () {
     });
 
     it('creates tunnel agent for HTTP target through HTTP proxy', () => {
+        this.timeout(1000);
+
         let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests', [], {
             proxy: {
                 proxyUrl: 'http://proxy-server:3128'
@@ -581,6 +597,8 @@ describe('Http Proxy Tunnel Tests', function () {
     });
 
     it('passes proxy auth credentials to tunnel agent', () => {
+        this.timeout(1000);
+
         let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests', [], {
             proxy: {
                 proxyUrl: 'http://proxy-server:8080',
@@ -597,6 +615,8 @@ describe('Http Proxy Tunnel Tests', function () {
     });
 
     it('does not create tunnel agent when proxy bypass matches', () => {
+        this.timeout(1000);
+
         let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests', [], {
             proxy: {
                 proxyUrl: 'http://proxy-server:8080',
@@ -611,6 +631,8 @@ describe('Http Proxy Tunnel Tests', function () {
     });
 
     it('resolves proxy from HTTP_PROXY environment variable', () => {
+        this.timeout(1000);
+
         let httpProxyBefore = process.env["HTTP_PROXY"];
         process.env["HTTP_PROXY"] = "http://env-proxy:9090";
 
@@ -630,6 +652,8 @@ describe('Http Proxy Tunnel Tests', function () {
     });
 
     it('reuses cached proxy agent for subsequent requests with keepAlive', () => {
+        this.timeout(1000);
+
         let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests', [], {
             keepAlive: true,
             proxy: {
@@ -644,6 +668,8 @@ describe('Http Proxy Tunnel Tests', function () {
     });
 
     it('prepareRequest sets correct port from URL with explicit port', () => {
+        this.timeout(1000);
+
         let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests');
         let info = (http as any)._prepareRequest('GET', new URL('http://server:9090/path'), {});
 
@@ -653,6 +679,8 @@ describe('Http Proxy Tunnel Tests', function () {
     });
 
     it('prepareRequest defaults to port 443 for HTTPS URL without explicit port', () => {
+        this.timeout(1000);
+
         let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests');
         let info = (http as any)._prepareRequest('GET', new URL('https://server/path'), {});
 
@@ -660,6 +688,8 @@ describe('Http Proxy Tunnel Tests', function () {
     });
 
     it('prepareRequest defaults to port 80 for HTTP URL without explicit port', () => {
+        this.timeout(1000);
+
         let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests');
         let info = (http as any)._prepareRequest('GET', new URL('http://server/path'), {});
 
@@ -667,6 +697,8 @@ describe('Http Proxy Tunnel Tests', function () {
     });
 
     it('prepareRequest preserves query string in path', () => {
+        this.timeout(1000);
+
         let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests');
         let info = (http as any)._prepareRequest('GET', new URL('http://server/api?param=value&other=123'), {});
 
@@ -675,6 +707,12 @@ describe('Http Proxy Tunnel Tests', function () {
 });
 
 describe('Http Redirect Tests with relative URLs', function () {
+
+    before(() => {
+    });
+
+    after(() => {
+    });
 
     afterEach(() => {
         nock.cleanAll();
