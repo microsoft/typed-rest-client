@@ -83,6 +83,11 @@ describe('Util Tests', function () {
             let res: string = util.getUrl('/path#section', 'http://server.com');
             assert.strictEqual(res, 'http://server.com/path#section', `should preserve fragment but got ${res}`);
         });
+
+        it('appends relative resource when baseUrl has query parameters', () => {
+            let res: string = util.getUrl('sub/path', 'http://server.com/api/v1?api-version=1');
+            assert.strictEqual(res, 'http://server.com/api/v1/sub/path', `should append to base path without corrupting query handling but got ${res}`);
+        });
     });
 
 });

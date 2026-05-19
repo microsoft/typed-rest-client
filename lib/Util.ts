@@ -22,13 +22,15 @@ export function getUrl(resource: string, baseUrl?: string, queryParams?: IReques
         requestUrl = baseUrl;
     }
     else {
-        // Ensure baseUrl path is treated as a directory (trailing slash)
-        // so relative resource paths are appended rather than replacing the last segment
-        let effectiveBase = baseUrl;
-        if (!effectiveBase.endsWith('/')) {
-            effectiveBase += '/';
+        const effectiveBase: URL = new URL(baseUrl);
+
+        // Ensure the base path is treated as a directory so relative resource paths
+        // append to it without corrupting any existing query string or fragment.
+        if (!effectiveBase.pathname.endsWith('/')) {
+            effectiveBase.pathname += '/';
         }
-        const resultantUrl: URL = new URL(resource, effectiveBase);
+
+        const resultantUrl: URL = new URL(resource, effectiveBase.href);
 
         if (!resultantUrl.pathname.endsWith('/') && resource.endsWith('/')) {
             resultantUrl.pathname += '/';

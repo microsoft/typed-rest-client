@@ -34,9 +34,24 @@ export interface IHttpClientResponse {
     readBody(): Promise<string>;
 }
 
+export interface ILegacyParsedUrl {
+    auth: string | null;
+    hash: string | null;
+    host: string;
+    hostname: string;
+    href: string;
+    path: string;
+    pathname: string;
+    port: string | null;
+    protocol: string;
+    query: string | null;
+    search: string | null;
+}
+
 export interface IRequestInfo {
     options: http.RequestOptions;
-    parsedUrl: URL;
+    parsedUrl: ILegacyParsedUrl;
+    requestUrl?: URL;
     httpModule: any;
 }
 
