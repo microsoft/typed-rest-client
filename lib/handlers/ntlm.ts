@@ -126,7 +126,6 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
         const type1info = <ifm.IRequestInfo>{};
         type1info.httpModule = requestInfo.httpModule;
         type1info.parsedUrl = requestInfo.parsedUrl;
-        type1info.requestUrl = requestInfo.requestUrl;
         type1info.options = _.extend(type1options, _.omit(requestInfo.options, 'headers'));
 
         return httpClient.requestRawWithCallback(type1info, objs, finalCallback);
@@ -181,7 +180,6 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
         const type3info = <ifm.IRequestInfo>{};
         type3info.httpModule = requestInfo.httpModule;
         type3info.parsedUrl = requestInfo.parsedUrl;
-        type3info.requestUrl = requestInfo.requestUrl;
         type3options.headers = _.extend(type3options.headers, requestInfo.options.headers);
         type3info.options = _.extend(type3options, _.omit(requestInfo.options, 'headers'));
 

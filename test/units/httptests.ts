@@ -360,66 +360,6 @@ describe('Http Tests', function () {
         let body: string = await res.readBody();
     });
 
-    it('preserves legacy parsedUrl fields for request handlers', async() => {
-        class CompatibilityHandler implements ifm.IRequestHandler {
-            public capturedRequestInfo: ifm.IRequestInfo | undefined;
-
-            prepareRequest(options: http.RequestOptions): void {
-            }
-
-            canHandleAuthentication(response: ifm.IHttpClientResponse): boolean {
-                return response.message.statusCode === httpm.HttpCodes.Unauthorized;
-            }
-
-            async handleAuthentication(httpClient: ifm.IHttpClient, requestInfo: ifm.IRequestInfo, objs): Promise<ifm.IHttpClientResponse> {
-                this.capturedRequestInfo = requestInfo;
-                requestInfo.options.headers = requestInfo.options.headers || {};
-                requestInfo.options.headers['x-compat-checked'] = 'true';
-                return httpClient.requestRaw(requestInfo, objs);
-            }
-        }
-
-        const compatibilityHandler = new CompatibilityHandler();
-        const http = new httpm.HttpClient('typed-test-client-tests', [compatibilityHandler]);
-        const requestUrl = 'http://user%40name:p%40ss%3Aword@microsoft.com:8080/resource/path?first=1&second=two#fragment';
-
-        nock('http://microsoft.com:8080')
-            .get('/resource/path?first=1&second=two')
-            .reply(401, {
-                challenge: true
-            });
-
-        nock('http://microsoft.com:8080', {
-            reqheaders: {
-                'x-compat-checked': 'true'
-            }
-        })
-            .get('/resource/path?first=1&second=two')
-            .reply(200, {
-                success: true
-            });
-
-        let res: httpm.HttpClientResponse = await http.get(requestUrl);
-        assert(res.message.statusCode == 200, 'status code should be 200');
-        assert(compatibilityHandler.capturedRequestInfo, 'request handler should capture request info');
-
-        let parsedUrl = compatibilityHandler.capturedRequestInfo!.parsedUrl;
-        assert.strictEqual(parsedUrl.auth, 'user@name:p@ss:word');
-        assert.strictEqual(parsedUrl.host, 'microsoft.com:8080');
-        assert.strictEqual(parsedUrl.hostname, 'microsoft.com');
-        assert.strictEqual(parsedUrl.href, 'http://user%40name:p%40ss:word@microsoft.com:8080/resource/path?first=1&second=two#fragment');
-        assert.strictEqual(parsedUrl.path, '/resource/path?first=1&second=two');
-        assert.strictEqual(parsedUrl.pathname, '/resource/path');
-        assert.strictEqual(parsedUrl.port, '8080');
-        assert.strictEqual(parsedUrl.protocol, 'http:');
-        assert.strictEqual(parsedUrl.query, 'first=1&second=two');
-        assert.strictEqual(parsedUrl.search, '?first=1&second=two');
-        assert.strictEqual(parsedUrl.hash, '#fragment');
-
-        assert(compatibilityHandler.capturedRequestInfo!.requestUrl, 'requestUrl should expose the WHATWG URL');
-        assert.strictEqual(compatibilityHandler.capturedRequestInfo!.requestUrl!.username, 'user%40name');
-        assert.strictEqual(compatibilityHandler.capturedRequestInfo!.requestUrl!.password, 'p%40ss%3Aword');
-    });
 });
 
 describe('Http Tests with keepAlive', function () {
@@ -786,71 +726,6 @@ describe('Http Proxy Tunnel Tests', function () {
         let info = (http as any)._prepareRequest('GET', new URL('http://server/api?param=value&other=123'), {});
 
         assert.strictEqual(info.options.path, '/api?param=value&other=123', 'path should include query string');
-    });
-
-    it('prepareRequest preserves explicit default port in legacy href', () => {
-        this.timeout(1000);
-
-        let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests');
-        let info = (http as any)._prepareRequest('GET', new URL('http://server:80/path'), {}, 'http://server:80/path');
-
-        assert.strictEqual(info.parsedUrl.href, 'http://server:80/path');
-        assert.strictEqual(info.parsedUrl.host, 'server:80');
-        assert.strictEqual(info.parsedUrl.port, '80');
-    });
-
-    it('prepareRequest preserves explicit default HTTPS port in legacy host and port', () => {
-        this.timeout(1000);
-
-        let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests');
-        let info = (http as any)._prepareRequest('GET', new URL('https://server:443/path'), {}, 'https://server:443/path');
-
-        assert.strictEqual(info.parsedUrl.href, 'https://server:443/path');
-        assert.strictEqual(info.parsedUrl.host, 'server:443');
-        assert.strictEqual(info.parsedUrl.port, '443');
-    });
-
-    it('prepareRequest preserves empty search in legacy href', () => {
-        this.timeout(1000);
-
-        let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests');
-        let info = (http as any)._prepareRequest('GET', new URL('http://server/?'), {}, 'http://server/?');
-
-        assert.strictEqual(info.parsedUrl.href, 'http://server/?');
-        assert.strictEqual(info.parsedUrl.search, null);
-        assert.strictEqual(info.parsedUrl.query, null);
-    });
-
-    it('prepareRequest preserves empty hash in legacy href', () => {
-        this.timeout(1000);
-
-        let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests');
-        let info = (http as any)._prepareRequest('GET', new URL('http://server/#'), {}, 'http://server/#');
-
-        assert.strictEqual(info.parsedUrl.href, 'http://server/#');
-        assert.strictEqual(info.parsedUrl.hash, null);
-    });
-
-    it('prepareRequest preserves legacy href encoding for slash in auth', () => {
-        this.timeout(1000);
-
-        let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests');
-        let info = (http as any)._prepareRequest('GET', new URL('http://user%2Fname:pa%2Fss@server/path'), {}, 'http://user%2Fname:pa%2Fss@server/path');
-
-        assert.strictEqual(info.parsedUrl.auth, 'user/name:pa/ss');
-        assert.strictEqual(info.parsedUrl.href, 'http://user%2Fname:pa%2Fss@server/path');
-    });
-
-    it('prepareRequest preserves explicit default port for IPv6 host', () => {
-        this.timeout(1000);
-
-        let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests');
-        let info = (http as any)._prepareRequest('GET', new URL('http://[::1]:80/path'), {}, 'http://[::1]:80/path');
-
-        assert.strictEqual(info.parsedUrl.host, '[::1]:80');
-        assert.strictEqual(info.parsedUrl.hostname, '[::1]');
-        assert.strictEqual(info.parsedUrl.port, '80');
-        assert.strictEqual(info.parsedUrl.href, 'http://[::1]:80/path');
     });
 });
 

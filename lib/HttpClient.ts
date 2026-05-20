@@ -83,8 +83,7 @@ export class HttpClientResponse implements ifm.IHttpClientResponse {
 
 export interface RequestInfo {
     options: http.RequestOptions;
-    parsedUrl: ifm.ILegacyParsedUrl;
-    requestUrl?: URL;
+    parsedUrl: URL;
     httpModule: any;
 }
 
@@ -255,7 +254,7 @@ export class HttpClient implements ifm.IHttpClient {
         } catch (e) {
             throw new Error(`Invalid URL "${requestUrl}": ${e.message}`);
         }
-        let info: RequestInfo = this._prepareRequest(verb, parsedUrl, headers, requestUrl);
+        let info: RequestInfo = this._prepareRequest(verb, parsedUrl, headers);
 
         // Only perform retries on reads since writes may not be idempotent.
         let maxTries: number = (this._allowRetries && RetryableHttpVerbs.indexOf(verb) != -1) ? this._maxRetries + 1 : 1;
@@ -320,7 +319,7 @@ export class HttpClient implements ifm.IHttpClient {
                 await response.readBody();
 
                 // let's make the request with the new redirectUrl
-                info = this._prepareRequest(verb, parsedRedirectUrl, headers, parsedRedirectUrl.href);
+                info = this._prepareRequest(verb, parsedRedirectUrl, headers);
                 response = await this.requestRaw(info, data);
                 redirectsRemaining--;
             }
@@ -431,11 +430,10 @@ export class HttpClient implements ifm.IHttpClient {
         }
     }
 
-    private _prepareRequest(method: string, requestUrl: URL, headers: ifm.IHeaders, rawRequestUrl?: string): ifm.IRequestInfo {
+    private _prepareRequest(method: string, requestUrl: URL, headers: ifm.IHeaders): ifm.IRequestInfo {
         const info: ifm.IRequestInfo = <ifm.IRequestInfo>{};
 
-        info.requestUrl = requestUrl;
-        info.parsedUrl = this._toLegacyParsedUrl(requestUrl, rawRequestUrl);
+        info.parsedUrl = requestUrl;
         const usingSsl: boolean = requestUrl.protocol === 'https:';
         info.httpModule = usingSsl ? https : http;
         const defaultPort: number = usingSsl ? 443 : 80;
@@ -463,76 +461,6 @@ export class HttpClient implements ifm.IHttpClient {
         }
 
         return info;
-    }
-
-    private _toLegacyParsedUrl(requestUrl: URL, rawRequestUrl?: string): ifm.ILegacyParsedUrl {
-        const decodeAuthComponent = (value: string): string => {
-            try {
-                return decodeURIComponent(value);
-            } catch {
-                return value;
-            }
-        };
-        const encodeLegacyAuthComponent = (value: string): string => encodeURIComponent(value).replace(/%3A/gi, ':');
-        const getRawHost = (value?: string): string | null => {
-            if (!value || !/^[a-z][a-z0-9+.-]*:\/\//i.test(value)) {
-                return null;
-            }
-
-            const authorityMatch = value.match(/^[a-z][a-z0-9+.-]*:\/\/([^/?#]*)/i);
-            if (!authorityMatch) {
-                return null;
-            }
-
-            const authority = authorityMatch[1];
-            return authority.substring(authority.lastIndexOf('@') + 1) || null;
-        };
-        const getPortFromHost = (value: string | null): string | null => {
-            if (!value) {
-                return null;
-            }
-
-            if (value.startsWith('[')) {
-                const ipv6PortMatch = value.match(/^\[[^\]]+\]:(\d+)$/);
-                return ipv6PortMatch ? ipv6PortMatch[1] : null;
-            }
-
-            const portMatch = value.match(/:(\d+)$/);
-            return portMatch ? portMatch[1] : null;
-        };
-        const hasEmptySearch = (value?: string): boolean => !!value && /\?(?:#|$)/.test(value) && !requestUrl.search;
-        const hasEmptyHash = (value?: string): boolean => !!value && /#$/.test(value) && !requestUrl.hash;
-        const username = requestUrl.username ? decodeAuthComponent(requestUrl.username) : '';
-        const password = requestUrl.password ? decodeAuthComponent(requestUrl.password) : '';
-        const auth = requestUrl.username || requestUrl.password
-            ? password
-                ? `${username}:${password}`
-                : username
-            : null;
-        const search = requestUrl.search || null;
-        const rawHost = getRawHost(rawRequestUrl);
-        const host = rawHost || requestUrl.host;
-        const port = getPortFromHost(rawHost) || requestUrl.port || null;
-        const authPrefix = auth
-            ? password
-                ? `${encodeLegacyAuthComponent(username)}:${encodeLegacyAuthComponent(password)}@`
-                : `${encodeLegacyAuthComponent(username)}@`
-            : '';
-        const href = `${requestUrl.protocol}//${authPrefix}${host}${requestUrl.pathname}${requestUrl.search || (hasEmptySearch(rawRequestUrl) ? '?' : '')}${requestUrl.hash || (hasEmptyHash(rawRequestUrl) ? '#' : '')}`;
-
-        return {
-            auth: auth,
-            hash: requestUrl.hash || null,
-            host: host,
-            hostname: requestUrl.hostname,
-            href: href,
-            path: requestUrl.pathname + requestUrl.search,
-            pathname: requestUrl.pathname,
-            port: port,
-            protocol: requestUrl.protocol,
-            query: search ? search.slice(1) : null,
-            search: search
-        };
     }
 
     private _isPresigned(requestUrl: string): boolean {
