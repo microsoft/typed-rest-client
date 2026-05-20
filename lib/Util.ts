@@ -22,12 +22,7 @@ export function getUrl(resource: string, baseUrl?: string, queryParams?: IReques
         requestUrl = baseUrl;
     }
     else {
-        let effectiveBase: URL;
-        try {
-            effectiveBase = new URL(baseUrl);
-        } catch (err) {
-            throw new Error(`Invalid base URL "${baseUrl}": ${err.message}`);
-        }
+        const effectiveBase: URL = new URL(baseUrl);
 
         // Ensure the base path is treated as a directory so relative resource paths
         // append to it without corrupting any existing query string or fragment.
@@ -35,12 +30,7 @@ export function getUrl(resource: string, baseUrl?: string, queryParams?: IReques
             effectiveBase.pathname += '/';
         }
 
-        let resultantUrl: URL;
-        try {
-            resultantUrl = new URL(resource, effectiveBase.href);
-        } catch (err) {
-            throw new Error(`Invalid resource URL "${resource}": ${err.message}`);
-        }
+        const resultantUrl: URL = new URL(resource, effectiveBase.href);
 
         if (!resultantUrl.pathname.endsWith('/') && resource.endsWith('/')) {
             resultantUrl.pathname += '/';
