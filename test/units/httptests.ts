@@ -2,9 +2,11 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 import assert = require('assert');
+import http = require('http');
 import nock = require('nock');
 import * as httpm from 'typed-rest-client/HttpClient';
 import * as hm from 'typed-rest-client/Handlers';
+import * as ifm from 'typed-rest-client/Interfaces';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -216,6 +218,26 @@ describe('Http Tests', function () {
         assert(obj.source === "nock", "request should redirect to mocked page");
     });
 
+    it('does basic get request with relative redirects', async() => {
+        nock('http://microsoft.com')
+            .get('/redirect-to')
+            .reply(302, undefined, {
+                location:'/relative-target?source=redirect'
+            });
+        nock('http://microsoft.com')
+            .get('/relative-target?source=redirect')
+            .reply(200, {
+                source: 'nock',
+                redirected: true
+            });
+
+        let res: httpm.HttpClientResponse = await _http.get('http://microsoft.com/redirect-to');
+        assert(res.message.statusCode == 200, 'status code should be 200');
+        let body: string = await res.readBody();
+        let obj: any = JSON.parse(body);
+        assert(obj.redirected, 'request should follow relative redirect target');
+    });
+
     it('returns 404 for not found get request on redirect', async() => {
         nock('http://microsoft.com')
         .get('/redirect-to')
@@ -337,6 +359,7 @@ describe('Http Tests', function () {
         assert(res.message.statusCode == 404, "status code should be 404");
         let body: string = await res.readBody();
     });
+
 });
 
 describe('Http Tests with keepAlive', function () {
@@ -501,4 +524,283 @@ describe('Http Tests with NO_PROXY environment variable', function () {
         assert(http.userAgent, 'user-agent should not be null')
     });
 
+});
+
+describe('Http Proxy Tunnel Tests', function () {
+
+    before(() => {
+    });
+
+    after(() => {
+    });
+
+    it('creates tunnel agent with numeric port from explicit proxy port', () => {
+        this.timeout(1000);
+
+        let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests', [], {
+            proxy: {
+                proxyUrl: 'http://proxy-server:8080'
+            }
+        });
+
+        let agent = (http as any)._getAgent(new URL('http://target-server/artifact'));
+        let proxyAgent = (http as any)._proxyAgent;
+
+        assert(proxyAgent, 'proxy agent should be created');
+        assert.strictEqual(proxyAgent.options.proxy.port, 8080, 'port should be numeric 8080');
+        assert.strictEqual(typeof proxyAgent.options.proxy.port, 'number', 'port type should be number');
+    });
+
+    it('creates tunnel agent defaulting to port 80 for HTTP proxy without explicit port', () => {
+        this.timeout(1000);
+
+        let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests', [], {
+            proxy: {
+                proxyUrl: 'http://proxy-server'
+            }
+        });
+
+        let agent = (http as any)._getAgent(new URL('http://target-server/artifact'));
+        let proxyAgent = (http as any)._proxyAgent;
+
+        assert(proxyAgent, 'proxy agent should be created');
+        assert.strictEqual(proxyAgent.options.proxy.port, 80, 'port should default to 80 for HTTP proxy');
+        assert.strictEqual(typeof proxyAgent.options.proxy.port, 'number', 'port type should be number');
+    });
+
+    it('creates tunnel agent defaulting to port 443 for HTTPS proxy without explicit port', () => {
+        this.timeout(1000);
+
+        let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests', [], {
+            proxy: {
+                proxyUrl: 'https://secure-proxy'
+            }
+        });
+
+        let agent = (http as any)._getAgent(new URL('https://target-server/artifact'));
+        let proxyAgent = (http as any)._proxyAgent;
+
+        assert(proxyAgent, 'proxy agent should be created');
+        assert.strictEqual(proxyAgent.options.proxy.port, 443, 'port should default to 443 for HTTPS proxy');
+        assert.strictEqual(typeof proxyAgent.options.proxy.port, 'number', 'port type should be number');
+    });
+
+    it('creates tunnel agent for HTTPS target through HTTP proxy', () => {
+        this.timeout(1000);
+
+        let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests', [], {
+            proxy: {
+                proxyUrl: 'http://proxy-server:3128'
+            }
+        });
+
+        let agent = (http as any)._getAgent(new URL('https://target-server/artifact'));
+        let proxyAgent = (http as any)._proxyAgent;
+
+        assert(proxyAgent, 'proxy agent should be created for HTTPS target through HTTP proxy');
+        assert.strictEqual(proxyAgent.options.proxy.host, 'proxy-server');
+        assert.strictEqual(proxyAgent.options.proxy.port, 3128);
+    });
+
+    it('creates tunnel agent for HTTP target through HTTP proxy', () => {
+        this.timeout(1000);
+
+        let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests', [], {
+            proxy: {
+                proxyUrl: 'http://proxy-server:3128'
+            }
+        });
+
+        let agent = (http as any)._getAgent(new URL('http://target-server/artifact'));
+        let proxyAgent = (http as any)._proxyAgent;
+
+        assert(proxyAgent, 'proxy agent should be created for HTTP target through HTTP proxy');
+        assert.strictEqual(proxyAgent.options.proxy.host, 'proxy-server');
+        assert.strictEqual(proxyAgent.options.proxy.port, 3128);
+    });
+
+    it('passes proxy auth credentials to tunnel agent', () => {
+        this.timeout(1000);
+
+        let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests', [], {
+            proxy: {
+                proxyUrl: 'http://proxy-server:8080',
+                proxyUsername: 'admin',
+                proxyPassword: 'p@ss:w0rd#!'
+            }
+        });
+
+        let agent = (http as any)._getAgent(new URL('http://target-server/artifact'));
+        let proxyAgent = (http as any)._proxyAgent;
+
+        assert(proxyAgent, 'proxy agent should be created');
+        assert.strictEqual(proxyAgent.options.proxy.proxyAuth, 'admin:p@ss:w0rd#!');
+    });
+
+    it('does not create tunnel agent when proxy bypass matches', () => {
+        this.timeout(1000);
+
+        let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests', [], {
+            proxy: {
+                proxyUrl: 'http://proxy-server:8080',
+                proxyBypassHosts: ['target-server']
+            }
+        });
+
+        let agent = (http as any)._getAgent(new URL('http://target-server/artifact'));
+        let proxyAgent = (http as any)._proxyAgent;
+
+        assert(!proxyAgent, 'proxy agent should not be created when host is bypassed');
+    });
+
+    it('resolves proxy from HTTP_PROXY environment variable', () => {
+        this.timeout(1000);
+
+        let httpProxyBefore = process.env["HTTP_PROXY"];
+        process.env["HTTP_PROXY"] = "http://env-proxy:9090";
+
+        try {
+            let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests');
+            let proxy = (http as any)._getProxy(new URL('http://target-server/artifact'));
+            assert(proxy.proxyUrl, 'proxy should be resolved from env');
+            assert.strictEqual(proxy.proxyUrl.hostname, 'env-proxy');
+            assert.strictEqual(proxy.proxyUrl.port, '9090');
+        } finally {
+            if (httpProxyBefore !== undefined) {
+                process.env["HTTP_PROXY"] = httpProxyBefore;
+            } else {
+                delete process.env["HTTP_PROXY"];
+            }
+        }
+    });
+
+    it('reuses cached proxy agent for subsequent requests with keepAlive', () => {
+        this.timeout(1000);
+
+        let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests', [], {
+            keepAlive: true,
+            proxy: {
+                proxyUrl: 'http://proxy-server:8080'
+            }
+        });
+
+        let agent1 = (http as any)._getAgent(new URL('http://target-server/artifact1'));
+        let agent2 = (http as any)._getAgent(new URL('http://target-server/artifact2'));
+
+        assert.strictEqual(agent1, agent2, 'should reuse the same cached proxy agent');
+    });
+
+    it('prepareRequest sets correct port from URL with explicit port', () => {
+        this.timeout(1000);
+
+        let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests');
+        let info = (http as any)._prepareRequest('GET', new URL('http://server:9090/path'), {});
+
+        assert.strictEqual(info.options.port, 9090, 'port should be parsed as number');
+        assert.strictEqual(info.options.host, 'server');
+        assert.strictEqual(info.options.path, '/path');
+    });
+
+    it('prepareRequest defaults to port 443 for HTTPS URL without explicit port', () => {
+        this.timeout(1000);
+
+        let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests');
+        let info = (http as any)._prepareRequest('GET', new URL('https://server/path'), {});
+
+        assert.strictEqual(info.options.port, 443, 'port should default to 443 for HTTPS');
+    });
+
+    it('prepareRequest defaults to port 80 for HTTP URL without explicit port', () => {
+        this.timeout(1000);
+
+        let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests');
+        let info = (http as any)._prepareRequest('GET', new URL('http://server/path'), {});
+
+        assert.strictEqual(info.options.port, 80, 'port should default to 80 for HTTP');
+    });
+
+    it('prepareRequest preserves query string in path', () => {
+        this.timeout(1000);
+
+        let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests');
+        let info = (http as any)._prepareRequest('GET', new URL('http://server/api?param=value&other=123'), {});
+
+        assert.strictEqual(info.options.path, '/api?param=value&other=123', 'path should include query string');
+    });
+});
+
+describe('Http Redirect Tests with relative URLs', function () {
+
+    before(() => {
+    });
+
+    after(() => {
+    });
+
+    afterEach(() => {
+        nock.cleanAll();
+    });
+
+    it('handles relative redirect Location header', async() => {
+        let _http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests');
+        nock('http://microsoft.com')
+            .get('/old-path')
+            .reply(301, undefined, {
+                location: '/new-path'
+            });
+        nock('http://microsoft.com')
+            .get('/new-path')
+            .reply(200, {
+                source: "nock",
+                redirected: true
+            });
+
+        let res: httpm.HttpClientResponse = await _http.get('http://microsoft.com/old-path');
+        assert(res.message.statusCode == 200, "status code should be 200");
+        let body: string = await res.readBody();
+        let obj: any = JSON.parse(body);
+        assert(obj.redirected === true, "should have followed relative redirect");
+    });
+
+    it('handles relative redirect with path-only Location', async() => {
+        let _http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests');
+        nock('http://microsoft.com')
+            .get('/api/v1/resource')
+            .reply(302, undefined, {
+                location: '../v2/resource'
+            });
+        nock('http://microsoft.com')
+            .get('/api/v2/resource')
+            .reply(200, {
+                source: "nock",
+                version: "v2"
+            });
+
+        let res: httpm.HttpClientResponse = await _http.get('http://microsoft.com/api/v1/resource');
+        assert(res.message.statusCode == 200, "status code should be 200");
+        let body: string = await res.readBody();
+        let obj: any = JSON.parse(body);
+        assert(obj.version === "v2", "should have followed relative path redirect");
+    });
+
+    it('handles absolute redirect preserving correct behavior', async() => {
+        let _http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests');
+        nock('http://microsoft.com')
+            .get('/redirect-to')
+            .reply(307, undefined, {
+                location: 'http://other-server.com/new-location'
+            });
+        nock('http://other-server.com')
+            .get('/new-location')
+            .reply(200, {
+                source: "nock",
+                server: "other"
+            });
+
+        let res: httpm.HttpClientResponse = await _http.get('http://microsoft.com/redirect-to');
+        assert(res.message.statusCode == 200, "status code should be 200");
+        let body: string = await res.readBody();
+        let obj: any = JSON.parse(body);
+        assert(obj.server === "other", "should have followed absolute redirect to other server");
+    });
 });

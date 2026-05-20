@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-import url = require("url");
 import http = require("http");
 import https = require("https");
 import util = require('./Util');
@@ -84,12 +83,12 @@ export class HttpClientResponse implements ifm.IHttpClientResponse {
 
 export interface RequestInfo {
     options: http.RequestOptions;
-    parsedUrl: url.Url;
+    parsedUrl: URL;
     httpModule: any;
 }
 
 export function isHttps(requestUrl: string) {
-    let parsedUrl: url.Url = url.parse(requestUrl);
+    const parsedUrl: URL = new URL(requestUrl);
     return parsedUrl.protocol === 'https:';
 }
 
@@ -244,7 +243,7 @@ export class HttpClient implements ifm.IHttpClient {
             throw new Error("Client has already been disposed.");
         }
 
-        let parsedUrl = url.parse(requestUrl);
+        const parsedUrl: URL = new URL(requestUrl);
         let info: RequestInfo = this._prepareRequest(verb, parsedUrl, headers);
 
         // Only perform retries on reads since writes may not be idempotent.
@@ -295,7 +294,7 @@ export class HttpClient implements ifm.IHttpClient {
                     // if there's no location to redirect to, we won't
                     break;
                 }
-                let parsedRedirectUrl = url.parse(redirectUrl);
+                const parsedRedirectUrl: URL = new URL(redirectUrl, parsedUrl.href);
                 if (parsedUrl.protocol == 'https:' && parsedUrl.protocol != parsedRedirectUrl.protocol && !this._allowRedirectDowngrade) {
                     throw new Error("Redirect from HTTPS to HTTP protocol. This downgrade is not allowed for security reasons. If you want to allow this behavior, set the allowRedirectDowngrade option to true.");
                 }
@@ -416,18 +415,18 @@ export class HttpClient implements ifm.IHttpClient {
         }
     }
 
-    private _prepareRequest(method: string, requestUrl: url.Url, headers: ifm.IHeaders): ifm.IRequestInfo {
+    private _prepareRequest(method: string, requestUrl: URL, headers: ifm.IHeaders): ifm.IRequestInfo {
         const info: ifm.IRequestInfo = <ifm.IRequestInfo>{};
 
         info.parsedUrl = requestUrl;
-        const usingSsl: boolean = info.parsedUrl.protocol === 'https:';
+        const usingSsl: boolean = requestUrl.protocol === 'https:';
         info.httpModule = usingSsl ? https : http;
         const defaultPort: number = usingSsl ? 443 : 80;
         
         info.options = <http.RequestOptions>{};
-        info.options.host = info.parsedUrl.hostname;
-        info.options.port = info.parsedUrl.port ? parseInt(info.parsedUrl.port) : defaultPort;
-        info.options.path = (info.parsedUrl.pathname || '') + (info.parsedUrl.search || '');
+        info.options.host = requestUrl.hostname;
+        info.options.port = requestUrl.port ? parseInt(requestUrl.port) : defaultPort;
+        info.options.path = requestUrl.pathname + requestUrl.search;
         info.options.method = method;
         info.options.timeout = (this.requestOptions && this.requestOptions.socketTimeout) || this._socketTimeout;
         this._socketTimeout = info.options.timeout;
@@ -437,10 +436,10 @@ export class HttpClient implements ifm.IHttpClient {
             info.options.headers["user-agent"] = this.userAgent;
         }
         
-        info.options.agent = this._getAgent(info.parsedUrl);
+        info.options.agent = this._getAgent(requestUrl);
 
         // gives handlers an opportunity to participate
-        if (this.handlers && !this._isPresigned(url.format(requestUrl))) {
+        if (this.handlers && !this._isPresigned(requestUrl.href)) {
             this.handlers.forEach((handler) => {
                 handler.prepareRequest(info.options);
             });
@@ -476,7 +475,7 @@ export class HttpClient implements ifm.IHttpClient {
         return lowercaseKeys(headers || {});
     }
 
-    private _getAgent(parsedUrl: url.Url) {
+    private _getAgent(parsedUrl: URL) {
         let agent;
         let proxy = this._getProxy(parsedUrl);
         let useProxy = proxy.proxyUrl && proxy.proxyUrl.hostname && !this._isMatchInBypassProxyList(parsedUrl);
@@ -512,7 +511,7 @@ export class HttpClient implements ifm.IHttpClient {
                 proxy: {
                     proxyAuth: proxy.proxyAuth,
                     host: proxy.proxyUrl.hostname,
-                    port: proxy.proxyUrl.port
+                    port: Number(proxy.proxyUrl.port) || (proxy.proxyUrl.protocol === 'https:' ? 443 : 80)
                 },
             };
 
@@ -558,7 +557,7 @@ export class HttpClient implements ifm.IHttpClient {
         return agent;
     }
 
-    private _getProxy(parsedUrl: url.Url) {
+    private _getProxy(parsedUrl: URL) {
         let usingSsl = parsedUrl.protocol === 'https:';
         let proxyConfig: ifm.IProxyConfiguration = this._httpProxy;
 
@@ -578,11 +577,11 @@ export class HttpClient implements ifm.IHttpClient {
             }
         }
 
-        let proxyUrl: url.Url;
+        let proxyUrl: URL;
         let proxyAuth: string;
         if (proxyConfig) {
             if (proxyConfig.proxyUrl.length > 0) {
-                proxyUrl = url.parse(proxyConfig.proxyUrl);
+                proxyUrl = new URL(proxyConfig.proxyUrl);
             }
 
             if (proxyConfig.proxyUsername || proxyConfig.proxyPassword) {
@@ -593,7 +592,7 @@ export class HttpClient implements ifm.IHttpClient {
         return { proxyUrl: proxyUrl, proxyAuth: proxyAuth };
     }
 
-    private _isMatchInBypassProxyList(parsedUrl: url.Url): Boolean {
+    private _isMatchInBypassProxyList(parsedUrl: URL): boolean {
         if (!this._httpProxyBypassHosts) {
             return false;
         }
