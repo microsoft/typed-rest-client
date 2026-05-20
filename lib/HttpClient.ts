@@ -611,7 +611,7 @@ export class HttpClient implements ifm.IHttpClient {
         return { proxyUrl: proxyUrl, proxyAuth: proxyAuth };
     }
 
-    private _isMatchInBypassProxyList(parsedUrl: URL): Boolean {
+    private _isMatchInBypassProxyList(parsedUrl: URL): boolean {
         if (!this._httpProxyBypassHosts) {
             return false;
         }
