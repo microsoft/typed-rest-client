@@ -2,7 +2,6 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
 import http = require("http");
-import url = require("url");
 
 export interface IHeaders { [key: string]: any };
 
@@ -37,7 +36,7 @@ export interface IHttpClientResponse {
 
 export interface IRequestInfo {
     options: http.RequestOptions;
-    parsedUrl: url.Url;
+    parsedUrl: URL;
     httpModule: any;
 }
 
