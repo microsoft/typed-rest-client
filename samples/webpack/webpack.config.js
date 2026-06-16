@@ -9,6 +9,10 @@ const config = {
         main: "./main.js",
     },
     resolve: {
+        modules: [path.resolve(__dirname, 'node_modules'), 'node_modules'],
+        alias: {
+            'process/browser': require.resolve('process/browser')
+        },
         fallback: {
             fs: false,
             "http": require.resolve("stream-http"),
@@ -19,7 +23,9 @@ const config = {
             "assert": require.resolve("assert"),
             "util": require.resolve("util"),
             "stream": require.resolve("stream-browserify"),
-            "buffer": require.resolve("buffer")
+            "buffer": require.resolve("buffer"),
+            "events": require.resolve("events/"),
+            "process": require.resolve("process/browser")
         }
     },
     output: {
