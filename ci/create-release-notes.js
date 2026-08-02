@@ -179,4 +179,4 @@ async function main(branch) {
     }
 }
 
-main('master');
+main(branch);
