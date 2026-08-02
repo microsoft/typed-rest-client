@@ -12,12 +12,6 @@ parameters:
 variables:
 - group: esrp-npm-release
 - group: github-release
-- name: EsrpMainPublisher
-  value: 'ESRPRELPACMAN'
-- name: EsrpServiceEndpointUrl
-  value: 'https://api.esrp.microsoft.com'
-- name: EsrpDomainTenantId
-  value: '975f013f-7f24-47e8-a7d3-abc4752bf346'
 - name: nodeVersion
   value: '20.x'
 
