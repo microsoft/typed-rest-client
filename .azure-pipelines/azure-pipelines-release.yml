@@ -1,0 +1,160 @@
+name: $(Date:yyyyMMdd)$(Rev:.r)
+
+trigger: none
+pr: none
+
+parameters:
+- name: dryRun
+  displayName: Validate build and package without releasing
+  type: boolean
+  default: false
+
+variables:
+- group: esrp-npm-release
+- group: github-release
+- name: nodeVersion
+  value: '20.x'
+
+resources:
+  repositories:
+  - repository: 1ESPipelineTemplates
+    type: git
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/tags/release
+
+extends:
+  template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
+  parameters:
+    sdl:
+      sourceAnalysisPool:
+        name: 1ES-ABTT-Shared-Pool
+        image: abtt-windows-2025
+        os: windows
+    stages:
+    - stage: BuildAndPack
+      displayName: Build, test, and pack
+      jobs:
+      - job: pack
+        pool:
+          name: 1ES-ABTT-Shared-Pool
+          image: abtt-ubuntu-2404
+          os: linux
+        templateContext:
+          outputs:
+          - output: pipelineArtifact
+            targetPath: $(Build.ArtifactStagingDirectory)/npm-packages
+            artifactName: npm-packages
+        steps:
+        - task: NodeTool@0
+          displayName: Install Node.js $(nodeVersion)
+          inputs:
+            versionSpec: $(nodeVersion)
+        - task: NpmAuthenticate@0
+          displayName: Authenticate npm feed
+          inputs:
+            workingFile: .npmrc
+        - script: npm ci
+          displayName: npm ci
+        - script: npm run build
+          displayName: npm run build
+        - script: npm test
+          displayName: npm test
+        - script: |
+            set -e
+            mkdir -p "$(Build.ArtifactStagingDirectory)/npm-packages/packages"
+            npm pack --pack-destination "$(Build.ArtifactStagingDirectory)/npm-packages/packages"
+          displayName: Pack typed-rest-client
+          workingDirectory: _build
+        - script: |
+            count=$(ls -1 "$(Build.ArtifactStagingDirectory)/npm-packages/packages"/*.tgz 2>/dev/null | wc -l)
+            echo "Found $count .tgz file(s)."
+            if [ "$count" -eq 0 ]; then
+              echo "ERROR: npm pack produced no .tgz"
+              exit 1
+            fi
+          displayName: Verify package exists
+        - script: |
+            set -e
+            for tgz in "$(Build.ArtifactStagingDirectory)/npm-packages/packages"/*.tgz; do
+              if tar -tzf "$tgz" | grep -E '(^|/)_manifest/'; then
+                echo "ERROR: $tgz contains an SBOM _manifest/ folder"
+                exit 1
+              fi
+            done
+          displayName: Verify package excludes SBOM manifest
+
+    - ${{ if eq(parameters.dryRun, false) }}:
+      - stage: PublishToNpmViaESRP
+        displayName: Publish to npm via ESRP
+        dependsOn: BuildAndPack
+        jobs:
+        - job: esrp
+          displayName: Publish npm package
+          pool:
+            name: 1ES-ABTT-Shared-Pool
+            image: abtt-windows-2025
+            os: windows
+          templateContext:
+            type: releaseJob
+            isProduction: true
+            inputs:
+            - input: pipelineArtifact
+              artifactName: npm-packages
+              targetPath: $(Pipeline.Workspace)/npm-packages
+          steps:
+          - task: EsrpRelease@12
+            displayName: Publish package to npm via ESRP
+            inputs:
+              connectedservicename: '$(EsrpServiceConnection)'
+              usemanagedidentity: true
+              keyvaultname: '$(EsrpKeyVault)'
+              signcertname: '$(EsrpSignCert)'
+              clientid: '$(EsrpClientId)'
+              intent: 'PackageDistribution'
+              contenttype: 'npm'
+              contentsource: 'Folder'
+              folderlocation: '$(Pipeline.Workspace)/npm-packages/packages'
+              waitforreleasecompletion: true
+              owners: '$(EsrpOwners)'
+              approvers: '$(EsrpApprovers)'
+              serviceendpointurl: '$(EsrpServiceEndpointUrl)'
+              mainpublisher: '$(EsrpMainPublisher)'
+              domaintenantid: '$(EsrpDomainTenantId)'
+
+        - job: github_release
+          displayName: Create GitHub release
+          dependsOn: esrp
+          pool:
+            name: 1ES-ABTT-Shared-Pool
+            image: abtt-ubuntu-2404
+            os: linux
+          steps:
+          - checkout: self
+            fetchDepth: 0
+          - task: NodeTool@0
+            displayName: Install Node.js $(nodeVersion)
+            inputs:
+              versionSpec: $(nodeVersion)
+          - task: NpmAuthenticate@0
+            displayName: Authenticate npm feed
+            inputs:
+              workingFile: .npmrc
+          - script: npm ci
+            displayName: npm ci
+          - bash: |
+              case "$BUILD_SOURCEBRANCH" in
+                refs/heads/*)
+                  release_branch="${BUILD_SOURCEBRANCH#refs/heads/}"
+                  ;;
+                *)
+                  echo "ERROR: Releases must run from a branch, not $BUILD_SOURCEBRANCH"
+                  exit 1
+                  ;;
+              esac
+              echo "##vso[task.setvariable variable=releaseBranch]$release_branch"
+            displayName: Resolve release branch
+          - script: node ./ci/create-release-notes.js
+            displayName: Create GitHub release
+            env:
+              GH_TOKEN: $(gh-automation.token)
+              branch: $(releaseBranch)

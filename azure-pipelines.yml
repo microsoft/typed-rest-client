@@ -4,12 +4,6 @@
 trigger:
 - master
 - releases/*
-variables:
-- name: isMaster
-  value: $[eq(variables['Build.SourceBranch'], 'refs/heads/master')]
-- name: isRelease
-  value: $[startsWith(variables['Build.SourceBranch'], 'refs/heads/releases')]
-- group: npm-tokens
 parameters:
 - name: nodeVersionList
   type: object
@@ -41,8 +35,8 @@ extends:
     - stage: Build
       displayName: Build typed-rest-client
       jobs:
-      - job: Build_and_Publish
-        displayName: Build and Publish artifact
+      - job: Build_package
+        displayName: Build artifact
         pool:
           name: 1ES-ABTT-Shared-Pool
           image: abtt-ubuntu-2404
@@ -94,37 +88,3 @@ extends:
               displayName: npm run units
             - script: npm run test
               displayName: npm run test
-    - stage: Publish
-      condition: and(succeeded(), eq(variables.isMaster, true), in(variables['build.reason'], 'IndividualCI', 'BatchedCI', 'Manual'))
-      jobs:
-      - job: Publish_package
-        displayName: Publish npm package
-        pool:
-          name: 1ES-ABTT-Shared-Pool
-          image: abtt-ubuntu-2404
-          os: linux
-        steps:
-        - task: DownloadPipelineArtifact@2
-          displayName: Download built typed-rest-client package
-          inputs:
-            artifact: _build
-            path: $(Build.SourcesDirectory)/_build
-        - bash: |
-            echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc
-            npm publish --registry https://registry.npmjs.org/ --cache $(Agent.TempDirectory)/.npm-cache
-          displayName: Publish typed-rest-client to npm
-          workingDirectory: '_build'
-          env:
-            NPM_TOKEN: $(npm-automation.token)
-          continueOnError: true
-        - script: npm install
-          displayName: npm install
-          continueOnError: true
-          condition: and(succeeded(), eq(variables.isMaster, true))
-        - script: node ./ci/create-release-notes.js
-          continueOnError: true
-          condition: and(succeeded(), eq(variables.isMaster, true))
-          env:
-            GH_TOKEN: $(gh-automation.token)
-            branch: $(Build.SourceBranchName)
-          displayName: Create Release

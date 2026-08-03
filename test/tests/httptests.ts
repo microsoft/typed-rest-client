@@ -9,6 +9,17 @@ import * as path from 'path';
 
 let sampleFilePath: string = path.join(__dirname, 'testoutput.txt');
 
+function getFirstValue(value: any): any {
+    return Array.isArray(value) ? value[0] : value;
+}
+
+function getResponseData(data: string): string {
+    const prefix = 'data:application/octet-stream;base64,';
+    return data.indexOf(prefix) === 0
+        ? Buffer.from(data.substring(prefix.length), 'base64').toString()
+        : data;
+}
+
 describe('Http Tests', function () {
     let _http: httpm.HttpClient;
     let _httpbin: httpm.HttpClient;
@@ -32,90 +43,82 @@ describe('Http Tests', function () {
     //     "args": {}, 
     //     "headers": {
     //       "Connection": "close", 
-    //       "Host": "httpbin.org", 
+    //       "Host": "httpbingo.org",
     //       "User-Agent": "typed-test-client-tests"
     //     }, 
     //     "origin": "173.95.152.44", 
-    //     "url": "https://httpbin.org/get"
+    //     "url": "https://httpbingo.org/get"
     //  }
     it('does basic http get request', async() => {
-        let res: httpm.HttpClientResponse = await _http.get('http://httpbin.org/get');
+        let res: httpm.HttpClientResponse = await _http.get('http://httpbingo.org/get');
         assert(res.message.statusCode == 200, "status code should be 200");
         let body: string = await res.readBody();      
         let obj: any = JSON.parse(body);
-        assert(obj.url === "http://httpbin.org/get");
+        assert(obj.url === "http://httpbingo.org/get");
         assert('User-Agent' in obj.headers === true, "User-Agent should be set");
     });
 
     it('does basic http get request with undefined agent', async() => {
         let http: httpm.HttpClient = new httpm.HttpClient(undefined);
-        let res: httpm.HttpClientResponse = await http.get('http://httpbin.org/get');
-        assert(res.message.statusCode == 200, "status code should be 200");
-        let body: string = await res.readBody();      
-        let obj: any = JSON.parse(body);
-        assert(obj.url === "http://httpbin.org/get");
-        assert('User-Agent' in obj.headers === false, "User-Agent should not be set");
+        let res: httpm.HttpClientResponse = await http.get('http://httpbingo.org/get');
+        assert(res.message.statusCode == 402, "httpbingo should reject a missing User-Agent");
     });
 
     it('does basic http get request with null agent', async() => {
         let http: httpm.HttpClient = new httpm.HttpClient(null);
-        let res: httpm.HttpClientResponse = await http.get('http://httpbin.org/get');
-        assert(res.message.statusCode == 200, "status code should be 200");
-        let body: string = await res.readBody();      
-        let obj: any = JSON.parse(body);
-        assert(obj.url === "http://httpbin.org/get");
-        assert('User-Agent' in obj.headers === false, "User-Agent should not be set");
+        let res: httpm.HttpClientResponse = await http.get('http://httpbingo.org/get');
+        assert(res.message.statusCode == 402, "httpbingo should reject a missing User-Agent");
     });
 
     it('does basic http get request with empty agent', async() => {
         let http: httpm.HttpClient = new httpm.HttpClient('');
-        let res: httpm.HttpClientResponse = await http.get('http://httpbin.org/get');
-        assert(res.message.statusCode == 200, "status code should be 200");
-        let body: string = await res.readBody();      
-        let obj: any = JSON.parse(body);
-        assert(obj.url === "http://httpbin.org/get");
-        // Newer Node runtimes can omit headers that are explicitly set to empty strings.
-        let userAgent: string | undefined = obj.headers['User-Agent'];
-        assert(userAgent === '' || userAgent === undefined, "User-Agent should be empty or omitted");
+        let res: httpm.HttpClientResponse = await http.get('http://httpbingo.org/get');
+        assert(res.message.statusCode == 200 || res.message.statusCode == 402, "status code should reflect whether Node sends the empty User-Agent");
+        if (res.message.statusCode == 200) {
+            let body: string = await res.readBody();
+            let obj: any = JSON.parse(body);
+            let userAgent: string | undefined = getFirstValue(obj.headers['User-Agent']);
+            assert(userAgent === '' || userAgent === undefined, "User-Agent should be empty or omitted");
+        }
     });
 
     it('does basic https get request', async() => {
-        let res: httpm.HttpClientResponse = await _http.get('https://httpbin.org/get');
+        let res: httpm.HttpClientResponse = await _http.get('https://httpbingo.org/get');
         assert(res.message.statusCode == 200, "status code should be 200");
         let body: string = await res.readBody();
         let obj: any = JSON.parse(body);
-        assert(obj.url === "https://httpbin.org/get");
+        assert(obj.url === "https://httpbingo.org/get");
     });
 
     it('does basic http get request with gzip encoded response', async() => {
-        const httpResponse: httpm.HttpClientResponse = await _http.get('http://httpbin.org/gzip');
+        const httpResponse: httpm.HttpClientResponse = await _http.get('http://httpbingo.org/gzip');
         const body: string = await httpResponse.readBody();
         const bodyAsJSON:any = JSON.parse(body);
 
-        assert(bodyAsJSON.headers && bodyAsJSON.headers.Host === "httpbin.org");
+        assert(bodyAsJSON.headers && getFirstValue(bodyAsJSON.headers.Host) === "httpbingo.org");
         assert(httpResponse.message.statusCode == 200, "status code should be 200");
     });
 
     it('does basic https get request with gzip encoded response', async() => {
-        const httpResponse: httpm.HttpClientResponse = await _http.get('https://httpbin.org/gzip');
+        const httpResponse: httpm.HttpClientResponse = await _http.get('https://httpbingo.org/gzip');
         const body: string = await httpResponse.readBody();
         const bodyAsJSON:any = JSON.parse(body);
 
-        assert(bodyAsJSON.headers && bodyAsJSON.headers.Host === "httpbin.org");
+        assert(bodyAsJSON.headers && getFirstValue(bodyAsJSON.headers.Host) === "httpbingo.org");
         assert(httpResponse.message.statusCode == 200, "status code should be 200");
     });
 
     it('does basic http get request with basic auth', async() => {
         let bh: hm.BasicCredentialHandler = new hm.BasicCredentialHandler('johndoe', 'password');
         let http: httpm.HttpClient = new httpm.HttpClient('typed-rest-client-tests', [bh]);
-        let res: httpm.HttpClientResponse = await http.get('http://httpbin.org/get');
+        let res: httpm.HttpClientResponse = await http.get('http://httpbingo.org/get');
         assert(res.message.statusCode == 200, "status code should be 200");
         let body: string = await res.readBody(); 
         let obj:any = JSON.parse(body);
-        let auth: string = obj.headers.Authorization;
+        let auth: string = getFirstValue(obj.headers.Authorization);
         let creds: string = Buffer.from(auth.substring('Basic '.length), 'base64').toString();
         assert(creds === 'johndoe:password', "should be the username and password");
-        assert(obj.url === "http://httpbin.org/get");
+        assert(obj.url === "http://httpbingo.org/get");
     });
     
     it('does basic http get request with pat token auth', async() => {
@@ -123,14 +126,14 @@ describe('Http Tests', function () {
         let ph: hm.PersonalAccessTokenCredentialHandler = 
             new hm.PersonalAccessTokenCredentialHandler(token);
         let http: httpm.HttpClient = new httpm.HttpClient('typed-rest-client-tests', [ph]);
-        let res: httpm.HttpClientResponse = await http.get('http://httpbin.org/get');
+        let res: httpm.HttpClientResponse = await http.get('http://httpbingo.org/get');
         assert(res.message.statusCode == 200, "status code should be 200");
         let body: string = await res.readBody(); 
         let obj:any = JSON.parse(body);
-        let auth: string = obj.headers.Authorization;
+        let auth: string = getFirstValue(obj.headers.Authorization);
         let creds: string = Buffer.from(auth.substring('Basic '.length), 'base64').toString();
         assert(creds === 'PAT:' + token, "creds should be the token");
-        assert(obj.url === "http://httpbin.org/get");
+        assert(obj.url === "http://httpbingo.org/get");
     });
     
     it('does basic http get request with default headers', async() => {
@@ -140,13 +143,13 @@ describe('Http Tests', function () {
                 'Content-Type': 'application/json'
             }
         });
-        let res: httpm.HttpClientResponse = await http.get('http://httpbin.org/get');
+        let res: httpm.HttpClientResponse = await http.get('http://httpbingo.org/get');
         assert(res.message.statusCode == 200, "status code should be 200");
         let body: string = await res.readBody(); 
         let obj:any = JSON.parse(body);
-        assert(obj.headers.Accept === 'application/json', "Accept header should be 'application/json'");
-        assert(obj.headers['Content-Type'] === 'application/json', "Content-Type header should be 'application/json'");
-        assert(obj.url === "http://httpbin.org/get");
+        assert(getFirstValue(obj.headers.Accept) === 'application/json', "Accept header should be 'application/json'");
+        assert(getFirstValue(obj.headers['Content-Type']) === 'application/json', "Content-Type header should be 'application/json'");
+        assert(obj.url === "http://httpbingo.org/get");
     });
     
     it('does basic http get request with merged headers', async() => {
@@ -156,65 +159,65 @@ describe('Http Tests', function () {
                 'Content-Type': 'application/json'
             }
         });
-        let res: httpm.HttpClientResponse = await http.get('http://httpbin.org/get', {
+        let res: httpm.HttpClientResponse = await http.get('http://httpbingo.org/get', {
             'content-type': 'application/x-www-form-urlencoded'
         });
         assert(res.message.statusCode == 200, "status code should be 200");
         let body: string = await res.readBody(); 
         let obj:any = JSON.parse(body);
-        assert(obj.headers.Accept === 'application/json', "Accept header should be 'application/json'");
-        assert(obj.headers['Content-Type'] === 'application/x-www-form-urlencoded', "Content-Type header should be 'application/x-www-form-urlencoded'");
-        assert(obj.url === "http://httpbin.org/get");
+        assert(getFirstValue(obj.headers.Accept) === 'application/json', "Accept header should be 'application/json'");
+        assert(getFirstValue(obj.headers['Content-Type']) === 'application/x-www-form-urlencoded', "Content-Type header should be 'application/x-www-form-urlencoded'");
+        assert(obj.url === "http://httpbingo.org/get");
     });
 
     it('pipes a get request', () => {
         return new Promise<void>(async (resolve, reject) => {
             let file: NodeJS.WritableStream = fs.createWriteStream(sampleFilePath);
-            (await _http.get('https://httpbin.org/get')).message.pipe(file).on('close', () => {
+            (await _http.get('https://httpbingo.org/get')).message.pipe(file).on('close', () => {
                 let body: string = fs.readFileSync(sampleFilePath).toString();
                 let obj:any = JSON.parse(body);
-                assert(obj.url === "https://httpbin.org/get", "response from piped stream should have url");
+                assert(obj.url === "https://httpbingo.org/get", "response from piped stream should have url");
                 resolve();
             });
         });
     });
     
     it('does basic get request with redirects', async() => {
-        let res: httpm.HttpClientResponse = await _http.get(`https://httpbin.org/redirect-to?url=` + encodeURIComponent("https://httpbin.org/anything"))
+        let res: httpm.HttpClientResponse = await _http.get(`https://httpbingo.org/redirect-to?url=` + encodeURIComponent("https://httpbingo.org/anything"))
         assert(res.message.statusCode == 200, "status code should be 200");
         let body: string = await res.readBody();
         let obj:any = JSON.parse(body);
-        assert(obj.url === "https://httpbin.org/anything");
+        assert(obj.url === "https://httpbingo.org/anything");
     });
 
     it('does basic get request with redirects (303)', async() => {
-        let res: httpm.HttpClientResponse = await _http.get(`https://httpbin.org/redirect-to?url=` + encodeURIComponent("https://httpbin.org/anything") + '&status_code=303')
+        let res: httpm.HttpClientResponse = await _http.get(`https://httpbingo.org/redirect-to?url=` + encodeURIComponent("https://httpbingo.org/anything") + '&status_code=303')
         assert(res.message.statusCode == 200, "status code should be 200");
         let body: string = await res.readBody();
         let obj:any = JSON.parse(body);
-        assert(obj.url === "https://httpbin.org/anything");
+        assert(obj.url === "https://httpbingo.org/anything");
     });
 
     it('returns 404 for not found get request on redirect', async() => {
-        let res: httpm.HttpClientResponse = await _http.get(`https://httpbin.org/redirect-to?url=` + encodeURIComponent("https://httpbin.org/status/404") + '&status_code=303')
+        let res: httpm.HttpClientResponse = await _http.get(`https://httpbingo.org/redirect-to?url=` + encodeURIComponent("https://httpbingo.org/status/404") + '&status_code=303')
         assert(res.message.statusCode == 404, "status code should be 404");
         let body: string = await res.readBody();
     });
 
     it('does not follow redirects if disabled', async() => {
         let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests', null, { allowRedirects: false });
-        let res: httpm.HttpClientResponse = await http.get(`https://httpbin.org/redirect-to?url=` + encodeURIComponent("https://httpbin.org/anything"))
+        let res: httpm.HttpClientResponse = await http.get(`https://httpbingo.org/redirect-to?url=` + encodeURIComponent("https://httpbingo.org/anything"))
         assert(res.message.statusCode == 302, "status code should be 302");
         let body: string = await res.readBody();
     });
 
     it('does basic head request', async() => {
-        let res: httpm.HttpClientResponse = await _http.head('http://httpbin.org/get');
+        let res: httpm.HttpClientResponse = await _http.head('http://httpbingo.org/get');
         assert(res.message.statusCode == 200, "status code should be 200");
     });
 
     it('does basic http delete request', async() => {
-        let res: httpm.HttpClientResponse = await _http.del('http://httpbin.org/delete');
+        let res: httpm.HttpClientResponse = await _http.del('http://httpbingo.org/delete');
         assert(res.message.statusCode == 200, "status code should be 200");
         let body: string = await res.readBody();      
         let obj:any = JSON.parse(body);
@@ -222,32 +225,32 @@ describe('Http Tests', function () {
 
     it('does basic http post request', async() => {
         let b: string = 'Hello World!';
-        let res: httpm.HttpClientResponse = await _http.post('http://httpbin.org/post', b);
+        let res: httpm.HttpClientResponse = await _http.post('http://httpbingo.org/post', b);
         assert(res.message.statusCode == 200, "status code should be 200");
         let body: string = await res.readBody();
         let obj:any = JSON.parse(body);
-        assert(obj.data === b);
-        assert(obj.url === "http://httpbin.org/post");
+        assert(getResponseData(obj.data) === b);
+        assert(obj.url === "http://httpbingo.org/post");
     });
     
     it('does basic http patch request', async() => {
         let b: string = 'Hello World!';
-        let res: httpm.HttpClientResponse = await _http.patch('http://httpbin.org/patch', b);
+        let res: httpm.HttpClientResponse = await _http.patch('http://httpbingo.org/patch', b);
         assert(res.message.statusCode == 200, "status code should be 200");
         let body: string = await res.readBody();
         let obj:any = JSON.parse(body);
-        assert(obj.data === b);
-        assert(obj.url === "http://httpbin.org/patch");
+        assert(getResponseData(obj.data) === b);
+        assert(obj.url === "http://httpbingo.org/patch");
     });
     
     it('does basic http options request', async() => {
-        let res: httpm.HttpClientResponse = await _http.options('http://httpbin.org');
+        let res: httpm.HttpClientResponse = await _http.options('http://httpbingo.org');
         assert(res.message.statusCode == 200, "status code should be 200");
         let body: string = await res.readBody();
     });
     
     it('returns 404 for not found get request', async() => {
-        let res: httpm.HttpClientResponse = await _http.get('http://httpbin.org/status/404');
+        let res: httpm.HttpClientResponse = await _http.get('http://httpbingo.org/status/404');
         assert(res.message.statusCode == 404, "status code should be 404");
         let body: string = await res.readBody();
     });
@@ -264,20 +267,20 @@ describe('Http Tests with keepAlive', function () {
     });
 
     it('does basic http get request with keepAlive true', async() => {
-        let res: httpm.HttpClientResponse = await _http.get('http://httpbin.org/get');
+        let res: httpm.HttpClientResponse = await _http.get('http://httpbingo.org/get');
         assert(res.message.statusCode == 200, "status code should be 200");
         let body: string = await res.readBody();      
         let obj:any = JSON.parse(body);
-        assert(obj.url === "http://httpbin.org/get");
+        assert(obj.url === "http://httpbingo.org/get");
     });
 
     it('does basic head request with keepAlive true', async() => {
-        let res: httpm.HttpClientResponse = await _http.head('http://httpbin.org/get');
+        let res: httpm.HttpClientResponse = await _http.head('http://httpbingo.org/get');
         assert(res.message.statusCode == 200, "status code should be 200");
     });    
 
     it('does basic http delete request with keepAlive true', async() => {
-        let res: httpm.HttpClientResponse = await _http.del('http://httpbin.org/delete');
+        let res: httpm.HttpClientResponse = await _http.del('http://httpbingo.org/delete');
         assert(res.message.statusCode == 200, "status code should be 200");
         let body: string = await res.readBody();      
         let obj:any = JSON.parse(body);
@@ -285,26 +288,26 @@ describe('Http Tests with keepAlive', function () {
 
     it('does basic http post request with keepAlive true', async() => {
         let b: string = 'Hello World!';
-        let res: httpm.HttpClientResponse = await _http.post('http://httpbin.org/post', b);
+        let res: httpm.HttpClientResponse = await _http.post('http://httpbingo.org/post', b);
         assert(res.message.statusCode == 200, "status code should be 200");
         let body: string = await res.readBody();
         let obj:any = JSON.parse(body);
-        assert(obj.data === b);
-        assert(obj.url === "http://httpbin.org/post");
+        assert(getResponseData(obj.data) === b);
+        assert(obj.url === "http://httpbingo.org/post");
     });
     
     it('does basic http patch request with keepAlive true', async() => {
         let b: string = 'Hello World!';
-        let res: httpm.HttpClientResponse = await _http.patch('http://httpbin.org/patch', b);
+        let res: httpm.HttpClientResponse = await _http.patch('http://httpbingo.org/patch', b);
         assert(res.message.statusCode == 200, "status code should be 200");
         let body: string = await res.readBody();
         let obj:any = JSON.parse(body);
-        assert(obj.data === b);
-        assert(obj.url === "http://httpbin.org/patch");
+        assert(getResponseData(obj.data) === b);
+        assert(obj.url === "http://httpbingo.org/patch");
     }); 
     
     it('does basic http options request with keepAlive true', async() => {
-        let res: httpm.HttpClientResponse = await _http.options('http://httpbin.org');
+        let res: httpm.HttpClientResponse = await _http.options('http://httpbingo.org');
         assert(res.message.statusCode == 200, "status code should be 200");
         let body: string = await res.readBody();
     });

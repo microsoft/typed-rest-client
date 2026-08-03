@@ -14,6 +14,10 @@ export interface HttpBinData {
     args?: any
 }
 
+function getFirstValue(value: any): any {
+    return Array.isArray(value) ? value[0] : value;
+}
+
 describe('Rest Tests', function () {
     let _rest: restm.RestClient;
     let _restBin: restm.RestClient;
@@ -21,7 +25,7 @@ describe('Rest Tests', function () {
 
     before(() => {
         _rest = new restm.RestClient('typed-rest-client-tests');
-        _restBin = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org');
+        _restBin = new restm.RestClient('typed-rest-client-tests', 'https://httpbingo.org');
         _options = {
             queryParameters: {
                 params: {
@@ -45,26 +49,26 @@ describe('Rest Tests', function () {
     it('gets a resource', async() => {
         this.timeout(3000);
 
-        let restRes: restm.IRestResponse<HttpBinData> = await _rest.get<HttpBinData>('https://httpbin.org/get');
+        let restRes: restm.IRestResponse<HttpBinData> = await _rest.get<HttpBinData>('https://httpbingo.org/get');
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result && restRes.result.url === 'https://httpbin.org/get');
+        assert(restRes.result && restRes.result.url === 'https://httpbingo.org/get');
     });
 
     it('gets a resource with baseUrl', async() => {
         let restRes: restm.IRestResponse<HttpBinData> = await _restBin.get<HttpBinData>('get');
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result && restRes.result.url === 'https://httpbin.org/get');
+        assert(restRes.result && restRes.result.url === 'https://httpbingo.org/get');
     });
 
     it('gets a resource passing Query Parameters', async() => {
         this.timeout(3000);
-        const response: restm.IRestResponse<HttpBinData> = await _rest.get<HttpBinData>('https://httpbin.org/get', _options);
+        const response: restm.IRestResponse<HttpBinData> = await _rest.get<HttpBinData>('https://httpbingo.org/get', _options);
 
         assert(response.statusCode == 200, "statusCode should be 200");
-        assert(response.result.url === 'https://httpbin.org/get?id=1&type=compact');
+        assert(response.result.url === 'https://httpbingo.org/get?id=1&type=compact');
 
         Object.keys(_options.queryParameters.params).forEach(key => {
-            const actual = response.result.args[key];
+            const actual = getFirstValue(response.result.args[key]);
             const expected = _options.queryParameters.params[key];
 
             assert(expected == actual);
@@ -75,10 +79,10 @@ describe('Rest Tests', function () {
         const response: restm.IRestResponse<HttpBinData> = await _restBin.get<HttpBinData>('get', _options);
 
         assert(response.statusCode == 200, "statusCode should be 200");
-        assert(response.result.url === 'https://httpbin.org/get?id=1&type=compact');
+        assert(response.result.url === 'https://httpbingo.org/get?id=1&type=compact');
 
         Object.keys(_options.queryParameters.params).forEach(key => {
-            const actual = response.result.args[key];
+            const actual = getFirstValue(response.result.args[key]);
             const expected = _options.queryParameters.params[key];
 
             assert(expected == actual);
@@ -87,9 +91,9 @@ describe('Rest Tests', function () {
 
     it('creates a resource', async() => {
         let res: any = { name: 'foo' };
-        let restRes: restm.IRestResponse<HttpBinData> = await _rest.create<HttpBinData>('https://httpbin.org/post', res);
+        let restRes: restm.IRestResponse<HttpBinData> = await _rest.create<HttpBinData>('https://httpbingo.org/post', res);
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result && restRes.result.url === 'https://httpbin.org/post');
+        assert(restRes.result && restRes.result.url === 'https://httpbingo.org/post');
         assert(restRes.result && restRes.result.json.name === 'foo');
     });
 
@@ -97,7 +101,7 @@ describe('Rest Tests', function () {
         let res: any = { name: 'foo' };
         let restRes: restm.IRestResponse<HttpBinData> = await _restBin.create<HttpBinData>('post', res);
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result && restRes.result.url === 'https://httpbin.org/post');
+        assert(restRes.result && restRes.result.url === 'https://httpbingo.org/post');
         assert(restRes.result && restRes.result.json.name === 'foo');
     });
 
@@ -105,9 +109,9 @@ describe('Rest Tests', function () {
         this.timeout(3000);
 
         let res: any = { name: 'foo' };
-        let restRes: restm.IRestResponse<HttpBinData> = await _rest.replace<HttpBinData>('https://httpbin.org/put', res);
+        let restRes: restm.IRestResponse<HttpBinData> = await _rest.replace<HttpBinData>('https://httpbingo.org/put', res);
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result && restRes.result.url === 'https://httpbin.org/put');
+        assert(restRes.result && restRes.result.url === 'https://httpbingo.org/put');
         assert(restRes.result && restRes.result.json.name === 'foo');
     });
 
@@ -115,15 +119,15 @@ describe('Rest Tests', function () {
         let res: any = { name: 'foo' };
         let restRes: restm.IRestResponse<HttpBinData> = await _restBin.replace<HttpBinData>('put', res);
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result && restRes.result.url === 'https://httpbin.org/put');
+        assert(restRes.result && restRes.result.url === 'https://httpbingo.org/put');
         assert(restRes.result && restRes.result.json.name === 'foo');
     });
 
     it('updates a resource', async() => {
         let res: any = { name: 'foo' };
-        let restRes: restm.IRestResponse<HttpBinData> = await _rest.update<HttpBinData>('https://httpbin.org/patch', res);
+        let restRes: restm.IRestResponse<HttpBinData> = await _rest.update<HttpBinData>('https://httpbingo.org/patch', res);
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result && restRes.result.url === 'https://httpbin.org/patch');
+        assert(restRes.result && restRes.result.url === 'https://httpbingo.org/patch');
         assert(restRes.result && restRes.result.json.name === 'foo');
     });
 
@@ -131,31 +135,31 @@ describe('Rest Tests', function () {
         let res: any = { name: 'foo' };
         let restRes: restm.IRestResponse<HttpBinData> = await _restBin.update<HttpBinData>('patch', res);
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result && restRes.result.url === 'https://httpbin.org/patch');
+        assert(restRes.result && restRes.result.url === 'https://httpbingo.org/patch');
         assert(restRes.result && restRes.result.json.name === 'foo');
     });
 
     it('deletes a resource', async() => {
-        let restRes: restm.IRestResponse<HttpBinData> = await _rest.del<HttpBinData>('https://httpbin.org/delete');
+        let restRes: restm.IRestResponse<HttpBinData> = await _rest.del<HttpBinData>('https://httpbingo.org/delete');
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result && restRes.result.url === 'https://httpbin.org/delete');
+        assert(restRes.result && restRes.result.url === 'https://httpbingo.org/delete');
     });
 
     it('deletes a resource with a baseUrl', async() => {
         let restRes: restm.IRestResponse<HttpBinData> = await _restBin.del<HttpBinData>('delete');
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result && restRes.result.url === 'https://httpbin.org/delete');
+        assert(restRes.result && restRes.result.url === 'https://httpbingo.org/delete');
     });
 
     it('deletes a resource passing Query Parameters', async () => {
         this.timeout(3000);
-        const response: restm.IRestResponse<HttpBinData> = await _rest.del<HttpBinData>('https://httpbin.org/delete', _options);
+        const response: restm.IRestResponse<HttpBinData> = await _rest.del<HttpBinData>('https://httpbingo.org/delete', _options);
 
         assert(response.statusCode == 200, "statusCode should be 200");
-        assert(response.result.url === 'https://httpbin.org/delete?id=1&type=compact');
+        assert(response.result.url === 'https://httpbingo.org/delete?id=1&type=compact');
 
         Object.keys(_options.queryParameters.params).forEach(key => {
-            const actual = response.result.args[key];
+            const actual = getFirstValue(response.result.args[key]);
             const expected = _options.queryParameters.params[key];
 
             assert(expected == actual);
@@ -166,10 +170,10 @@ describe('Rest Tests', function () {
         const response: restm.IRestResponse<HttpBinData> = await _restBin.del<HttpBinData>('delete', _options);
 
         assert(response.statusCode == 200, "statusCode should be 200");
-        assert(response.result.url === 'https://httpbin.org/delete?id=1&type=compact');
+        assert(response.result.url === 'https://httpbingo.org/delete?id=1&type=compact');
 
         Object.keys(_options.queryParameters.params).forEach(key => {
-            const actual = response.result.args[key];
+            const actual = getFirstValue(response.result.args[key]);
             const expected = _options.queryParameters.params[key];
 
             assert(expected == actual);
@@ -177,7 +181,7 @@ describe('Rest Tests', function () {
     });
 
     it('does an options request', async() => {
-        let restRes: restm.IRestResponse<HttpBinData> = await _rest.options<HttpBinData>('https://httpbin.org');
+        let restRes: restm.IRestResponse<HttpBinData> = await _rest.options<HttpBinData>('https://httpbingo.org');
         assert(restRes.statusCode == 200, "statusCode should be 200");
     });
 
@@ -198,7 +202,7 @@ describe('Rest Tests', function () {
         this.timeout(3000);
 
         try {
-            let restRes: restm.IRestResponse<HttpBinData> = await _rest.get<HttpBinData>('https://httpbin.org/status/404');
+            let restRes: restm.IRestResponse<HttpBinData> = await _rest.get<HttpBinData>('https://httpbingo.org/status/404');
 
             assert(restRes.statusCode == 404, "statusCode should be 404");
             assert(restRes.result === null, "object should be null");
@@ -215,7 +219,7 @@ describe('Rest Tests', function () {
     //
     it('gets and handles unauthorized (401)', async() => {
         try {
-            let restRes: restm.IRestResponse<HttpBinData> = await _rest.get<HttpBinData>('https://httpbin.org/status/401');
+            let restRes: restm.IRestResponse<HttpBinData> = await _rest.get<HttpBinData>('https://httpbingo.org/status/401');
             assert(false, "should throw");
         }
         catch(err) {
@@ -232,7 +236,7 @@ describe('Rest Tests', function () {
     //
     it('gets and handles a server error (500)', async() => {
         try {
-            let restRes: restm.IRestResponse<HttpBinData> = await _rest.get<HttpBinData>('https://httpbin.org/status/500');
+            let restRes: restm.IRestResponse<HttpBinData> = await _rest.get<HttpBinData>('https://httpbingo.org/status/500');
             assert(false, "should throw");
         }
         catch(err) {
@@ -266,93 +270,93 @@ describe('Rest Tests', function () {
         this.timeout(3000);
 
         // Arrange
-        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything');
+        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbingo.org/anything');
 
         // Act
         let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('anythingextra');
 
         // Assert
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result && restRes.result.url === 'https://httpbin.org/anything/anythingextra');
+        assert(restRes.result && restRes.result.url === 'https://httpbingo.org/anything/anythingextra');
     });
 
     it('maintains the path from the base url with no slashes', async() => {
         // Arrange
-        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything');
+        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbingo.org/anything');
 
         // Act
         let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('anythingextra');
 
         // Assert
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result && restRes.result.url === 'https://httpbin.org/anything/anythingextra');
+        assert(restRes.result && restRes.result.url === 'https://httpbingo.org/anything/anythingextra');
     });
 
     it('maintains the path from the base url with double slashes', async() => {
         // Arrange
-        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything/');
+        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbingo.org/anything/');
 
         // Act
         let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('anythingextra');
 
         // Assert
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result && restRes.result.url === 'https://httpbin.org/anything/anythingextra');
+        assert(restRes.result && restRes.result.url === 'https://httpbingo.org/anything/anythingextra');
     });
 
     it('maintains the path from the base url with multiple parts', async() => {
         // Arrange
-        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything/extrapart');
+        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbingo.org/anything/extrapart');
 
         // Act
         let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('anythingextra');
 
         // Assert
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result && restRes.result.url === 'https://httpbin.org/anything/extrapart/anythingextra');
+        assert(restRes.result && restRes.result.url === 'https://httpbingo.org/anything/extrapart/anythingextra');
     });
 
     it('maintains the path from the base url where request has multiple parts', async() => {
         // Arrange
-        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything');
+        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbingo.org/anything');
 
         // Act
         let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('anythingextra/moreparts');
 
         // Assert
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result && restRes.result.url === 'https://httpbin.org/anything/anythingextra/moreparts');
+        assert(restRes.result && restRes.result.url === 'https://httpbingo.org/anything/anythingextra/moreparts');
     });
 
     it('maintains the path from the base url where both have multiple parts', async() => {
         // Arrange
-        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything/multiple');
+        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbingo.org/anything/multiple');
 
         // Act
         let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('anythingextra/moreparts');
 
         // Assert
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result && restRes.result.url === 'https://httpbin.org/anything/multiple/anythingextra/moreparts');
+        assert(restRes.result && restRes.result.url === 'https://httpbingo.org/anything/multiple/anythingextra/moreparts');
     });
 
     it('maintains the path from the base url where request has query parameters', async() => {
         // Arrange
         this.timeout(3000);
-        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org/anything/multiple');
+        let rest = new restm.RestClient('typed-rest-client-tests', 'https://httpbingo.org/anything/multiple');
 
         // Act
         let restRes: restm.IRestResponse<HttpBinData> = await rest.get<HttpBinData>('anythingextra/moreparts?foo=bar&baz=top');
 
         // Assert
         assert(restRes.statusCode == 200, "statusCode should be 200");
-        assert(restRes.result && restRes.result.url === 'https://httpbin.org/anything/multiple/anythingextra/moreparts?foo=bar&baz=top');
-        assert(restRes.result && restRes.result.args.foo === 'bar');
-        assert(restRes.result && restRes.result.args.baz === 'top');
+        assert(restRes.result && restRes.result.url === 'https://httpbingo.org/anything/multiple/anythingextra/moreparts?foo=bar&baz=top');
+        assert(restRes.result && getFirstValue(restRes.result.args.foo) === 'bar');
+        assert(restRes.result && getFirstValue(restRes.result.args.baz) === 'top');
     });
 
     it('preserves trailing slashes in URLs', async () => {
-        const res = util.getUrl('get/foo/', 'http://httpbin.org/bar');
-        assert.equal(res, 'http://httpbin.org/bar/get/foo/');
+        const res = util.getUrl('get/foo/', 'http://httpbingo.org/bar');
+        assert.equal(res, 'http://httpbingo.org/bar/get/foo/');
     });
 });
