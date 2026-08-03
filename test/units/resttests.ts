@@ -16,13 +16,11 @@ export interface HttpData {
 
 describe('Rest Tests', function () {
     let _rest: restm.RestClient;
-    let _restBin: restm.RestClient;
     let _restMic: restm.RestClient;
     let _queryParams: ifm.IRequestQueryParams;
 
     before(() => {
         _rest = new restm.RestClient('typed-rest-client-tests');
-        _restBin = new restm.RestClient('typed-rest-client-tests', 'https://httpbin.org');
         _restMic = new restm.RestClient('typed-rest-client-tests', 'http://microsoft.com');
         _queryParams = {
             params: {
