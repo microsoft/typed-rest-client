@@ -39,17 +39,24 @@
     "mocha": "^10.4.0",
     "nock": "13.5.4",
     "semver": "^7.6.2",
-    "shelljs": "^0.8.5",
+    "shelljs": "^0.10.0",
     "typescript": "^5.4.5"
   },
   "dependencies": {
     "des.js": "^1.1.0",
     "js-md4": "^0.3.2",
-    "qs": "6.15.1",
+    "qs": "6.15.3",
     "tunnel": "0.0.6",
     "underscore": "^1.13.8"
   },
   "overrides": {
-    "serialize-javascript": "7.0.5"
+    "serialize-javascript": "7.0.5",
+    "js-yaml": "4.3.1",
+    "brace-expansion@1.x": {
+      ".": "1.1.18"
+    },
+    "brace-expansion@2.x": {
+      ".": "2.1.4"
+    }
   }
 }
