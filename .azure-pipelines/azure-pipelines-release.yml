@@ -11,7 +11,6 @@ parameters:
 
 variables:
 - group: esrp-npm-release
-- group: github-release
 - name: nodeVersion
   value: '20.x'
 
@@ -120,41 +119,3 @@ extends:
               serviceendpointurl: '$(EsrpServiceEndpointUrl)'
               mainpublisher: '$(EsrpMainPublisher)'
               domaintenantid: '$(EsrpDomainTenantId)'
-
-        - job: github_release
-          displayName: Create GitHub release
-          dependsOn: esrp
-          pool:
-            name: 1ES-ABTT-Shared-Pool
-            image: abtt-ubuntu-2404
-            os: linux
-          steps:
-          - checkout: self
-            fetchDepth: 0
-          - task: NodeTool@0
-            displayName: Install Node.js $(nodeVersion)
-            inputs:
-              versionSpec: $(nodeVersion)
-          - task: NpmAuthenticate@0
-            displayName: Authenticate npm feed
-            inputs:
-              workingFile: .npmrc
-          - script: npm ci
-            displayName: npm ci
-          - bash: |
-              case "$BUILD_SOURCEBRANCH" in
-                refs/heads/*)
-                  release_branch="${BUILD_SOURCEBRANCH#refs/heads/}"
-                  ;;
-                *)
-                  echo "ERROR: Releases must run from a branch, not $BUILD_SOURCEBRANCH"
-                  exit 1
-                  ;;
-              esac
-              echo "##vso[task.setvariable variable=releaseBranch]$release_branch"
-            displayName: Resolve release branch
-          - script: node ./ci/create-release-notes.js
-            displayName: Create GitHub release
-            env:
-              GH_TOKEN: $(gh-automation.token)
-              branch: $(releaseBranch)
