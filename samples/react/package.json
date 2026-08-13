@@ -21,16 +21,19 @@
     "@typescript-eslint/eslint-plugin": "^7.2.0",
     "@typescript-eslint/parser": "^7.2.0",
     "@vitejs/plugin-react": "^4.2.1",
-    "eslint": "^8.57.0",
+    "eslint": "^8.57.1",
     "eslint-plugin-react-hooks": "^4.6.0",
     "eslint-plugin-react-refresh": "^0.4.6",
     "stream-browserify": "^3.0.0",
     "typescript": "^5.2.2",
-    "vite": "^5.2.0",
-    "vite-plugin-node-polyfills": "^0.22.0"
+    "vite": "^6.4.3",
+    "vite-plugin-node-polyfills": "^0.28.0"
   },
    "overrides": {
     "elliptic": "^6.6.1",
-    "qs": "6.15.1"
+    "qs": "^6.15.3",
+    "js-yaml": "^4.3.1",
+    "brace-expansion@1.x": {".": "1.1.18"},
+    "brace-expansion@2.x": {".": "2.1.4"}
   }
 }
