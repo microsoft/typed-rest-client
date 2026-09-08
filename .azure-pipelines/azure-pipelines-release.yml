@@ -44,10 +44,10 @@ extends:
             targetPath: $(Build.ArtifactStagingDirectory)/npm-packages
             artifactName: npm-packages
         steps:
-        - task: NodeTool@0
+        - task: UseNode@1
           displayName: Install Node.js $(nodeVersion)
           inputs:
-            versionSpec: $(nodeVersion)
+            version: $(nodeVersion)
         - task: NpmAuthenticate@0
           displayName: Authenticate npm feed
           inputs:
