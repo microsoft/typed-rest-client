@@ -49,9 +49,9 @@ extends:
             artifactType: pipeline
             artifactName: _build
         steps:
-        - task: NodeTool@0
+        - task: UseNode@1
           inputs:
-            versionSpec: '20.x'
+            version: '20.x'
           displayName: Install node 20.x
         - task: NpmAuthenticate@0
           inputs:
@@ -80,9 +80,9 @@ extends:
                 patterns: '!package-lock.json'
             - script: npm install
               displayName: npm install
-            - task: NodeTool@0
+            - task: UseNode@1
               inputs:
-                versionSpec: ${{ nodeVersion }}.x
+                version: ${{ nodeVersion }}.x
               displayName: Install node ${{ nodeVersion }}
             - script: npm run units
               displayName: npm run units
