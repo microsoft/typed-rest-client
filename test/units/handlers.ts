@@ -5,6 +5,7 @@ import assert = require('assert');
 import nock = require('nock');
 import * as httpm from 'typed-rest-client/HttpClient';
 import * as hm from 'typed-rest-client/Handlers';
+import * as ifm from 'typed-rest-client/Interfaces';
 
 describe('Authentication Handlers Tests', function () {
     let _authHandlersOptions: any;
@@ -395,5 +396,61 @@ describe('Authentication Handlers Tests', function () {
 
         assert(ntlmScopeType1.isDone() && ntlmScopeType2.isDone() && ntlmScopeType3.isDone(), 'All Nock Scopes Intercepted/Done Successfully');
         assert(httpResponse.message.statusCode == httpm.HttpCodes.OK, 'Should have status code of 200');
+    });
+
+    it('[NTLM] - carries caller headers and options set by an earlier handler through the handshake', async() => {
+        const url: string = 'http://microsoft.com';
+        const base64EncodedType1Message = 'NTLM TlRMTVNTUAABAAAAA7IAAAoACgApAAAACQAJACAAAABMSUdIVENJVFlVUlNBLU1JTk9S';
+        const serverChallengeOrNonce = 'NTLM TlRMTVNTUAACAAAAAAAAACgAAAABggAAU3J2Tm9uY2UAAAAAAAAAAA==';
+        const base64EncodedType3Message = 'NTLM TlRMTVNTUAADAAAAGAAYAHIAAAAYABgAigAAABQAFABAAAAADAAMAFQAAAASABIAYAAA' +
+            'AAAAAACiAAAAAYIAAFUAUgBTAEEALQBNAEkATgBPAFIAWgBhAHAAaABvAGQATABJAEcA' +
+            'SABUAEMASQBUAFkArYfKbe/jRoW5xDxHeoxC1gBmfWiS5+iX4OAN4xBKG/IFPwfH3agtPEia6YnhsADT'
+
+        const seen: any[] = [];
+        let prepared: any;
+        const inheritingHandler: ifm.IRequestHandler = {
+            prepareRequest: (options: any) => {
+                prepared = options;
+                Object.setPrototypeOf(options, { localAddress: '127.0.0.1' });
+            },
+            canHandleAuthentication: () => false,
+            handleAuthentication: () => { throw new Error('not called'); }
+        };
+        const ntlmAuthHandler: hm.NtlmCredentialHandler = new hm.NtlmCredentialHandler(
+            _authHandlersOptions.ntlm.sampleUser,
+            _authHandlersOptions.ntlm.samplePass,
+            _authHandlersOptions.ntlm.workstation,
+            _authHandlersOptions.ntlm.domain
+        );
+
+        const ntlmScopeType1 = nock(url)
+            .matchHeader('X-Caller', 'kept')
+            .get('/')
+            .reply(httpm.HttpCodes.Unauthorized, {}, {'WWW-Authenticate': 'NTLM'});
+
+        const ntlmScopeType2 = nock(url)
+            .matchHeader('Authorization', base64EncodedType1Message)
+            .get('/')
+            .reply(httpm.HttpCodes.Unauthorized, {}, {'WWW-Authenticate': serverChallengeOrNonce});
+
+        const ntlmScopeType3 = nock(url)
+            .matchHeader('Authorization', base64EncodedType3Message)
+            .matchHeader('X-Caller', 'kept')
+            .get('/')
+            .reply(httpm.HttpCodes.OK);
+
+        const httpClient: httpm.HttpClient = new httpm.HttpClient(undefined, [inheritingHandler, ntlmAuthHandler]);
+        const rawRequest = httpClient.requestRawWithCallback.bind(httpClient);
+        httpClient.requestRawWithCallback = (info: ifm.IRequestInfo, data: any, onResult: any) => {
+            seen.push((<any>info.options).localAddress);
+            return rawRequest(info, data, onResult);
+        };
+
+        const httpResponse: httpm.HttpClientResponse = await httpClient.get(url, { 'X-Caller': 'kept' });
+
+        assert(ntlmScopeType1.isDone() && ntlmScopeType2.isDone() && ntlmScopeType3.isDone(), 'All Nock Scopes Intercepted/Done Successfully');
+        assert(httpResponse.message.statusCode == httpm.HttpCodes.OK, 'Should have status code of 200');
+        assert.deepStrictEqual(seen, ['127.0.0.1', '127.0.0.1', '127.0.0.1'], 'Inherited option reaches the initial request and both NTLM legs');
+        assert.strictEqual(prepared.username, _authHandlersOptions.ntlm.sampleUser, 'NTLM adds its credentials to the options object the handlers were given');
     });
 });
