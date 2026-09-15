@@ -40,7 +40,7 @@
     "qs": "^6.16.0",
     "serialize-javascript": "7.0.5",
     "brace-expansion@1.x": {".": "1.1.18"},
-    "fast-uri@3.x": {".": "^3.1.6"},
+    "fast-uri@3.x": {".": "^3.1.7"},
     "websocket-driver": "0.7.5",
     "shell-quote": "1.10.0",
     "browserslist": "^4.28.8"
