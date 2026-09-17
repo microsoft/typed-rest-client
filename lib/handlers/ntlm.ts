@@ -13,8 +13,22 @@ import ifm = require('../Interfaces');
 import http = require("http");
 import https = require("https");
 
-const _ = require("underscore");
 const ntlm = require("../opensource/Node-SMB/lib/ntlm");
+
+// for...in on purpose: a custom prepareRequest handler may put request options
+// on the prototype, and they have to reach the type 1 and type 3 requests too.
+function assignKeys(target: any, source: any, skip?: string): any {
+    for (const key in source) {
+        if (key !== skip) {
+            target[key] = source[key];
+        }
+    }
+    return target;
+}
+
+function withoutHeaders(options: http.RequestOptions): http.RequestOptions {
+    return assignKeys({}, options, 'headers');
+}
 
 interface INtlmOptions {
     username?: string,
@@ -74,7 +88,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
 
     private handleAuthenticationPrivate(httpClient: any, requestInfo: ifm.IRequestInfo, objs, finalCallback): void {
         // Set up the headers for NTLM authentication
-        requestInfo.options = _.extend(requestInfo.options, {
+        requestInfo.options = assignKeys(requestInfo.options, {
             username: this._ntlmOptions.username,
             password: this._ntlmOptions.password,
             domain: this._ntlmOptions.domain,
@@ -126,7 +140,7 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
         const type1info = <ifm.IRequestInfo>{};
         type1info.httpModule = requestInfo.httpModule;
         type1info.parsedUrl = requestInfo.parsedUrl;
-        type1info.options = _.extend(type1options, _.omit(requestInfo.options, 'headers'));
+        type1info.options = assignKeys(type1options, withoutHeaders(requestInfo.options));
 
         return httpClient.requestRawWithCallback(type1info, objs, finalCallback);
     }
@@ -180,8 +194,8 @@ export class NtlmCredentialHandler implements ifm.IRequestHandler {
         const type3info = <ifm.IRequestInfo>{};
         type3info.httpModule = requestInfo.httpModule;
         type3info.parsedUrl = requestInfo.parsedUrl;
-        type3options.headers = _.extend(type3options.headers, requestInfo.options.headers);
-        type3info.options = _.extend(type3options, _.omit(requestInfo.options, 'headers'));
+        type3options.headers = assignKeys(type3options.headers, requestInfo.options.headers);
+        type3info.options = assignKeys(type3options, withoutHeaders(requestInfo.options));
 
         return httpClient.requestRawWithCallback(type3info, objs, callback);
     }
