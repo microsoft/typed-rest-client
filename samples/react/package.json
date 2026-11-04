@@ -26,15 +26,15 @@
     "eslint-plugin-react-refresh": "^0.4.6",
     "stream-browserify": "^3.0.0",
     "typescript": "^5.2.2",
-    "vite": "^6.4.3",
+    "vite": "^6.4.5",
     "vite-plugin-node-polyfills": "^0.28.0"
   },
    "overrides": {
     "elliptic": "^6.6.1",
-    "qs": "^6.16.0",
+    "qs": "^6.16.1",
     "js-yaml": "^4.3.2",
-    "brace-expansion@1.x": {".": "1.1.18"},
-    "brace-expansion@2.x": {".": "2.1.4"},
+    "brace-expansion@1.x": {".": "^1.1.21"},
+    "brace-expansion@2.x": {".": "^2.1.7"},
     "nanoid": "^3.3.18"
   }
 }
