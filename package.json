@@ -1,6 +1,6 @@
 {
   "name": "typed-rest-client",
-  "version": "3.1.2",
+  "version": "3.1.3",
   "description": "Node Rest and Http Clients for use with TypeScript",
   "main": "./RestClient.js",
   "scripts": {
@@ -45,14 +45,14 @@
   "dependencies": {
     "des.js": "^1.1.0",
     "js-md4": "^0.3.2",
-    "qs": "^6.16.0",
+    "qs": "^6.16.1",
     "tunnel": "0.0.6",
     "underscore": "^1.13.8"
   },
   "overrides": {
     "serialize-javascript": "7.0.5",
     "js-yaml": "^4.3.2",
-    "brace-expansion@1.x": {".": "1.1.18"},
-    "brace-expansion@2.x": {".": "2.1.4"}
+    "brace-expansion@1.x": {".": "^1.1.21"},
+    "brace-expansion@2.x": {".": "^2.1.7"}
   }
 }
