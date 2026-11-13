@@ -653,6 +653,58 @@ describe('Http Proxy Tunnel Tests', function () {
         assert(!proxyAgent, 'proxy agent should not be created when host is bypassed');
     });
 
+    it('does not bypass proxy when NO_PROXY matches the query string only', () => {
+        this.timeout(1000);
+
+        let noProxyBeforeTest = process.env["NO_PROXY"];
+        process.env["NO_PROXY"] = "10.*";
+
+        try {
+            let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests', [], {
+                proxy: {
+                    proxyUrl: 'http://proxy-server:3128'
+                }
+            });
+
+            let agent = (http as any)._getAgent(new URL('https://dev.azure.com/organization/_apis/distributedtask/hubs/build/plans/plan/jobs/job/oidctoken?serviceConnectionId=ab10cd'));
+            let proxyAgent = (http as any)._proxyAgent;
+
+            assert(proxyAgent, 'proxy agent should be created when only the query string matches NO_PROXY');
+        } finally {
+            if (noProxyBeforeTest !== undefined) {
+                process.env["NO_PROXY"] = noProxyBeforeTest;
+            } else {
+                delete process.env["NO_PROXY"];
+            }
+        }
+    });
+
+    it('bypasses proxy when NO_PROXY matches the hostname', () => {
+        this.timeout(1000);
+
+        let noProxyBeforeTest = process.env["NO_PROXY"];
+        process.env["NO_PROXY"] = "10.*";
+
+        try {
+            let http: httpm.HttpClient = new httpm.HttpClient('typed-test-client-tests', [], {
+                proxy: {
+                    proxyUrl: 'http://proxy-server:3128'
+                }
+            });
+
+            let agent = (http as any)._getAgent(new URL('https://10.1.2.3/artifact'));
+            let proxyAgent = (http as any)._proxyAgent;
+
+            assert(!proxyAgent, 'proxy agent should not be created when the hostname matches NO_PROXY');
+        } finally {
+            if (noProxyBeforeTest !== undefined) {
+                process.env["NO_PROXY"] = noProxyBeforeTest;
+            } else {
+                delete process.env["NO_PROXY"];
+            }
+        }
+    });
+
     it('resolves proxy from HTTP_PROXY environment variable', () => {
         this.timeout(1000);
 

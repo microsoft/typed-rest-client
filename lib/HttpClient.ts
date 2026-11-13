@@ -422,7 +422,7 @@ export class HttpClient implements ifm.IHttpClient {
         const usingSsl: boolean = requestUrl.protocol === 'https:';
         info.httpModule = usingSsl ? https : http;
         const defaultPort: number = usingSsl ? 443 : 80;
-        
+
         info.options = <http.RequestOptions>{};
         info.options.host = requestUrl.hostname;
         info.options.port = requestUrl.port ? parseInt(requestUrl.port) : defaultPort;
@@ -435,7 +435,7 @@ export class HttpClient implements ifm.IHttpClient {
         if (this.userAgent != null) {
             info.options.headers["user-agent"] = this.userAgent;
         }
-        
+
         info.options.agent = this._getAgent(requestUrl);
 
         // gives handlers an opportunity to participate
@@ -536,7 +536,7 @@ export class HttpClient implements ifm.IHttpClient {
 
         // if not using private agent and tunnel agent isn't setup then use global agent
         if (!agent) {
-            const globalAgentOptions: http.AgentOptions = { 
+            const globalAgentOptions: http.AgentOptions = {
                 keepAlive: this._httpGlobalAgentOptions.keepAlive,
                 timeout: this._httpGlobalAgentOptions.timeout
             };
@@ -599,7 +599,7 @@ export class HttpClient implements ifm.IHttpClient {
 
         let bypass: boolean = false;
         this._httpProxyBypassHosts.forEach(bypassHost => {
-            if (bypassHost.test(parsedUrl.href)) {
+            if (bypassHost.test(parsedUrl.hostname)) {
                 bypass = true;
             }
         });
